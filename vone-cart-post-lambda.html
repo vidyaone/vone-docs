@@ -237,28 +237,19 @@
   <section id="identification">
     <h2><span class="idx">02</span> Identification rule</h2>
     <p class="lead">
-      Every request must satisfy <strong>both</strong> of the following, or it is rejected
-      with <code>400</code> before any other field is validated.
+      Simple version: every item is either a <strong>product</strong> or a <strong>service</strong>,
+      never both — and a <code>guestId</code> is always required no matter which.
     </p>
-    <div class="grid2" style="margin-top: 14px;">
-      <div class="card">
-        <h4><span class="dot ok"></span> Rule A — guestId</h4>
-        <p style="margin:0; color: var(--text-dim); font-size: 0.85rem;">
-          <code>guestId</code> must always be present, non-blank, and pass format validation.
-          No branch of the request can omit it.
-        </p>
-      </div>
-      <div class="card">
-        <h4><span class="dot ok"></span> Rule B — one identifier path</h4>
-        <p style="margin:0; color: var(--text-dim); font-size: 0.85rem;">
-          Either <code>productId</code> is present,<br>
-          <strong>or</strong> <code>serviceId</code> <em>and</em> <code>userId</code> are both present.
-        </p>
-      </div>
+    <div class="card" style="margin-top: 14px;">
+      <ul class="err-list" style="margin:0;">
+        <li><code>guestId</code> — always required, on every request.</li>
+        <li><code>productId</code> <strong>or</strong> <code>serviceId</code> — at least one must be a positive integer. Whichever one you're <em>not</em> using can be <code>0</code>, left out entirely, or omitted — no error either way.</li>
+        <li><code>userId</code> — always optional, regardless of whether you used <code>productId</code> or <code>serviceId</code>.</li>
+      </ul>
     </div>
     <p class="lead" style="margin-top:14px;">
-      Presence is checked first (does the key exist with a non-null value?) — the actual
-      value (positive, zero, format, etc.) is validated afterward, per field.
+      One exception: if you <em>do</em> send a value for the unused field, it can't be negative.
+      <code>productId: -1</code> is rejected even though <code>serviceId</code> was valid — <code>0</code> or omitting the field entirely are the only accepted ways to say "not applicable."
     </p>
   </section>
 
@@ -269,10 +260,10 @@
         <tr><th>Field</th><th>Type</th><th>Requirement</th><th>Default</th><th>Rule</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>productId</code></td><td>int</td><td><span class="tag cond">conditional</span></td><td>0</td><td>Required unless the <code>serviceId</code>+<code>userId</code> path is used. If present, must be a positive integer.</td></tr>
-        <tr><td><code>serviceId</code></td><td>int</td><td><span class="tag cond">conditional</span></td><td>0</td><td>Required unless <code>productId</code> is present. If present, must be a positive integer.</td></tr>
+        <tr><td><code>productId</code></td><td>int</td><td><span class="tag cond">one of two</span></td><td>0</td><td>You need this <strong>or</strong> <code>serviceId</code> to be positive. If you're using <code>serviceId</code> instead, this can be <code>0</code> or omitted — but not negative.</td></tr>
+        <tr><td><code>serviceId</code></td><td>int</td><td><span class="tag cond">one of two</span></td><td>0</td><td>You need this <strong>or</strong> <code>productId</code> to be positive. If you're using <code>productId</code> instead, this can be <code>0</code> or omitted — but not negative.</td></tr>
         <tr><td><code>guestId</code></td><td>string</td><td><span class="tag req">required</span></td><td>—</td><td>Always required. Non-blank, ≤128 chars, <code>^[A-Za-z0-9_-]+$</code> only.</td></tr>
-        <tr><td><code>userId</code></td><td>int</td><td><span class="tag cond">conditional</span></td><td>0</td><td>Required only when using the <code>serviceId</code> path (alongside it). If present, must be ≥ 0.</td></tr>
+        <tr><td><code>userId</code></td><td>int</td><td><span class="tag opt">optional</span></td><td>0</td><td>Always optional — independent of whether you used <code>productId</code> or <code>serviceId</code>. If present, must be ≥ 0.</td></tr>
         <tr><td><code>planId</code></td><td>int</td><td><span class="tag opt">optional</span></td><td>0</td><td>Must be ≥ 0 if present.</td></tr>
         <tr><td><code>serviceCode</code></td><td>string</td><td><span class="tag opt">optional</span></td><td>""</td><td>≤64 chars, <code>^[A-Za-z0-9_-]+$</code> only if non-blank.</td></tr>
         <tr><td><code>quantity</code></td><td>int</td><td><span class="tag opt">optional</span></td><td>1</td><td>Must be between 1 and 1000.</td></tr>
@@ -323,9 +314,8 @@
     <h3>Common rejection messages</h3>
     <ul class="err-list">
       <li><code>Payload exceeds 900 KB limit</code></li>
-      <li><code>Either 'productId' or 'serviceId' and 'userId' together are required</code></li>
-      <li><code>Field 'productId' must be a positive integer</code></li>
-      <li><code>Field 'serviceId' must be a positive integer</code></li>
+      <li><code>Either 'productId' or 'serviceId' must be a positive integer</code> — neither one is positive</li>
+      <li><code>Field 'productId' must not be negative</code> / <code>Field 'serviceId' must not be negative</code> — the unused field was sent with a negative value</li>
       <li><code>Field 'guestId' is required</code></li>
       <li><code>Field 'guestId' contains disallowed characters</code></li>
       <li><code>Field 'quantity' must be between 1 and 1000</code></li>
@@ -341,7 +331,8 @@
     <pre><code><span class="kw">{</span> <span class="str">"productId"</span>: <span class="num">1024</span>, <span class="str">"guestId"</span>: <span class="str">"guest_a1b2c3d4"</span> <span class="kw">}</span></code></pre>
 
     <h3>✅ Minimal valid — serviceId path</h3>
-    <pre><code><span class="kw">{</span> <span class="str">"serviceId"</span>: <span class="num">7</span>, <span class="str">"userId"</span>: <span class="num">42</span>, <span class="str">"guestId"</span>: <span class="str">"guest_a1b2c3d4"</span> <span class="kw">}</span></code></pre>
+    <pre><code><span class="kw">{</span> <span class="str">"serviceId"</span>: <span class="num">7</span>, <span class="str">"guestId"</span>: <span class="str">"guest_a1b2c3d4"</span> <span class="kw">}</span></code></pre>
+    <p class="lead" style="margin-top:0; font-size:0.8rem;"><code>userId</code> is optional here too — it's never required by either path.</p>
 
     <h3>✅ Full subscription example</h3>
     <pre><code><span class="kw">{</span>
@@ -363,11 +354,15 @@
 
     <h3>❌ Rejected — no identifier at all</h3>
     <pre><code><span class="kw">{</span> <span class="str">"guestId"</span>: <span class="str">"abc123"</span> <span class="kw">}</span>
-<span class="comment">// 400 — "Either 'productId' or 'serviceId' and 'userId' together are required"</span></code></pre>
+<span class="comment">// 400 — "Either 'productId' or 'serviceId' must be a positive integer"</span></code></pre>
 
     <h3>❌ Rejected — missing guestId</h3>
     <pre><code><span class="kw">{</span> <span class="str">"productId"</span>: <span class="num">1</span> <span class="kw">}</span>
 <span class="comment">// 400 — "Field 'guestId' is required"</span></code></pre>
+
+    <h3>❌ Rejected — negative value on the unused field</h3>
+    <pre><code><span class="kw">{</span> <span class="str">"productId"</span>: <span class="num">5</span>, <span class="str">"serviceId"</span>: <span class="num">-1</span>, <span class="str">"guestId"</span>: <span class="str">"abc123"</span> <span class="kw">}</span>
+<span class="comment">// 400 — "Field 'serviceId' must not be negative" — even though productId alone was enough</span></code></pre>
 
     <h3>❌ Rejected — dangerous content</h3>
     <pre><code><span class="kw">{</span> <span class="str">"productId"</span>: <span class="num">1</span>, <span class="str">"guestId"</span>: <span class="str">"abc123"</span>, <span class="str">"pageLink"</span>: <span class="str">"https://x.com/&lt;script&gt;alert(1)&lt;/script&gt;"</span> <span class="kw">}</span>
@@ -418,7 +413,7 @@
        │
        ├─ <span class="gate">size guard</span>        ≤ 900 KB, else 400
        ├─ <span class="gate">JSON decode</span>        must be an object, else 400
-       ├─ <span class="gate">identification</span>     guestId AND (productId OR serviceId+userId), else 400
+       ├─ <span class="gate">identification</span>     guestId required; productId or serviceId must be positive (no negatives), else 400
        ├─ per-field validation   type / range / format checks, else 400
        ├─ device + location enrichment (User-Agent, CloudFront headers)
        ├─ <span class="gate">bot heuristic</span>       2+ signals → 400 "Submission rejected"
