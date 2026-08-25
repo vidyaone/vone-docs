@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vone-form-post-lambda — Request Format</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #161923;
+    --border: #262b3a;
+    --text: #e6e8ef;
+    --muted: #9aa1b5;
+    --accent: #7c9cff;
+    --ok: #4ade80;
+    --err: #f87171;
+    --warn: #fbbf24;
+    --code-bg: #0b0d13;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+  }
+  header {
+    padding: 32px 24px 20px;
+    border-bottom: 1px solid var(--border);
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  header h1 {
+    margin: 0 0 6px;
+    font-size: 1.6rem;
+  }
+  header p {
+    margin: 0;
+    color: var(--muted);
+  }
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+  section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+  section h2 {
+    margin-top: 0;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  section h2 .badge {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--accent);
+    color: #0f1117;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 700;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    font-size: 0.85rem;
+  }
+  code {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .required { color: var(--err); font-weight: 600; }
+  .optional { color: var(--muted); }
+  .pill {
+    display: inline-block;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 8px;
+    margin: 2px 4px 2px 0;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.8rem;
+  }
+  .status-200 { color: var(--ok); }
+  .status-400 { color: var(--warn); }
+  .status-500 { color: var(--err); }
+  footer {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 8px 24px 40px;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>vone-form-post-lambda</h1>
+  <p>Request payload format for the form-ingest Lambda (region: ap-south-1). Share this with frontend/integration developers.</p>
+</header>
+
+<main>
+
+  <section>
+    <h2>Endpoint <span class="badge">POST</span></h2>
+    <p>Preflight <code>OPTIONS</code> requests are handled automatically (204, no body).</p>
+    <h3>Required headers</h3>
+    <pre><code>Content-Type: application/json
+Origin: https://vidyaone.com          (or any *.vidyaone.com subdomain — https only)
+User-Agent: &lt;browser UA&gt;              (missing counts as a bot signal)
+Referer: &lt;page the form was submitted from&gt;  (missing counts as a bot signal)</code></pre>
+    <p class="optional">Note: a submission is rejected as bot/spam once 2 or more bot signals fire (missing User-Agent, known bot User-Agent, missing Referer).</p>
+  </section>
+
+  <section>
+    <h2>Example request body</h2>
+    <pre><code>{
+  "form_type": "contact",
+  "subject": "New enquiry",
+  "form_fields": {
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "message": "I'd like to book a demo."
+  },
+  "page": {
+    "url": "https://vidyaone.com/contact"
+  }
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Field reference</h2>
+    <table>
+      <thead>
+        <tr><th>Field</th><th>Required</th><th>Rules</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>form_type</code></td>
+          <td class="required">Required</td>
+          <td>String. Must be one of the allowed form types (see below). Case-insensitive.</td>
+        </tr>
+        <tr>
+          <td><code>subject</code></td>
+          <td class="optional">Optional</td>
+          <td>String, ≤ 5000 chars, restricted character set (see below).</td>
+        </tr>
+        <tr>
+          <td><code>form_fields</code></td>
+          <td class="required">Required</td>
+          <td>JSON object with at least one non-blank value. Keys must be strings ≤ 100 chars.</td>
+        </tr>
+        <tr>
+          <td><code>form_fields.&lt;key&gt;</code></td>
+          <td>—</td>
+          <td>String values ≤ 5000 chars, restricted character set, must not contain <code>..</code> or <code>\</code>.</td>
+        </tr>
+        <tr>
+          <td><code>form_fields.email</code></td>
+          <td>If key present</td>
+          <td>Must match <code>local@domain</code> shape (e.g. <code>name@example.com</code>).</td>
+        </tr>
+        <tr>
+          <td><code>page.url</code></td>
+          <td class="required">Required</td>
+          <td>Valid <code>http(s)://</code> URL whose host is <code>vidyaone.com</code> or a subdomain.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Allowed <code>form_type</code> values</h2>
+    <div>
+      <span class="pill">contact</span>
+      <span class="pill">feedback</span>
+      <span class="pill">talk_to_an_expert</span>
+      <span class="pill">branding_consultation</span>
+      <span class="pill">setup_implementation</span>
+      <span class="pill">customization_callback</span>
+      <span class="pill">advance_technical_callback</span>
+      <span class="pill">callback</span>
+      <span class="pill">callback_vss</span>
+      <span class="pill">callback_scl_website</span>
+      <span class="pill">callback_pre_website</span>
+      <span class="pill">complaint</span>
+      <span class="pill">complaint_vss</span>
+      <span class="pill">complaint_scl_website</span>
+      <span class="pill">complaint_pre_website</span>
+      <span class="pill">lead</span>
+      <span class="pill">lead_vss</span>
+      <span class="pill">lead_scl_website</span>
+      <span class="pill">lead_pre_website</span>
+      <span class="pill">demo_scl_website</span>
+      <span class="pill">demo_vss</span>
+      <span class="pill">demo_pre_website</span>
+      <span class="pill">trial_vss</span>
+      <span class="pill">onboarding_vss</span>
+      <span class="pill">onboarding_scl_website</span>
+      <span class="pill">onboarding_pre_website</span>
+      <span class="pill">domain_booking_scl_website</span>
+      <span class="pill">activate_ssl_scl_website</span>
+      <span class="pill">domain_booking_pre_website</span>
+      <span class="pill">activate_ssl_pre_website</span>
+      <span class="pill">success_story</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Character set &amp; size limits</h2>
+    <p>Applies to <code>subject</code>, <code>form_type</code>, and string values in <code>form_fields</code>:</p>
+    <pre><code>Allowed: letters, digits, whitespace, and  @ . - , ! ? : ( ) [ ] /</code></pre>
+    <table>
+      <tbody>
+        <tr><td>Max total payload size</td><td>1,000,000 bytes</td></tr>
+        <tr><td>Max chars per <code>form_fields</code> value / <code>subject</code></td><td>5,000</td></tr>
+        <tr><td>Max chars per <code>form_fields</code> key</td><td>100</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Responses</h2>
+    <table>
+      <thead>
+        <tr><th>Status</th><th>Body</th><th>When</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="status-200">200</td>
+          <td><pre><code>{ "message": "Submission received", "requestId": "..." }</code></pre></td>
+          <td>Submission accepted and queued.</td>
+        </tr>
+        <tr>
+          <td class="status-400">400</td>
+          <td><pre><code>{ "error": "&lt;reason&gt;", "requestId": "..." }</code></pre></td>
+          <td>Bad JSON, missing/invalid field, disallowed <code>form_type</code>, disallowed <code>page.url</code> domain, or flagged as bot/spam.</td>
+        </tr>
+        <tr>
+          <td class="status-500">500</td>
+          <td><pre><code>{ "error": "Internal server error", "requestId": "..." }</code></pre></td>
+          <td>Unexpected server-side failure.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+</main>
+
+<footer>
+  Generated from <code>lambda_function.py</code>, <code>event_parser.py</code>, and <code>config.py</code> in this project.
+</footer>
+
+</body>
+</html>
