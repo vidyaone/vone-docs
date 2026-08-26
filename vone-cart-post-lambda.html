@@ -171,6 +171,7 @@
   }
   .status.s200 { background: rgba(62,207,142,0.12); color: var(--ok); }
   .status.s204 { background: rgba(91,157,255,0.12); color: var(--accent); }
+  .status.s302 { background: rgba(91,157,255,0.18); color: var(--accent); }
   .status.s400 { background: rgba(245,165,36,0.12); color: var(--warn); }
   .status.s500 { background: rgba(245,85,108,0.12); color: var(--err); }
   ul.err-list { margin: 10px 0 0; padding-left: 20px; font-size: 0.85rem; }
@@ -270,8 +271,8 @@
         <tr><td><code>price</code></td><td>number</td><td><span class="tag opt">optional</span></td><td>0.0</td><td>0 ≤ x ≤ 10,000,000.</td></tr>
         <tr><td><code>discount</code></td><td>number</td><td><span class="tag opt">optional</span></td><td>0.0</td><td>0 ≤ x ≤ 10,000,000.</td></tr>
         <tr><td><code>total</code></td><td>number</td><td><span class="tag opt">optional</span></td><td>0.0</td><td>0 ≤ x ≤ 10,000,000. Not recomputed server-side from price/discount.</td></tr>
-        <tr><td><code>buyNow</code></td><td>boolean</td><td><span class="tag opt">optional</span></td><td>false</td><td>Must be a real boolean, not a truthy string.</td></tr>
-        <tr><td><code>payAsGuest</code></td><td>boolean</td><td><span class="tag opt">optional</span></td><td>true</td><td>Must be a real boolean.</td></tr>
+        <tr><td><code>buyNow</code></td><td>boolean</td><td><span class="tag req">required</span></td><td>—</td><td>Must be present and a real boolean, not a truthy string. When <code>true</code> and the request validates, the response is a 302 redirect to checkout (see §06) instead of 200.</td></tr>
+        <tr><td><code>payAsGuest</code></td><td>boolean</td><td><span class="tag req">required</span></td><td>—</td><td>Must be present and a real boolean.</td></tr>
         <tr><td><code>billingCycle</code></td><td>string</td><td><span class="tag opt">optional</span></td><td>""</td><td>If non-blank, must be one of <code>monthly</code>, <code>yearly</code> (case-insensitive).</td></tr>
         <tr><td><code>subscription</code></td><td>boolean</td><td><span class="tag opt">optional</span></td><td>false</td><td>Must be a real boolean.</td></tr>
         <tr><td><code>pageLink</code></td><td>string</td><td><span class="tag opt">optional</span></td><td>""</td><td>≤2000 chars. No charset restriction (URLs need punctuation) — still scanned for dangerous content.</td></tr>
@@ -318,6 +319,7 @@
       <li><code>Field 'productId' must not be negative</code> / <code>Field 'serviceId' must not be negative</code> — the unused field was sent with a negative value</li>
       <li><code>Field 'guestId' is required</code></li>
       <li><code>Field 'guestId' contains disallowed characters</code></li>
+      <li><code>Field 'buyNow' is required</code> / <code>Field 'payAsGuest' is required</code> — both must be present and a real boolean</li>
       <li><code>Field 'quantity' must be between 1 and 1000</code></li>
       <li><code>Field 'billingCycle' must be one of ['monthly', 'yearly']</code></li>
       <li><code>Submission rejected</code> — bot signals or dangerous content detected</li>
@@ -328,11 +330,11 @@
     <h2><span class="idx">05</span> Example requests</h2>
 
     <h3>✅ Minimal valid — productId path</h3>
-    <pre><code><span class="kw">{</span> <span class="str">"productId"</span>: <span class="num">1024</span>, <span class="str">"guestId"</span>: <span class="str">"guest_a1b2c3d4"</span> <span class="kw">}</span></code></pre>
+    <pre><code><span class="kw">{</span> <span class="str">"productId"</span>: <span class="num">1024</span>, <span class="str">"guestId"</span>: <span class="str">"guest_a1b2c3d4"</span>, <span class="str">"buyNow"</span>: <span class="kw">false</span>, <span class="str">"payAsGuest"</span>: <span class="kw">true</span> <span class="kw">}</span></code></pre>
 
     <h3>✅ Minimal valid — serviceId path</h3>
-    <pre><code><span class="kw">{</span> <span class="str">"serviceId"</span>: <span class="num">7</span>, <span class="str">"guestId"</span>: <span class="str">"guest_a1b2c3d4"</span> <span class="kw">}</span></code></pre>
-    <p class="lead" style="margin-top:0; font-size:0.8rem;"><code>userId</code> is optional here too — it's never required by either path.</p>
+    <pre><code><span class="kw">{</span> <span class="str">"serviceId"</span>: <span class="num">7</span>, <span class="str">"guestId"</span>: <span class="str">"guest_a1b2c3d4"</span>, <span class="str">"buyNow"</span>: <span class="kw">false</span>, <span class="str">"payAsGuest"</span>: <span class="kw">true</span> <span class="kw">}</span></code></pre>
+    <p class="lead" style="margin-top:0; font-size:0.8rem;"><code>userId</code> is optional here too — it's never required by either path. <code>buyNow</code> and <code>payAsGuest</code> are required on every request.</p>
 
     <h3>✅ Full subscription example</h3>
     <pre><code><span class="kw">{</span>
@@ -360,6 +362,10 @@
     <pre><code><span class="kw">{</span> <span class="str">"productId"</span>: <span class="num">1</span> <span class="kw">}</span>
 <span class="comment">// 400 — "Field 'guestId' is required"</span></code></pre>
 
+    <h3>❌ Rejected — missing buyNow / payAsGuest</h3>
+    <pre><code><span class="kw">{</span> <span class="str">"productId"</span>: <span class="num">1</span>, <span class="str">"guestId"</span>: <span class="str">"abc123"</span> <span class="kw">}</span>
+<span class="comment">// 400 — "Field 'buyNow' is required" (payAsGuest is checked next, once buyNow is present)</span></code></pre>
+
     <h3>❌ Rejected — negative value on the unused field</h3>
     <pre><code><span class="kw">{</span> <span class="str">"productId"</span>: <span class="num">5</span>, <span class="str">"serviceId"</span>: <span class="num">-1</span>, <span class="str">"guestId"</span>: <span class="str">"abc123"</span> <span class="kw">}</span>
 <span class="comment">// 400 — "Field 'serviceId' must not be negative" — even though productId alone was enough</span></code></pre>
@@ -380,7 +386,19 @@
   <span class="str">"message"</span>:   <span class="str">"Item received"</span>,
   <span class="str">"requestId"</span>: <span class="str">"c4d1e2..."</span>
 <span class="kw">}</span></code></pre>
-    <p class="lead">Only returned after the item is durably written to SQS. SNS publish is best-effort and does not affect this response.</p>
+    <p class="lead">Returned when <code>buyNow</code> is <code>false</code>, after the item is durably written to SQS. SNS publish is best-effort and does not affect this response.</p>
+
+    <div class="status s302" style="margin-top:22px;">302 Found</div>
+    <pre><code><span class="comment">Location: https://account.vidyaone.com/checkout</span></code></pre>
+    <p class="lead">
+      Returned instead of 200 when <code>buyNow</code> is <code>true</code> and the request validated
+      cleanly — the item has already been written to SQS by this point. Body is empty; the
+      destination is only in the <code>Location</code> header, configured via
+      <code>config.CHECKOUT_URL</code>. The frontend/client decides how to navigate there (a real
+      browser form POST follows this automatically; a <code>fetch()</code>-based caller will need to
+      read <code>response.url</code> and navigate manually, since a followed redirect does not
+      move the browser tab on its own).
+    </p>
 
     <div class="status s400" style="margin-top:22px;">400 Bad Request</div>
     <pre><code><span class="kw">{</span>
@@ -422,9 +440,10 @@
        └─ event built
             │
             ├─ send_sqs()    <span class="gate">mandatory</span> — failure → 500
-            └─ publish_sns() best-effort — failure logged, still 200
+            └─ publish_sns() best-effort — failure logged, still 200/302
             │
-            └─ <span class="final">200 "Item received"</span></div>
+            ├─ buyNow == true?  → <span class="final">302</span> redirect, Location: config.CHECKOUT_URL
+            └─ buyNow == false? → <span class="final">200</span> "Item received"</div>
     <p class="lead" style="margin-top:14px;">
       Nothing invalid, bot-flagged, or dangerous ever reaches SQS/SNS — every rejection path
       raises before the message is built or sent.
