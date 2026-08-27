@@ -160,12 +160,20 @@
         </tr>
         <tr>
           <td><code>Idempotency-Key</code></td>
-          <td class="required">Required</td>
+          <td class="required">Always required</td>
           <td>
             A GUID / UUID (<code>8-4-4-4-12</code> hex, e.g.
             <code>f47ac10b-58cc-4372-a567-0e02b2c3d479</code>).
-            Use the <strong>same value on every retry</strong> of one logical
-            submission; generate a <strong>new one</strong> for each new submission.
+            This service does <strong>not</strong> de-duplicate — the key is
+            validated and passed straight through on the queued message as
+            <code>idempotencyKey</code> for your consumer to de-dupe on.
+            <br>
+            Callers that cannot generate a GUID send the literal value
+            <code>none</code> (case-insensitive) instead: the header stays
+            required, but the emitted <code>idempotencyKey</code> is an empty
+            string.
+            A missing header, or any other value that is not a GUID, is
+            <span class="status-400">400</span>.
             See <a href="#idempotency">§6 Idempotency</a>.
           </td>
         </tr>
@@ -218,6 +226,11 @@ Origin: https://vidyaone.com
     "url": "https://vidyaone.com/contact"
   }
 }</code></pre>
+    <p class="note">
+      The body must be UTF-8 JSON. If API Gateway delivers it base64-encoded
+      (it does this for some content types), it is decoded automatically before
+      validation — you do not need to do anything.
+    </p>
 
     <h3>Field reference</h3>
     <table>
@@ -238,12 +251,23 @@ Origin: https://vidyaone.com
         <tr>
           <td><code>form_fields</code></td>
           <td class="required">Required</td>
-          <td>JSON object with <strong>at least one non-blank value</strong>. Keys must be strings ≤ 100 chars.</td>
+          <td>JSON object with <strong>at least one non-blank value</strong> (a
+            number or boolean counts; blank strings and <code>null</code> do
+            not). Keys must be strings ≤ 100 chars. May nest objects/arrays up
+            to <strong>5 levels</strong> deep, ≤ 500 entries per object/array.</td>
         </tr>
         <tr>
           <td><code>form_fields.&lt;key&gt;</code></td>
           <td>—</td>
-          <td>String values ≤ 5000 chars, restricted character set, must not contain <code>..</code> or <code>\</code>. <code>null</code> is allowed. Non-string values pass through.</td>
+          <td>
+            <strong>Every</strong> string value — including strings nested
+            inside objects and arrays — must be ≤ 5000 chars, match the
+            restricted character set (<a href="#limits">§5</a>), and must not
+            contain <code>..</code> or <code>\</code>.
+            <code>null</code>, numbers and booleans are allowed anywhere.
+            Any other type (e.g. a nested value that is not string / number /
+            bool / object / array / null) is <span class="status-400">400</span>.
+          </td>
         </tr>
         <tr>
           <td><code>form_fields.email</code></td>
@@ -301,13 +325,17 @@ Origin: https://vidyaone.com
   <!-- ------------------------------------------------------------------ -->
   <section id="limits">
     <h2>5. Character set &amp; size limits</h2>
-    <p>Character-set check applies to <code>subject</code>, <code>form_type</code>, and string values in <code>form_fields</code>:</p>
-    <pre><code>Allowed: letters, digits, whitespace, and  @ . - , ! ? : ( ) [ ] /</code></pre>
+    <p>Character-set check applies to <code>subject</code>, <code>form_type</code>, and every string value in <code>form_fields</code> (including nested ones):</p>
+    <pre><code>Allowed: letters, digits, underscore, whitespace (incl. newlines), and
+         @ . , - ! ? : ; ' " ( ) [ ] / &amp; % # * + = ~ $ |
+Rejected: &lt; &gt; { } \ ` ^  and any other character</code></pre>
     <table>
       <tbody>
         <tr><td>Max total payload size</td><td>1,000,000 bytes</td></tr>
-        <tr><td>Max chars per <code>form_fields</code> value / <code>subject</code></td><td>5,000</td></tr>
+        <tr><td>Max chars per string value / <code>subject</code></td><td>5,000</td></tr>
         <tr><td>Max chars per <code>form_fields</code> key</td><td>100</td></tr>
+        <tr><td>Max <code>form_fields</code> nesting depth</td><td>5</td></tr>
+        <tr><td>Max entries per nested object / array</td><td>500</td></tr>
       </tbody>
     </table>
   </section>
@@ -316,22 +344,26 @@ Origin: https://vidyaone.com
   <section id="idempotency">
     <h2>6. Idempotency</h2>
     <p>
-      Every request must carry an <code>Idempotency-Key</code> header (a GUID).
-      If the API sees the <strong>same key again within 5 minutes</strong>, it
-      returns <span class="status-200">200</span> immediately <strong>without
-      queueing a second copy</strong>.
+      Every request must carry an <code>Idempotency-Key</code> header, but
+      <strong>this service does not de-duplicate</strong>. The key is only
+      validated (GUID, or the literal <code>none</code>) and copied onto the
+      queued message as <code>idempotencyKey</code>. Every valid submission is
+      queued — repeats included.
     </p>
     <h3>How to use it</h3>
     <ul>
-      <li>Generate one GUID when the user submits the form.</li>
-      <li>Reuse that exact GUID for every automatic retry (network drop, timeout).</li>
-      <li>Generate a fresh GUID only when the user submits again on purpose.</li>
+      <li>Generate one GUID per logical submission and reuse it on every retry
+        (network drop, timeout) so your consumer can collapse the duplicates.</li>
+      <li>Generate a fresh GUID when the user submits again on purpose.</li>
+      <li>No GUID available? Send <code>none</code> — the emitted
+        <code>idempotencyKey</code> will be <code>""</code>, and you must
+        de-dupe on submission content downstream.</li>
     </ul>
     <p class="note">
-      <strong>Best-effort, not a hard guarantee.</strong> The de-dupe cache lives
-      in one warm Lambda container with a 5-minute TTL. Two truly simultaneous
-      duplicates that land on different containers can both be queued. Consumers
-      should also de-dupe on <code>idempotencyKey</code> (see §8).
+      De-duplication is entirely the consumer's responsibility. Suggested key:
+      a hash of <code>formType</code> + <code>formFields</code> +
+      <code>location.sourceIp</code> within a short time window when
+      <code>idempotencyKey</code> is empty.
     </p>
   </section>
 
@@ -350,7 +382,7 @@ Origin: https://vidyaone.com
   "message": "Submission received",
   "requestId": "…"
 }</code></pre></td>
-          <td>Accepted and queued — or a duplicate <code>Idempotency-Key</code> already accepted in the last 5 min.</td>
+          <td>Accepted and queued to SQS (SNS fan-out is best-effort). Every valid submission is queued — no de-duplication happens here.</td>
         </tr>
         <tr>
           <td class="status-400">400</td>
@@ -359,11 +391,13 @@ Origin: https://vidyaone.com
   "requestId": "…"
 }</code></pre></td>
           <td>
-            Invalid JSON (<code>"Invalid request body"</code>), missing/invalid
-            <code>Idempotency-Key</code>, missing/invalid field, disallowed
-            <code>form_type</code>, disallowed <code>page.url</code> domain, payload
-            too large, or flagged as bot/spam (<code>"Submission rejected"</code>).
-            Do not retry unchanged.
+            Invalid JSON or bad base64 (<code>"Invalid request body"</code>),
+            missing/invalid <code>Idempotency-Key</code>, missing/invalid field,
+            disallowed character or nested value type in <code>form_fields</code>,
+            <code>form_fields</code> nested too deep, disallowed
+            <code>form_type</code>, disallowed <code>page.url</code> domain,
+            payload too large, or flagged as bot/spam
+            (<code>"Submission rejected"</code>). Do not retry unchanged.
           </td>
         </tr>
         <tr>
@@ -372,7 +406,7 @@ Origin: https://vidyaone.com
   "error": "Internal server error",
   "requestId": "…"
 }</code></pre></td>
-          <td>Unexpected server-side failure. Safe to retry with the <strong>same</strong> <code>Idempotency-Key</code>.</td>
+          <td>Unexpected server-side failure (e.g. the queue write failed). Safe to retry; reuse the <strong>same</strong> <code>Idempotency-Key</code> so the consumer can collapse any duplicate that still got through.</td>
         </tr>
         <tr>
           <td class="status-200">204</td>
@@ -388,6 +422,8 @@ Origin: https://vidyaone.com
       <code>Access-Control-Allow-Headers: Content-Type,Authorization,Idempotency-Key</code>,
       <code>Access-Control-Allow-Methods: POST,OPTIONS</code>.
       Other origins get the response without CORS headers (browser blocks it).
+      All responses carry <code>Vary: Origin</code> and
+      <code>Cache-Control: no-store</code>.
     </p>
   </section>
 
@@ -397,7 +433,7 @@ Origin: https://vidyaone.com
     <p>On success the Lambda sends this enriched JSON to SQS (and the same shape to SNS). Device and location are derived server-side from headers.</p>
     <pre><code>{
   "requestId":      "a1b2c3d4-1111-2222-3333-444455556666",
-  "idempotencyKey": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "idempotencyKey": "f47ac10b-58cc-4372-a567-0e02b2c3d479",  // "" if client sent "none"
   "submittedAt":    "2026-08-27T10:15:30.123456+00:00",
 
   "formType":   "contact",
@@ -423,10 +459,19 @@ Origin: https://vidyaone.com
   "botDetection": { "isBot": false, "reasons": [] }
 }</code></pre>
     <p><strong>SQS message attributes:</strong> <code>formType</code>, <code>requestId</code>, <code>isBot</code>.</p>
+    <p><code>formFields</code> is echoed as submitted, so it may contain nested objects/arrays if the client sent them.</p>
     <p class="note">
-      A separate <em>failure queue</em> receives (a) validation-rejected but safe
-      submissions and (b) fully-valid submissions that failed to reach the main
-      queue. Those messages add a <code>failureReason</code> field.
+      A separate <em>failure queue</em> receives submissions that were
+      <strong>rejected or undelivered but still safe and genuine</strong>:
+      (a) validation- or parse-rejected content that passed the character /
+      path / bot / URL-domain screening, and (b) fully-valid submissions that
+      failed to reach the main queue. Those messages add a
+      <code>failureReason</code> body field holding the human-readable cause
+      (the validation message, or a string prefixed <code>parse_error:</code> /
+      <code>sqs_delivery_failed:</code>), plus a <code>reason</code> message
+      attribute of <code>validation_rejected</code> or
+      <code>sqs_delivery_failed</code>. Blank, malformed, bot-flagged, or
+      dangerous submissions are dropped with only a log line.
     </p>
   </section>
 
