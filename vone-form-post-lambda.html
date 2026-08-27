@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>vone-form-post-lambda — Request Format</title>
+<title>vone-form-post-lambda — Developer Docs</title>
 <style>
   :root {
     --bg: #0f1117;
@@ -31,19 +31,9 @@
     max-width: 960px;
     margin: 0 auto;
   }
-  header h1 {
-    margin: 0 0 6px;
-    font-size: 1.6rem;
-  }
-  header p {
-    margin: 0;
-    color: var(--muted);
-  }
-  main {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 24px;
-  }
+  header h1 { margin: 0 0 6px; font-size: 1.6rem; }
+  header p { margin: 0; color: var(--muted); }
+  main { max-width: 960px; margin: 0 auto; padding: 24px; }
   section {
     background: var(--panel);
     border: 1px solid var(--border);
@@ -58,6 +48,7 @@
     align-items: center;
     gap: 8px;
   }
+  section h3 { font-size: 0.95rem; margin: 18px 0 6px; }
   section h2 .badge {
     font-size: 0.65rem;
     text-transform: uppercase;
@@ -76,14 +67,15 @@
     overflow-x: auto;
     font-size: 0.85rem;
   }
-  code {
-    font-family: "SF Mono", Menlo, Consolas, monospace;
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; }
+  p code, td code, li code {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 0.85em;
   }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.88rem;
-  }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
   th, td {
     text-align: left;
     padding: 8px 10px;
@@ -109,9 +101,17 @@
     font-family: "SF Mono", Menlo, Consolas, monospace;
     font-size: 0.8rem;
   }
-  .status-200 { color: var(--ok); }
-  .status-400 { color: var(--warn); }
-  .status-500 { color: var(--err); }
+  .status-200 { color: var(--ok); font-weight: 700; }
+  .status-400 { color: var(--warn); font-weight: 700; }
+  .status-500 { color: var(--err); font-weight: 700; }
+  .note {
+    border-left: 3px solid var(--accent);
+    padding: 8px 14px;
+    margin: 12px 0 0;
+    background: rgba(124,156,255,0.07);
+    color: var(--muted);
+    font-size: 0.86rem;
+  }
   footer {
     max-width: 960px;
     margin: 0 auto;
@@ -125,25 +125,88 @@
 
 <header>
   <h1>vone-form-post-lambda</h1>
-  <p>Request payload format for the form-ingest Lambda (region: ap-south-1). Share this with frontend/integration developers.</p>
+  <p>Developer reference for the form-ingest API (region: ap-south-1). Covers the request, all requirements, and every response.</p>
 </header>
 
 <main>
 
+  <!-- ------------------------------------------------------------------ -->
   <section>
-    <h2>Endpoint <span class="badge">POST</span></h2>
-    <p>Preflight <code>OPTIONS</code> requests are handled automatically (204, no body).</p>
-    <h3>Required headers</h3>
-    <pre><code>Content-Type: application/json
-Origin: https://vidyaone.com          (or any *.vidyaone.com subdomain — https only)
-User-Agent: &lt;browser UA&gt;              (missing counts as a bot signal)
-Referer: &lt;page the form was submitted from&gt;  (missing counts as a bot signal)</code></pre>
-    <p class="optional">Note: a submission is rejected as bot/spam once 2 or more bot signals fire (missing User-Agent, known bot User-Agent, missing Referer).</p>
+    <h2>1. What it does</h2>
+    <p>
+      Accepts one website form submission over HTTPS, validates it, screens it for
+      bot/spam, and puts an enriched copy on an SQS queue (with an SNS fan-out).
+      Once you get <span class="status-200">200</span> the data is durably queued.
+    </p>
+    <ul>
+      <li><strong>Method:</strong> <code>POST</code> &nbsp;·&nbsp; <strong>Content type:</strong> <code>application/json</code></li>
+      <li><code>OPTIONS</code> preflight is answered automatically — <code>204</code>, no body.</li>
+      <li>Any other method is treated as <code>POST</code>.</li>
+    </ul>
   </section>
 
+  <!-- ------------------------------------------------------------------ -->
   <section>
-    <h2>Example request body</h2>
-    <pre><code>{
+    <h2>2. Request headers</h2>
+    <table>
+      <thead>
+        <tr><th>Header</th><th>Required</th><th>Rules</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>Content-Type</code></td>
+          <td class="required">Required</td>
+          <td>Must be <code>application/json</code>.</td>
+        </tr>
+        <tr>
+          <td><code>Idempotency-Key</code></td>
+          <td class="required">Required</td>
+          <td>
+            A GUID / UUID (<code>8-4-4-4-12</code> hex, e.g.
+            <code>f47ac10b-58cc-4372-a567-0e02b2c3d479</code>).
+            Use the <strong>same value on every retry</strong> of one logical
+            submission; generate a <strong>new one</strong> for each new submission.
+            See <a href="#idempotency">§6 Idempotency</a>.
+          </td>
+        </tr>
+        <tr>
+          <td><code>Origin</code></td>
+          <td class="required">Required (browser)</td>
+          <td>
+            Must be <code>https://vidyaone.com</code> or any
+            <code>*.vidyaone.com</code> subdomain. <code>http</code> is always rejected.
+            Controls the CORS response headers.
+          </td>
+        </tr>
+        <tr>
+          <td><code>User-Agent</code></td>
+          <td class="optional">Recommended</td>
+          <td>Browser UA string. Missing = one bot signal.</td>
+        </tr>
+        <tr>
+          <td><code>Referer</code></td>
+          <td class="optional">Recommended</td>
+          <td>The page the form was submitted from. Missing = one bot signal.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      Bot/spam rule: the submission is rejected with <span class="status-400">400</span>
+      once <strong>2 or more</strong> bot signals fire — missing <code>User-Agent</code>,
+      a known bot <code>User-Agent</code>, or missing <code>Referer</code>.
+    </p>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section>
+    <h2>3. Request body</h2>
+    <h3>Example</h3>
+    <pre><code>POST /  HTTP/1.1
+Content-Type: application/json
+Idempotency-Key: f47ac10b-58cc-4372-a567-0e02b2c3d479
+Origin: https://vidyaone.com
+
+{
   "form_type": "contact",
   "subject": "New enquiry",
   "form_fields": {
@@ -155,10 +218,8 @@ Referer: &lt;page the form was submitted from&gt;  (missing counts as a bot sign
     "url": "https://vidyaone.com/contact"
   }
 }</code></pre>
-  </section>
 
-  <section>
-    <h2>Field reference</h2>
+    <h3>Field reference</h3>
     <table>
       <thead>
         <tr><th>Field</th><th>Required</th><th>Rules</th></tr>
@@ -167,27 +228,27 @@ Referer: &lt;page the form was submitted from&gt;  (missing counts as a bot sign
         <tr>
           <td><code>form_type</code></td>
           <td class="required">Required</td>
-          <td>String. Must be one of the allowed form types (see below). Case-insensitive.</td>
+          <td>String. One of the allowed values in <a href="#form-types">§4</a>. Case-insensitive (lower-cased server-side).</td>
         </tr>
         <tr>
           <td><code>subject</code></td>
           <td class="optional">Optional</td>
-          <td>String, ≤ 5000 chars, restricted character set (see below).</td>
+          <td>String, ≤ 5000 chars, restricted character set (<a href="#limits">§5</a>).</td>
         </tr>
         <tr>
           <td><code>form_fields</code></td>
           <td class="required">Required</td>
-          <td>JSON object with at least one non-blank value. Keys must be strings ≤ 100 chars.</td>
+          <td>JSON object with <strong>at least one non-blank value</strong>. Keys must be strings ≤ 100 chars.</td>
         </tr>
         <tr>
           <td><code>form_fields.&lt;key&gt;</code></td>
           <td>—</td>
-          <td>String values ≤ 5000 chars, restricted character set, must not contain <code>..</code> or <code>\</code>.</td>
+          <td>String values ≤ 5000 chars, restricted character set, must not contain <code>..</code> or <code>\</code>. <code>null</code> is allowed. Non-string values pass through.</td>
         </tr>
         <tr>
           <td><code>form_fields.email</code></td>
           <td>If key present</td>
-          <td>Must match <code>local@domain</code> shape (e.g. <code>name@example.com</code>).</td>
+          <td>Must look like <code>local@domain</code> (e.g. <code>name@example.com</code>).</td>
         </tr>
         <tr>
           <td><code>page.url</code></td>
@@ -198,8 +259,9 @@ Referer: &lt;page the form was submitted from&gt;  (missing counts as a bot sign
     </table>
   </section>
 
-  <section>
-    <h2>Allowed <code>form_type</code> values</h2>
+  <!-- ------------------------------------------------------------------ -->
+  <section id="form-types">
+    <h2>4. Allowed <code>form_type</code> values</h2>
     <div>
       <span class="pill">contact</span>
       <span class="pill">feedback</span>
@@ -232,12 +294,14 @@ Referer: &lt;page the form was submitted from&gt;  (missing counts as a bot sign
       <span class="pill">domain_booking_pre_website</span>
       <span class="pill">activate_ssl_pre_website</span>
       <span class="pill">success_story</span>
+      <span class="pill">payment_reminder</span>
     </div>
   </section>
 
-  <section>
-    <h2>Character set &amp; size limits</h2>
-    <p>Applies to <code>subject</code>, <code>form_type</code>, and string values in <code>form_fields</code>:</p>
+  <!-- ------------------------------------------------------------------ -->
+  <section id="limits">
+    <h2>5. Character set &amp; size limits</h2>
+    <p>Character-set check applies to <code>subject</code>, <code>form_type</code>, and string values in <code>form_fields</code>:</p>
     <pre><code>Allowed: letters, digits, whitespace, and  @ . - , ! ? : ( ) [ ] /</code></pre>
     <table>
       <tbody>
@@ -248,8 +312,33 @@ Referer: &lt;page the form was submitted from&gt;  (missing counts as a bot sign
     </table>
   </section>
 
+  <!-- ------------------------------------------------------------------ -->
+  <section id="idempotency">
+    <h2>6. Idempotency</h2>
+    <p>
+      Every request must carry an <code>Idempotency-Key</code> header (a GUID).
+      If the API sees the <strong>same key again within 5 minutes</strong>, it
+      returns <span class="status-200">200</span> immediately <strong>without
+      queueing a second copy</strong>.
+    </p>
+    <h3>How to use it</h3>
+    <ul>
+      <li>Generate one GUID when the user submits the form.</li>
+      <li>Reuse that exact GUID for every automatic retry (network drop, timeout).</li>
+      <li>Generate a fresh GUID only when the user submits again on purpose.</li>
+    </ul>
+    <p class="note">
+      <strong>Best-effort, not a hard guarantee.</strong> The de-dupe cache lives
+      in one warm Lambda container with a 5-minute TTL. Two truly simultaneous
+      duplicates that land on different containers can both be queued. Consumers
+      should also de-dupe on <code>idempotencyKey</code> (see §8).
+    </p>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
   <section>
-    <h2>Responses</h2>
+    <h2>7. Responses</h2>
+    <p>Every response body includes <code>requestId</code> — the AWS request id for that invocation. Log it; it appears in CloudWatch and on the queued message.</p>
     <table>
       <thead>
         <tr><th>Status</th><th>Body</th><th>When</th></tr>
@@ -257,27 +346,94 @@ Referer: &lt;page the form was submitted from&gt;  (missing counts as a bot sign
       <tbody>
         <tr>
           <td class="status-200">200</td>
-          <td><pre><code>{ "message": "Submission received", "requestId": "..." }</code></pre></td>
-          <td>Submission accepted and queued.</td>
+          <td><pre><code>{
+  "message": "Submission received",
+  "requestId": "…"
+}</code></pre></td>
+          <td>Accepted and queued — or a duplicate <code>Idempotency-Key</code> already accepted in the last 5 min.</td>
         </tr>
         <tr>
           <td class="status-400">400</td>
-          <td><pre><code>{ "error": "&lt;reason&gt;", "requestId": "..." }</code></pre></td>
-          <td>Bad JSON, missing/invalid field, disallowed <code>form_type</code>, disallowed <code>page.url</code> domain, or flagged as bot/spam.</td>
+          <td><pre><code>{
+  "error": "&lt;reason&gt;",
+  "requestId": "…"
+}</code></pre></td>
+          <td>
+            Invalid JSON (<code>"Invalid request body"</code>), missing/invalid
+            <code>Idempotency-Key</code>, missing/invalid field, disallowed
+            <code>form_type</code>, disallowed <code>page.url</code> domain, payload
+            too large, or flagged as bot/spam (<code>"Submission rejected"</code>).
+            Do not retry unchanged.
+          </td>
         </tr>
         <tr>
           <td class="status-500">500</td>
-          <td><pre><code>{ "error": "Internal server error", "requestId": "..." }</code></pre></td>
-          <td>Unexpected server-side failure.</td>
+          <td><pre><code>{
+  "error": "Internal server error",
+  "requestId": "…"
+}</code></pre></td>
+          <td>Unexpected server-side failure. Safe to retry with the <strong>same</strong> <code>Idempotency-Key</code>.</td>
+        </tr>
+        <tr>
+          <td class="status-200">204</td>
+          <td><em>(no body)</em></td>
+          <td><code>OPTIONS</code> preflight.</td>
         </tr>
       </tbody>
     </table>
+    <h3>CORS</h3>
+    <p>
+      When <code>Origin</code> is an allowed <code>*.vidyaone.com</code> host the response carries
+      <code>Access-Control-Allow-Origin: &lt;origin&gt;</code>,
+      <code>Access-Control-Allow-Headers: Content-Type,Authorization,Idempotency-Key</code>,
+      <code>Access-Control-Allow-Methods: POST,OPTIONS</code>.
+      Other origins get the response without CORS headers (browser blocks it).
+    </p>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section>
+    <h2>8. What lands on the queue <span class="badge">consumers</span></h2>
+    <p>On success the Lambda sends this enriched JSON to SQS (and the same shape to SNS). Device and location are derived server-side from headers.</p>
+    <pre><code>{
+  "requestId":      "a1b2c3d4-1111-2222-3333-444455556666",
+  "idempotencyKey": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "submittedAt":    "2026-08-27T10:15:30.123456+00:00",
+
+  "formType":   "contact",
+  "subject":    "New enquiry",
+  "formFields": { "name": "Jane Doe", "email": "jane@example.com", "message": "…" },
+  "pageUrl":    "https://vidyaone.com/contact",
+
+  "device": {
+    "userAgent": "Mozilla/5.0 …",
+    "browser": "Chrome 128",
+    "os": "Windows 10/11",
+    "deviceType": "desktop",     // desktop | mobile | tablet | bot | unknown
+    "isMobile": false
+  },
+  "location": {                  // from CloudFront headers — "" if not present
+    "countryCode": "IN",
+    "countryName": "India",
+    "region": "Karnataka",
+    "city": "Bengaluru",
+    "timezone": "Asia/Kolkata",
+    "sourceIp": "203.0.113.7"
+  },
+  "botDetection": { "isBot": false, "reasons": [] }
+}</code></pre>
+    <p><strong>SQS message attributes:</strong> <code>formType</code>, <code>requestId</code>, <code>isBot</code>.</p>
+    <p class="note">
+      A separate <em>failure queue</em> receives (a) validation-rejected but safe
+      submissions and (b) fully-valid submissions that failed to reach the main
+      queue. Those messages add a <code>failureReason</code> field.
+    </p>
   </section>
 
 </main>
 
 <footer>
-  Generated from <code>lambda_function.py</code>, <code>event_parser.py</code>, and <code>config.py</code> in this project.
+  Generated from <code>lambda_function.py</code>, <code>event_parser.py</code>, <code>publish_helper.py</code>, and <code>config.py</code> in this project.
 </footer>
 
 </body>
