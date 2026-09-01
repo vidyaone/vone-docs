@@ -192,26 +192,113 @@
   <p>API reference for the cart / buy-now ingest endpoint — request payload, validation rules, and response shapes.</p>
   <div class="badges">
     <span class="badge">POST only (+ OPTIONS preflight)</span>
-    <span class="badge">ap-south-1</span>
+    <span class="badge">ap-south-1 · acct 767750127056</span>
+    <span class="badge">Handler: lambda_function.lambda_handler</span>
     <span class="badge">CORS: *.vidyaone.com (https only)</span>
     <span class="badge">Max body: 900 KB</span>
+    <span class="badge">Idempotency-Key header required</span>
   </div>
 </header>
 
 <nav>
+  <a href="#endpoint">Endpoint</a>
+  <a href="#headers">Request headers</a>
   <a href="#payload">Payload</a>
   <a href="#identification">Identification rule</a>
   <a href="#fields">Field reference</a>
   <a href="#validation">Validation &amp; rejection</a>
   <a href="#examples">Example requests</a>
   <a href="#responses">Responses</a>
+  <a href="#downstream">Downstream message</a>
   <a href="#flow">Request flow</a>
 </nav>
 
 <main>
 
+  <section id="endpoint">
+    <h2><span class="idx">01</span> Endpoint</h2>
+    <p class="lead">
+      A single AWS Lambda behind an API Gateway <strong>HTTP API</strong>. It validates a
+      cart / buy-now item request, enriches it with device + location info, runs a light
+      bot / dangerous-content check, then fans the event out to <strong>SQS</strong>
+      (mandatory) and <strong>SNS</strong> (best-effort). There is no database write here.
+    </p>
+    <table>
+      <tbody>
+        <tr><td><code>Method</code></td><td><code>POST</code> for a submission; <code>OPTIONS</code> for CORS preflight. Any other method is treated as <code>POST</code>.</td></tr>
+        <tr><td><code>Content-Type</code></td><td><code>application/json</code>. If API Gateway delivers the body base64-encoded (<code>isBase64Encoded</code>), it is decoded automatically before parsing — an invalid base64 / UTF-8 body is <code>400 "Invalid request body"</code>.</td></tr>
+        <tr><td><code>Region</code></td><td><code>ap-south-1</code>, account <code>767750127056</code>.</td></tr>
+        <tr><td><code>Handler</code></td><td><code>lambda_function.lambda_handler</code></td></tr>
+        <tr><td><code>Max body</code></td><td><code>900,000</code> bytes — checked before JSON parsing.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="headers">
+    <h2><span class="idx">02</span> Request headers</h2>
+    <table>
+      <thead>
+        <tr><th>Header</th><th>Requirement</th><th>Rule / effect</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>Idempotency-Key</code></td>
+          <td><span class="tag req">required</span></td>
+          <td>
+            Must be a GUID (<code>8-4-4-4-12</code> hex), <strong>or</strong> the literal opt-out
+            value <code>none</code> (case-insensitive, trimmed). This service does <em>not</em>
+            de-duplicate — the key is validated and passed straight through on the emitted
+            message as <code>idempotencyKey</code> for the downstream consumer to de-dupe on
+            (e.g. so a retried <code>buyNow</code> produces one order, not two). When
+            <code>none</code> is sent, the header requirement is satisfied but the emitted
+            <code>idempotencyKey</code> is an empty string.
+          </td>
+        </tr>
+        <tr>
+          <td><code>Content-Type</code></td>
+          <td><span class="tag opt">optional</span></td>
+          <td><code>application/json</code> expected. A base64-encoded body is decoded automatically (see §01).</td>
+        </tr>
+        <tr>
+          <td><code>Origin</code></td>
+          <td><span class="tag opt">optional</span></td>
+          <td>
+            Only affects the CORS <em>response</em> headers. Echoed in
+            <code>Access-Control-Allow-Origin</code> when it is <code>https://vidyaone.com</code>
+            or a subdomain (https only). <strong>Not a request gate</strong> — a non-browser
+            client with no <code>Origin</code> is still processed.
+          </td>
+        </tr>
+        <tr>
+          <td><code>User-Agent</code></td>
+          <td><span class="tag opt">optional</span></td>
+          <td>Parsed into <code>device</code> info. Missing UA, or a known bot substring, is a bot signal (see §06). Also scanned for dangerous content.</td>
+        </tr>
+        <tr>
+          <td><code>Referer</code></td>
+          <td><span class="tag opt">optional</span></td>
+          <td>A missing <code>Referer</code> is a bot signal (see §06).</td>
+        </tr>
+        <tr>
+          <td><code>Authorization</code></td>
+          <td><span class="tag opt">optional</span></td>
+          <td>Permitted by CORS but <strong>not currently verified</strong> by the Lambda. <code>userId</code> in the body has no session/token check behind it.</td>
+        </tr>
+        <tr>
+          <td><code>CloudFront-Viewer-*</code></td>
+          <td><span class="tag opt">optional</span></td>
+          <td>
+            <code>-Country</code>, <code>-Country-Name</code>, <code>-Country-Region-Name</code>,
+            <code>-City</code>, <code>-Time-Zone</code> — injected by CloudFront when it fronts the
+            API. Populate the <code>location</code> block; each falls back to <code>""</code>.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
   <section id="payload">
-    <h2><span class="idx">01</span> Request payload</h2>
+    <h2><span class="idx">03</span> Request payload</h2>
     <p class="lead">
       JSON object in the HTTP body of a <code>POST</code> request. All field names are
       camelCase, matching what the vidyaone.com frontend sends directly.
@@ -236,41 +323,42 @@
   </section>
 
   <section id="identification">
-    <h2><span class="idx">02</span> Identification rule</h2>
+    <h2><span class="idx">04</span> Identification rule</h2>
     <p class="lead">
-      Simple version: every item is either a <strong>product</strong> or a <strong>service</strong>,
-      never both — and a <code>guestId</code> is always required no matter which.
+      Simple version: <strong>at least one</strong> of <code>productId</code> / <code>serviceId</code>
+      must be a positive integer, and a <code>guestId</code> is always required.
     </p>
     <div class="card" style="margin-top: 14px;">
       <ul class="err-list" style="margin:0;">
         <li><code>guestId</code> — always required, on every request.</li>
-        <li><code>productId</code> <strong>or</strong> <code>serviceId</code> — at least one must be a positive integer. Whichever one you're <em>not</em> using can be <code>0</code>, left out entirely, or omitted — no error either way.</li>
+        <li><code>productId</code> <strong>or</strong> <code>serviceId</code> — at least one must be a positive integer. Sending both as positive is <em>accepted</em> (not rejected); the endpoint does not enforce them as mutually exclusive.</li>
+        <li>Whichever one you're not using can be <code>0</code>, left out entirely, or omitted — no error either way.</li>
         <li><code>userId</code> — always optional, regardless of whether you used <code>productId</code> or <code>serviceId</code>.</li>
       </ul>
     </div>
     <p class="lead" style="margin-top:14px;">
-      One exception: if you <em>do</em> send a value for the unused field, it can't be negative.
-      <code>productId: -1</code> is rejected even though <code>serviceId</code> was valid — <code>0</code> or omitting the field entirely are the only accepted ways to say "not applicable."
+      One rule on the unused field: if you <em>do</em> send a value for it, it can't be negative.
+      <code>serviceId: -1</code> is rejected even when <code>productId</code> was valid — <code>0</code> or omitting the field entirely are the only accepted ways to say "not applicable."
     </p>
   </section>
 
   <section id="fields">
-    <h2><span class="idx">03</span> Field reference</h2>
+    <h2><span class="idx">05</span> Field reference</h2>
     <table>
       <thead>
         <tr><th>Field</th><th>Type</th><th>Requirement</th><th>Default</th><th>Rule</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>productId</code></td><td>int</td><td><span class="tag cond">one of two</span></td><td>0</td><td>You need this <strong>or</strong> <code>serviceId</code> to be positive. If you're using <code>serviceId</code> instead, this can be <code>0</code> or omitted — but not negative.</td></tr>
-        <tr><td><code>serviceId</code></td><td>int</td><td><span class="tag cond">one of two</span></td><td>0</td><td>You need this <strong>or</strong> <code>productId</code> to be positive. If you're using <code>productId</code> instead, this can be <code>0</code> or omitted — but not negative.</td></tr>
+        <tr><td><code>productId</code></td><td>int</td><td><span class="tag cond">one of two</span></td><td>0</td><td>This <strong>or</strong> <code>serviceId</code> (or both) must be positive. If it isn't the identifier you're using, leave it <code>0</code> or omit it — but never negative. Max <code>2,147,483,647</code> (signed 32-bit).</td></tr>
+        <tr><td><code>serviceId</code></td><td>int</td><td><span class="tag cond">one of two</span></td><td>0</td><td>This <strong>or</strong> <code>productId</code> (or both) must be positive. If it isn't the identifier you're using, leave it <code>0</code> or omit it — but never negative. Max <code>2,147,483,647</code>.</td></tr>
         <tr><td><code>guestId</code></td><td>string</td><td><span class="tag req">required</span></td><td>—</td><td>Always required. Non-blank, ≤128 chars, <code>^[A-Za-z0-9_-]+$</code> only.</td></tr>
-        <tr><td><code>userId</code></td><td>int</td><td><span class="tag opt">optional</span></td><td>0</td><td>Always optional — independent of whether you used <code>productId</code> or <code>serviceId</code>. If present, must be ≥ 0.</td></tr>
-        <tr><td><code>planId</code></td><td>int</td><td><span class="tag opt">optional</span></td><td>0</td><td>Must be ≥ 0 if present.</td></tr>
+        <tr><td><code>userId</code></td><td>int</td><td><span class="tag opt">optional</span></td><td>0</td><td>Always optional — independent of whether you used <code>productId</code> or <code>serviceId</code>. If present, must be ≥ 0 and ≤ <code>2,147,483,647</code>. Not session/token verified.</td></tr>
+        <tr><td><code>planId</code></td><td>int</td><td><span class="tag opt">optional</span></td><td>0</td><td>Must be ≥ 0 and ≤ <code>2,147,483,647</code> if present.</td></tr>
         <tr><td><code>serviceCode</code></td><td>string</td><td><span class="tag opt">optional</span></td><td>""</td><td>≤64 chars, <code>^[A-Za-z0-9_-]+$</code> only if non-blank.</td></tr>
         <tr><td><code>quantity</code></td><td>int</td><td><span class="tag opt">optional</span></td><td>1</td><td>Must be between 1 and 1000.</td></tr>
-        <tr><td><code>price</code></td><td>number</td><td><span class="tag opt">optional</span></td><td>0.0</td><td>0 ≤ x ≤ 10,000,000.</td></tr>
-        <tr><td><code>discount</code></td><td>number</td><td><span class="tag opt">optional</span></td><td>0.0</td><td>0 ≤ x ≤ 10,000,000.</td></tr>
-        <tr><td><code>total</code></td><td>number</td><td><span class="tag opt">optional</span></td><td>0.0</td><td>0 ≤ x ≤ 10,000,000. Not recomputed server-side from price/discount.</td></tr>
+        <tr><td><code>price</code></td><td>number</td><td><span class="tag opt">optional</span></td><td>0.0</td><td>Finite number, 0 ≤ x ≤ 10,000,000. <code>NaN</code> / <code>Infinity</code> rejected.</td></tr>
+        <tr><td><code>discount</code></td><td>number</td><td><span class="tag opt">optional</span></td><td>0.0</td><td>Finite number, 0 ≤ x ≤ 10,000,000. <code>NaN</code> / <code>Infinity</code> rejected.</td></tr>
+        <tr><td><code>total</code></td><td>number</td><td><span class="tag opt">optional</span></td><td>0.0</td><td>Finite number, 0 ≤ x ≤ 10,000,000. <code>NaN</code> / <code>Infinity</code> rejected. <strong>Not</strong> recomputed server-side from price/discount — the client value is trusted and forwarded as-is.</td></tr>
         <tr><td><code>buyNow</code></td><td>boolean</td><td><span class="tag req">required</span></td><td>—</td><td>Must be present and a real boolean, not a truthy string. When <code>true</code> and the request validates, the response is a 302 redirect to checkout (see §06) instead of 200.</td></tr>
         <tr><td><code>payAsGuest</code></td><td>boolean</td><td><span class="tag req">required</span></td><td>—</td><td>Must be present and a real boolean.</td></tr>
         <tr><td><code>billingCycle</code></td><td>string</td><td><span class="tag opt">optional</span></td><td>""</td><td>If non-blank, must be one of <code>monthly</code>, <code>yearly</code> (case-insensitive).</td></tr>
@@ -281,13 +369,15 @@
   </section>
 
   <section id="validation">
-    <h2><span class="idx">04</span> Validation &amp; rejection</h2>
+    <h2><span class="idx">06</span> Validation &amp; rejection</h2>
 
     <h3>Structural checks (run first, in order)</h3>
     <ul class="err-list">
+      <li>Body base64-decoded if <code>isBase64Encoded</code> — bad base64 / UTF-8 → <code>400 "Invalid request body"</code>.</li>
       <li>Body size ≤ <code>900,000</code> bytes (900 KB) — checked before JSON parsing.</li>
       <li>Body must be valid JSON, and must be a JSON <em>object</em> (not an array, string, etc.).</li>
-      <li>Identification rule (see §02) must be satisfied.</li>
+      <li><code>Idempotency-Key</code> header present and valid (see §02).</li>
+      <li>Identification rule (see §04) must be satisfied.</li>
     </ul>
 
     <h3>Bot / spam heuristic</h3>
@@ -314,8 +404,12 @@
 
     <h3>Common rejection messages</h3>
     <ul class="err-list">
+      <li><code>Header 'Idempotency-Key' is required</code> — header missing or blank</li>
+      <li><code>Header 'Idempotency-Key' must be a GUID</code> — present but not a GUID and not the <code>none</code> opt-out</li>
       <li><code>Payload exceeds 900 KB limit</code></li>
       <li><code>Either 'productId' or 'serviceId' must be a positive integer</code> — neither one is positive</li>
+      <li><code>Field 'productId' exceeds 2147483647 limit</code> — id above signed 32-bit max (same for <code>serviceId</code>, <code>planId</code>, <code>userId</code>)</li>
+      <li><code>Field 'total' must be a finite number</code> — <code>NaN</code> / <code>Infinity</code> sent (same for <code>price</code>, <code>discount</code>)</li>
       <li><code>Field 'productId' must not be negative</code> / <code>Field 'serviceId' must not be negative</code> — the unused field was sent with a negative value</li>
       <li><code>Field 'guestId' is required</code></li>
       <li><code>Field 'guestId' contains disallowed characters</code></li>
@@ -327,7 +421,41 @@
   </section>
 
   <section id="examples">
-    <h2><span class="idx">05</span> Example requests</h2>
+    <h2><span class="idx">07</span> Example requests</h2>
+    <p class="lead">
+      The body-only snippets below assume a valid <code>Idempotency-Key</code> header is present
+      (and, for the ✅ cases, a browser-like <code>User-Agent</code> + <code>Referer</code> so the
+      bot heuristic doesn't fire). The header is checked <em>before</em> any body field, so a
+      request with no <code>Idempotency-Key</code> always fails with that error first — see the
+      first ❌ case.
+    </p>
+
+    <h3>Full copy-pasteable request (headers + body)</h3>
+    <pre><code>POST /  HTTP/1.1
+Host: &lt;api-id&gt;.execute-api.ap-south-1.amazonaws.com
+Content-Type: application/json
+Origin: https://vidyaone.com
+Referer: https://vidyaone.com/product/1024
+Idempotency-Key: 123e4567-e89b-12d3-a456-426614174000
+
+<span class="kw">{</span>
+  <span class="str">"productId"</span>:    <span class="num">1024</span>,
+  <span class="str">"planId"</span>:       <span class="num">2</span>,
+  <span class="str">"guestId"</span>:      <span class="str">"guest_a1b2c3d4"</span>,
+  <span class="str">"quantity"</span>:     <span class="num">1</span>,
+  <span class="str">"price"</span>:        <span class="num">4999.00</span>,
+  <span class="str">"discount"</span>:     <span class="num">500.00</span>,
+  <span class="str">"total"</span>:        <span class="num">4499.00</span>,
+  <span class="str">"buyNow"</span>:       <span class="kw">true</span>,
+  <span class="str">"payAsGuest"</span>:   <span class="kw">true</span>,
+  <span class="str">"billingCycle"</span>: <span class="str">"yearly"</span>,
+  <span class="str">"subscription"</span>: <span class="kw">true</span>,
+  <span class="str">"pageLink"</span>:     <span class="str">"https://vidyaone.com/product/1024"</span>
+<span class="kw">}</span></code></pre>
+    <p class="lead" style="margin-top:0; font-size:0.8rem;">
+      Callers with no GUID to send must still include the header as
+      <code>Idempotency-Key: none</code> — omitting it is a <code>400</code>.
+    </p>
 
     <h3>✅ Minimal valid — productId path</h3>
     <pre><code><span class="kw">{</span> <span class="str">"productId"</span>: <span class="num">1024</span>, <span class="str">"guestId"</span>: <span class="str">"guest_a1b2c3d4"</span>, <span class="str">"buyNow"</span>: <span class="kw">false</span>, <span class="str">"payAsGuest"</span>: <span class="kw">true</span> <span class="kw">}</span></code></pre>
@@ -354,6 +482,10 @@
   <span class="str">"pageLink"</span>:     <span class="str">""</span>
 <span class="kw">}</span></code></pre>
 
+    <h3>❌ Rejected — missing Idempotency-Key header</h3>
+    <pre><code><span class="comment">// body is fine, but no Idempotency-Key header sent</span>
+<span class="comment">// 400 — "Header 'Idempotency-Key' is required"</span></code></pre>
+
     <h3>❌ Rejected — no identifier at all</h3>
     <pre><code><span class="kw">{</span> <span class="str">"guestId"</span>: <span class="str">"abc123"</span> <span class="kw">}</span>
 <span class="comment">// 400 — "Either 'productId' or 'serviceId' must be a positive integer"</span></code></pre>
@@ -376,9 +508,16 @@
   </section>
 
   <section id="responses">
-    <h2><span class="idx">06</span> Responses</h2>
+    <h2><span class="idx">08</span> Responses</h2>
 
-    <div class="status s204">204 No Content</div>
+    <h3>Response headers (all responses)</h3>
+    <ul class="err-list">
+      <li><code>Vary: Origin</code>, <code>X-Content-Type-Options: nosniff</code>, <code>X-Frame-Options: DENY</code>, <code>Strict-Transport-Security</code>, <code>Cache-Control: no-store, no-cache, must-revalidate</code>.</li>
+      <li>For an allowed <code>Origin</code> only: <code>Access-Control-Allow-Origin: &lt;origin&gt;</code>, <code>Access-Control-Allow-Headers: Content-Type,Authorization,Idempotency-Key</code>, <code>Access-Control-Allow-Methods: POST,OPTIONS</code>.</li>
+      <li><code>Content-Type: application/json</code> on every response except the 302 (which sends <code>Location</code> and no body).</li>
+    </ul>
+
+    <div class="status s204" style="margin-top:22px;">204 No Content</div>
     <p class="lead" style="margin-top:0;">OPTIONS preflight — returned immediately, no body, no validation performed.</p>
 
     <div class="status s200" style="margin-top:22px;">200 OK</div>
@@ -421,16 +560,70 @@
     </p>
   </section>
 
+  <section id="downstream">
+    <h2><span class="idx">09</span> Downstream message (SQS + SNS)</h2>
+    <p class="lead">
+      On a clean request the same JSON shape is sent to both the SQS queue
+      (<code>vone-cart-item-queue</code>, mandatory — failure → 500) and the SNS topic
+      (<code>vone-cart-item-topic</code>, best-effort — failure logged, response unaffected).
+      Consumers receive this exact body.
+    </p>
+    <pre><code><span class="kw">{</span>
+  <span class="str">"requestId"</span>:      <span class="str">"c4d1e2..."</span>,
+  <span class="str">"idempotencyKey"</span>: <span class="str">"123e4567-e89b-12d3-a456-426614174000"</span>,   <span class="comment">// "" when "none" was sent</span>
+  <span class="str">"submittedAt"</span>:    <span class="str">"2026-09-01T12:00:00+00:00"</span>,
+  <span class="str">"productId"</span>:   <span class="num">1024</span>,
+  <span class="str">"planId"</span>:      <span class="num">2</span>,
+  <span class="str">"serviceId"</span>:   <span class="num">0</span>,
+  <span class="str">"serviceCode"</span>: <span class="str">""</span>,
+  <span class="str">"quantity"</span>:    <span class="num">1</span>,
+  <span class="str">"price"</span>:       <span class="num">4999.0</span>,
+  <span class="str">"discount"</span>:    <span class="num">500.0</span>,
+  <span class="str">"total"</span>:       <span class="num">4499.0</span>,
+  <span class="str">"buyNow"</span>:      <span class="kw">true</span>,
+  <span class="str">"payAsGuest"</span>:  <span class="kw">true</span>,
+  <span class="str">"billingCycle"</span>: <span class="str">"yearly"</span>,
+  <span class="str">"subscription"</span>: <span class="kw">true</span>,
+  <span class="str">"pageLink"</span>:    <span class="str">"https://vidyaone.com/product/1024"</span>,
+  <span class="str">"guestId"</span>:     <span class="str">"guest_a1b2c3d4"</span>,
+  <span class="str">"userId"</span>:      <span class="num">0</span>,
+  <span class="str">"device"</span>:   <span class="kw">{</span> <span class="str">"userAgent"</span>, <span class="str">"browser"</span>, <span class="str">"os"</span>, <span class="str">"deviceType"</span>, <span class="str">"isMobile"</span> <span class="kw">}</span>,
+  <span class="str">"location"</span>: <span class="kw">{</span> <span class="str">"countryCode"</span>, <span class="str">"countryName"</span>, <span class="str">"region"</span>, <span class="str">"city"</span>, <span class="str">"timezone"</span>, <span class="str">"sourceIp"</span> <span class="kw">}</span>,
+  <span class="str">"botDetection"</span>: <span class="kw">{</span> <span class="str">"isBot"</span>: <span class="kw">false</span>, <span class="str">"reasons"</span>: <span class="kw">[]</span> <span class="kw">}</span>
+<span class="kw">}</span></code></pre>
+    <p class="lead" style="font-size:0.8rem;">
+      Note: <code>botDetection.isBot</code> is always <code>false</code> here — a request that trips
+      the bot / dangerous-content heuristic is rejected with <code>400</code> before any message
+      is built, so it never reaches SQS/SNS.
+    </p>
+
+    <h3>Message attributes</h3>
+    <table>
+      <thead><tr><th>Target</th><th>Attributes (all <code>String</code>)</th></tr></thead>
+      <tbody>
+        <tr><td>SQS</td><td><code>productId</code>, <code>serviceId</code>, <code>guestId</code>, <code>requestId</code>, <code>buyNow</code>, <code>isBot</code></td></tr>
+        <tr><td>SNS</td><td><code>productId</code>, <code>serviceId</code>, <code>isBot</code>, <code>source</code> (<code>vone-cart-post-lambda</code>) — plus <code>Subject</code>: <code>CartItem-BuyNow</code> or <code>CartItem-AddToCart</code></td></tr>
+      </tbody>
+    </table>
+    <p class="lead" style="font-size:0.8rem;">
+      Queue / topic names above are the values in <code>config.py</code>
+      (<code>vone-cart-item-queue</code> / <code>vone-cart-item-topic</code>) — confirm these
+      resources exist under those names before production use.
+    </p>
+  </section>
+
   <section id="flow">
-    <h2><span class="idx">07</span> Request flow</h2>
+    <h2><span class="idx">10</span> Request flow</h2>
     <div class="flow"><span class="step">Request → lambda_handler</span>
   │
   ├─ method == OPTIONS? → <span class="final">204</span>, no processing
   │
   └─ POST → parser.parse(event)
        │
+       ├─ <span class="gate">base64 decode</span>      if isBase64Encoded, else 400 "Invalid request body"
        ├─ <span class="gate">size guard</span>        ≤ 900 KB, else 400
        ├─ <span class="gate">JSON decode</span>        must be an object, else 400
+       ├─ <span class="gate">Idempotency-Key</span>    header required; GUID or "none", else 400
        ├─ <span class="gate">identification</span>     guestId required; productId or serviceId must be positive (no negatives), else 400
        ├─ per-field validation   type / range / format checks, else 400
        ├─ device + location enrichment (User-Agent, CloudFront headers)

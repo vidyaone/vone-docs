@@ -189,18 +189,20 @@
 
 <header>
   <h1>vone-cart-get-lambda</h1>
-  <p>API reference for the cart read endpoint — query parameter, response shape, and field reference.</p>
+  <p>API reference for the cart read endpoint — query parameters, response shape, and field reference.</p>
   <div class="badges">
     <span class="badge">GET only (+ OPTIONS preflight)</span>
     <span class="badge">ap-south-1</span>
     <span class="badge">CORS: *.vidyaone.com (https only)</span>
-    <span class="badge">Max items: 1000 per guest_id</span>
+    <span class="badge">Lookup: guest_id and/or user_id</span>
+    <span class="badge">Max items: 1000 per response</span>
   </div>
 </header>
 
 <nav>
   <a href="#request">Request</a>
-  <a href="#query">Query parameter</a>
+  <a href="#query">Query parameters</a>
+  <a href="#lookup">Lookup behaviour</a>
   <a href="#fields">Response item fields</a>
   <a href="#validation">Validation &amp; rejection</a>
   <a href="#examples">Example requests</a>
@@ -213,33 +215,73 @@
   <section id="request">
     <h2><span class="idx">01</span> Request</h2>
     <p class="lead">
-      A plain <code>GET</code> request — no body. The guest's identifier is passed as a single
-      query string parameter.
+      A plain <code>GET</code> request — no body. The cart is looked up by <code>guest_id</code>,
+      <code>user_id</code>, or both, passed as query string parameters. At least one of the two
+      must be present.
     </p>
     <pre><code><span class="kw">GET</span> /cart?<span class="str">guest_id</span>=guest_a1b2c3d4 HTTP/1.1
 <span class="comment">Host: api.vidyaone.com</span></code></pre>
   </section>
 
   <section id="query">
-    <h2><span class="idx">02</span> Query parameter</h2>
+    <h2><span class="idx">02</span> Query parameters</h2>
     <table>
       <thead>
         <tr><th>Parameter</th><th>Type</th><th>Requirement</th><th>Rule</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>guest_id</code></td><td>string</td><td><span class="tag req">required</span></td><td>Non-blank after trim, 1–100 chars, <code>^[A-Za-z0-9_-]+$</code> only.</td></tr>
+        <tr><td><code>guest_id</code></td><td>string</td><td><span class="tag cond">conditional</span></td><td>Non-blank after trim, 1–100 chars, <code>^[A-Za-z0-9_-]+$</code> only. Required unless <code>user_id</code> is supplied.</td></tr>
+        <tr><td><code>user_id</code></td><td>integer (as string)</td><td><span class="tag cond">conditional</span></td><td>Digits only, <code>^[0-9]{1,20}$</code>, value <code>&gt; 0</code>. Required unless <code>guest_id</code> is supplied.</td></tr>
       </tbody>
     </table>
     <p class="lead" style="margin-top:14px;">
-      Read from <code>queryStringParameters.guest_id</code> only — there is no path-parameter or
-      body fallback. The value is not treated as a secret credential by this Lambda; it is only
-      sanitized/length-capped before being used to build the DynamoDB partition key
-      (<code>GUEST#&lt;guest_id&gt;</code>).
+      Read from <code>queryStringParameters</code> only — there is no path-parameter or body
+      fallback. <strong>At least one</strong> of <code>guest_id</code> / <code>user_id</code> must
+      be present; supplying neither is a <code>400</code>. Supplying both is allowed and triggers
+      a merged lookup (see §03). Neither value is treated as a secret credential — each is only
+      sanitized/bounded before use: <code>guest_id</code> builds the DynamoDB partition key
+      (<code>GUEST#&lt;guest_id&gt;</code>); <code>user_id</code> is coerced to an integer and
+      matched against the <code>userId</code> item attribute.
     </p>
   </section>
 
+  <section id="lookup">
+    <h2><span class="idx">03</span> Lookup behaviour</h2>
+    <p class="lead">
+      The two parameters resolve items by different mechanisms, then results are combined.
+    </p>
+    <table>
+      <thead>
+        <tr><th>Parameter</th><th>Mechanism</th><th>Cost</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>guest_id</code></td><td>DynamoDB <code>Query</code> on <code>pk = GUEST#&lt;guest_id&gt;</code></td><td>Key lookup — fast, single partition.</td></tr>
+        <tr><td><code>user_id</code></td><td>DynamoDB <code>Scan</code> with <code>FilterExpression userId = &lt;n&gt;</code></td><td><span class="tag req">expensive</span> The table has <strong>no GSI</strong> on <code>userId</code>, so every partition is scanned and filtered. Read-capacity cost and latency grow with table size. Logged with <code>[WARN]</code> on every call.</td></tr>
+      </tbody>
+    </table>
+    <h3>Merge &amp; de-duplication (both parameters supplied)</h3>
+    <p class="lead" style="margin-top:0;">
+      <code>guest_id</code> is read first, then <code>user_id</code>. The two result sets are
+      concatenated and de-duplicated on the item's internal sort key
+      (<code>sk = REQUEST#&lt;request_id&gt;</code>); on a collision the <code>guest_id</code> copy
+      is kept. The internal key is stripped before the response is returned. The combined result
+      is still capped at 1000 items.
+    </p>
+    <p class="lead" style="font-size:0.8rem;">
+      <strong>Worked example.</strong> A logged-in shopper (<code>userId = 7</code>) has cart
+      items saved under session <code>guest_g1</code>; the same account also has one older item
+      from session <code>guest_g2</code>.
+    </p>
+    <pre><code><span class="kw">GET</span> /cart?<span class="str">guest_id</span>=guest_g1&amp;<span class="str">user_id</span>=7
+
+<span class="comment">// Query  pk = GUEST#guest_g1        -> REQUEST#r1 (userId 7), REQUEST#r2 (userId 0)</span>
+<span class="comment">// Scan   userId = 7                 -> REQUEST#r1 (guest_g1), REQUEST#r3 (guest_g2)</span>
+<span class="comment">// Merge + dedupe on sk              -> r1 (guest copy kept), r2, r3</span>
+<span class="comment">// data: 3 items</span></code></pre>
+  </section>
+
   <section id="fields">
-    <h2><span class="idx">03</span> Response item fields</h2>
+    <h2><span class="idx">04</span> Response item fields</h2>
     <p class="lead">
       Each object in <code>data</code> mirrors the original client-submitted payload shape from
       <code>vone-cart-post-lambda</code> — no internal keys (<code>pk</code>/<code>sk</code>), no
@@ -266,8 +308,8 @@
         <tr><td><code>billingCycle</code></td><td>string</td><td>""</td><td>&nbsp;</td></tr>
         <tr><td><code>subscription</code></td><td>boolean</td><td>false</td><td>&nbsp;</td></tr>
         <tr><td><code>pageLink</code></td><td>string</td><td>""</td><td>&nbsp;</td></tr>
-        <tr><td><code>guestId</code></td><td>string</td><td>""</td><td>Same value as the query parameter.</td></tr>
-        <tr><td><code>userId</code></td><td>int</td><td>0</td><td><code>0</code> for a pure guest checkout with no logged-in user.</td></tr>
+        <tr><td><code>guestId</code></td><td>string</td><td>""</td><td>The session the item was saved under. Equals the <code>guest_id</code> query parameter for items matched that way; may differ from it for items matched via <code>user_id</code>.</td></tr>
+        <tr><td><code>userId</code></td><td>int</td><td>0</td><td><code>0</code> for a pure guest checkout with no logged-in user. Equals the <code>user_id</code> query parameter for items matched that way.</td></tr>
       </tbody>
     </table>
     <p class="lead" style="margin-top:14px;">
@@ -278,38 +320,52 @@
   </section>
 
   <section id="validation">
-    <h2><span class="idx">04</span> Validation &amp; rejection</h2>
+    <h2><span class="idx">05</span> Validation &amp; rejection</h2>
     <ul class="err-list">
-      <li><code>guest_id</code> missing from the query string entirely → 400.</li>
+      <li>Neither <code>guest_id</code> nor <code>user_id</code> present in the query string → 400.</li>
       <li><code>guest_id</code> present but blank/whitespace-only → 400.</li>
       <li><code>guest_id</code> containing anything outside <code>[A-Za-z0-9_-]</code>, or longer than 100 characters → 400.</li>
-    </ul>
-    <h3>Common rejection messages</h3>
-    <ul class="err-list">
-      <li><code>Missing required query parameter 'guest_id'</code></li>
-      <li><code>Query parameter 'guest_id' must not be blank</code></li>
-      <li><code>Query parameter 'guest_id' contains invalid characters</code></li>
+      <li><code>user_id</code> present but blank/whitespace-only → 400.</li>
+      <li><code>user_id</code> non-numeric, more than 20 digits, or not <code>&gt; 0</code> (e.g. <code>0</code>, <code>-3</code>, <code>12x</code>) → 400.</li>
     </ul>
     <p class="lead" style="margin-top:8px; font-size:0.8rem;">
-      A <code>guest_id</code> that passes validation but has never been used (or whose cart is
-      empty) is <strong>not</strong> an error — it returns <code>200</code> with
+      Each parameter is validated independently: a present-but-malformed value is a <code>400</code>
+      even if the other parameter is valid.
+    </p>
+    <h3>Common rejection messages</h3>
+    <ul class="err-list">
+      <li><code>Provide at least one of query parameters 'guest_id' or 'user_id'</code></li>
+      <li><code>Query parameter 'guest_id' must not be blank</code></li>
+      <li><code>Query parameter 'guest_id' contains invalid characters</code></li>
+      <li><code>Query parameter 'user_id' must not be blank</code></li>
+      <li><code>Query parameter 'user_id' must be a positive integer</code></li>
+    </ul>
+    <p class="lead" style="margin-top:8px; font-size:0.8rem;">
+      A <code>guest_id</code>/<code>user_id</code> that passes validation but has never been used
+      (or whose cart is empty) is <strong>not</strong> an error — it returns <code>200</code> with
       <code>"data": []</code>. There is no way (and no need) to distinguish "never used" from
       "emptied cart".
     </p>
   </section>
 
   <section id="examples">
-    <h2><span class="idx">05</span> Example requests</h2>
+    <h2><span class="idx">06</span> Example requests</h2>
 
-    <h3>✅ Valid — cart with items</h3>
+    <h3>✅ Valid — by guest_id</h3>
     <pre><code><span class="kw">GET</span> /cart?<span class="str">guest_id</span>=guest_a1b2c3d4</code></pre>
+
+    <h3>✅ Valid — by user_id</h3>
+    <pre><code><span class="kw">GET</span> /cart?<span class="str">user_id</span>=4071</code></pre>
+
+    <h3>✅ Valid — both (merged + de-duplicated)</h3>
+    <pre><code><span class="kw">GET</span> /cart?<span class="str">guest_id</span>=guest_a1b2c3d4&amp;<span class="str">user_id</span>=4071</code></pre>
 
     <h3>✅ Valid — empty cart</h3>
     <pre><code><span class="kw">GET</span> /cart?<span class="str">guest_id</span>=guest_never_used</code></pre>
 
-    <h3>❌ Rejected — missing guest_id</h3>
+    <h3>❌ Rejected — no lookup key</h3>
     <pre><code><span class="kw">GET</span> /cart
-<span class="comment">// 400 — "Missing required query parameter 'guest_id'"</span></code></pre>
+<span class="comment">// 400 — "Provide at least one of query parameters 'guest_id' or 'user_id'"</span></code></pre>
 
     <h3>❌ Rejected — blank guest_id</h3>
     <pre><code><span class="kw">GET</span> /cart?<span class="str">guest_id</span>=
@@ -318,10 +374,14 @@
     <h3>❌ Rejected — disallowed characters</h3>
     <pre><code><span class="kw">GET</span> /cart?<span class="str">guest_id</span>=&lt;script&gt;
 <span class="comment">// 400 — "Query parameter 'guest_id' contains invalid characters"</span></code></pre>
+
+    <h3>❌ Rejected — non-numeric user_id</h3>
+    <pre><code><span class="kw">GET</span> /cart?<span class="str">user_id</span>=abc
+<span class="comment">// 400 — "Query parameter 'user_id' must be a positive integer"</span></code></pre>
   </section>
 
   <section id="responses">
-    <h2><span class="idx">06</span> Responses</h2>
+    <h2><span class="idx">07</span> Responses</h2>
 
     <div class="status s204">204 No Content</div>
     <p class="lead" style="margin-top:0;">OPTIONS preflight — returned immediately, no processing.</p>
@@ -358,11 +418,11 @@
     <div class="status s400" style="margin-top:22px;">400 Bad Request</div>
     <pre><code><span class="kw">{</span>
   <span class="str">"success"</span>: <span class="lit">false</span>,
-  <span class="str">"message"</span>: <span class="str">"Missing required query parameter 'guest_id'"</span>,
+  <span class="str">"message"</span>: <span class="str">"Provide at least one of query parameters 'guest_id' or 'user_id'"</span>,
   <span class="str">"errors"</span>:  <span class="lit">null</span>,
   <span class="str">"data"</span>:    <span class="kw">[]</span>
 <span class="kw">}</span></code></pre>
-    <p class="lead">Returned for any <code>guest_id</code> validation failure (see §04).</p>
+    <p class="lead">Returned for any <code>guest_id</code> / <code>user_id</code> validation failure (see §05); <code>message</code> carries the specific reason.</p>
 
     <div class="status s500" style="margin-top:22px;">500 Internal Server Error</div>
     <pre><code><span class="kw">{</span>
@@ -372,9 +432,10 @@
   <span class="str">"data"</span>:    <span class="kw">[]</span>
 <span class="kw">}</span></code></pre>
     <p class="lead">
-      Returned only for an unexpected exception (DynamoDB outage, missing IAM permission, bad
-      table config, etc.). The specific cause is logged in CloudWatch with an actionable hint —
-      never leaked to the caller.
+      Returned only for an unexpected exception (DynamoDB outage, missing IAM permission — the
+      role needs both <code>dynamodb:Query</code> and <code>dynamodb:Scan</code> — bad table
+      config, etc.). The specific cause is logged in CloudWatch with an actionable hint — never
+      leaked to the caller.
     </p>
 
     <h3>CORS headers</h3>
@@ -394,23 +455,25 @@
   </section>
 
   <section id="flow">
-    <h2><span class="idx">07</span> Request flow</h2>
+    <h2><span class="idx">08</span> Request flow</h2>
     <div class="flow"><span class="step">Request → lambda_handler</span>
   │
   ├─ method == OPTIONS? → <span class="final">204</span>, no processing
   │
   └─ GET → EventParser.parse(event)
        │
-       ├─ <span class="gate">guest_id present</span>   in queryStringParameters, else 400
-       ├─ <span class="gate">non-blank</span>           after strip, else 400
-       ├─ <span class="gate">charset/length</span>      ^[A-Za-z0-9_-]{1,100}$, else 400
+       ├─ <span class="gate">guest_id</span>   if present: non-blank + ^[A-Za-z0-9_-]{1,100}$, else 400
+       ├─ <span class="gate">user_id</span>    if present: non-blank + ^[0-9]{1,20}$ + &gt; 0, else 400
+       ├─ <span class="gate">at least one</span> of guest_id / user_id present, else 400
        │
-       └─ DbHelper.get_items_by_guest_id(guest_id)
+       └─ DbHelper.get_items(guest_id, user_id)
             │
-            ├─ Query DynamoDB   pk = GUEST#&lt;guest_id&gt;
-            ├─ ProjectionExpression   original-payload fields only (no pk/sk/device/location/botDetection)
-            ├─ paginate via LastEvaluatedKey, <span class="gate">capped at MAX_ITEMS_PER_GUEST (1000)</span>
-            ├─ Decimal → float/int   price/discount/total always float
+            ├─ guest_id → Query   pk = GUEST#&lt;guest_id&gt;
+            ├─ user_id  → <span class="gate">Scan</span>  FilterExpression userId = &lt;n&gt;   (no GSI — full-table scan, logged [WARN])
+            ├─ ProjectionExpression   original-payload fields + sk (sk used only for de-dup)
+            ├─ paginate each read via LastEvaluatedKey, <span class="gate">each capped at MAX_ITEMS_PER_GUEST (1000)</span>
+            ├─ merge both result sets, <span class="gate">de-dupe on sk</span> (guest_id copy wins), re-cap at 1000
+            ├─ strip sk; Decimal → float/int  (price/discount/total always float)
             ├─ merge item defaults for any attribute missing on a legacy record
             │
             └─ <span class="final">200</span> { success: true, message: "", errors: null, data: [...items] }</div>
