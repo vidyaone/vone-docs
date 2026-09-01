@@ -125,7 +125,7 @@
 
 <header>
   <h1>vone-form-post-lambda</h1>
-  <p>Developer reference for the form-ingest API (region: ap-south-1). Covers the request, all requirements, and every response.</p>
+  <p>Developer reference for the form-ingest API (region: <code>ap-south-1</code>). Covers the request, every requirement, all responses, and the messages emitted to consumers.</p>
 </header>
 
 <main>
@@ -135,14 +135,27 @@
     <h2>1. What it does</h2>
     <p>
       Accepts one website form submission over HTTPS, validates it, screens it for
-      bot/spam, and puts an enriched copy on an SQS queue (with an SNS fan-out).
-      Once you get <span class="status-200">200</span> the data is durably queued.
+      bot/spam, and puts an enriched copy on an SQS queue with an SNS fan-out.
+      Once you receive <span class="status-200">200</span> the submission is durably
+      queued. This Lambda does <strong>not</strong> de-duplicate and does not write
+      to any database itself.
     </p>
-    <ul>
-      <li><strong>Method:</strong> <code>POST</code> &nbsp;·&nbsp; <strong>Content type:</strong> <code>application/json</code></li>
-      <li><code>OPTIONS</code> preflight is answered automatically — <code>204</code>, no body.</li>
-      <li>Any other method is treated as <code>POST</code>.</li>
-    </ul>
+    <table>
+      <tbody>
+        <tr><td>Entry point</td><td><code>lambda_function.lambda_handler</code>, fronted by an API Gateway HTTP API (v2)</td></tr>
+        <tr><td>Region</td><td><code>ap-south-1</code> &nbsp;·&nbsp; account <code>767750127056</code></td></tr>
+        <tr><td>Method</td><td><code>POST</code> (any non-<code>OPTIONS</code> method is processed as <code>POST</code>)</td></tr>
+        <tr><td>Path</td><td>The route the HTTP API is deployed on (typically <code>/</code>). Examples below use <code>POST /</code>.</td></tr>
+        <tr><td>Content type</td><td><code>application/json</code>; body must be UTF-8 JSON regardless of the header</td></tr>
+        <tr><td>Primary queue</td><td><code>vone-form-data-queue</code></td></tr>
+        <tr><td>SNS topic</td><td><code>vone-form-data-topic</code></td></tr>
+        <tr><td>Failure queue</td><td><code>vone-form-data-spam-queue</code> (see <a href="#failure">§11</a>)</td></tr>
+      </tbody>
+    </table>
+    <p class="note">
+      <code>OPTIONS</code> preflight is answered immediately with
+      <span class="status-200">204</span> and no body — no validation, no side effects.
+    </p>
   </section>
 
   <!-- ------------------------------------------------------------------ -->
@@ -155,8 +168,13 @@
       <tbody>
         <tr>
           <td><code>Content-Type</code></td>
-          <td class="required">Required</td>
-          <td>Must be <code>application/json</code>.</td>
+          <td class="optional">Recommended</td>
+          <td>
+            Send <code>application/json</code>. There is no server-side content-type
+            check, but a non-JSON type may make API Gateway deliver the body
+            base64-encoded — that is decoded automatically before validation. The
+            decoded body must still be valid UTF-8 JSON.
+          </td>
         </tr>
         <tr>
           <td><code>Idempotency-Key</code></td>
@@ -167,14 +185,11 @@
             This service does <strong>not</strong> de-duplicate — the key is
             validated and passed straight through on the queued message as
             <code>idempotencyKey</code> for your consumer to de-dupe on.
-            <br>
             Callers that cannot generate a GUID send the literal value
-            <code>none</code> (case-insensitive) instead: the header stays
+            <code>none</code> (case-insensitive, trimmed) instead: the header stays
             required, but the emitted <code>idempotencyKey</code> is an empty
-            string.
-            A missing header, or any other value that is not a GUID, is
-            <span class="status-400">400</span>.
-            See <a href="#idempotency">§6 Idempotency</a>.
+            string. A missing header, or any other value that is not a GUID, is
+            <span class="status-400">400</span>. See <a href="#idempotency">§6</a>.
           </td>
         </tr>
         <tr>
@@ -182,37 +197,44 @@
           <td class="required">Required (browser)</td>
           <td>
             Must be <code>https://vidyaone.com</code> or any
-            <code>*.vidyaone.com</code> subdomain. <code>http</code> is always rejected.
-            Controls the CORS response headers.
+            <code>*.vidyaone.com</code> subdomain. <code>http://</code> is always
+            rejected. Only controls the CORS response headers — a missing or
+            disallowed <code>Origin</code> does not by itself fail the request, but
+            a browser will block the response. See <a href="#cors">§8 CORS</a>.
           </td>
         </tr>
         <tr>
           <td><code>User-Agent</code></td>
-          <td class="optional">Recommended</td>
-          <td>Browser UA string. Missing = one bot signal.</td>
+          <td class="optional">Strongly recommended</td>
+          <td>Browser UA string. Missing = one bot signal. A known bot UA (see <a href="#bots">§7</a>) = one bot signal.</td>
         </tr>
         <tr>
           <td><code>Referer</code></td>
-          <td class="optional">Recommended</td>
+          <td class="optional">Strongly recommended</td>
           <td>The page the form was submitted from. Missing = one bot signal.</td>
         </tr>
       </tbody>
     </table>
     <p class="note">
-      Bot/spam rule: the submission is rejected with <span class="status-400">400</span>
-      once <strong>2 or more</strong> bot signals fire — missing <code>User-Agent</code>,
-      a known bot <code>User-Agent</code>, or missing <code>Referer</code>.
+      CloudFront viewer headers (<code>CloudFront-Viewer-Country</code>,
+      <code>-Country-Name</code>, <code>-Country-Region-Name</code>,
+      <code>-City</code>, <code>-Time-Zone</code>) are read for the
+      <code>location</code> block on the emitted message when present. Clients do
+      not send these — CloudFront injects them. All default to <code>""</code>.
     </p>
   </section>
 
   <!-- ------------------------------------------------------------------ -->
   <section>
     <h2>3. Request body</h2>
-    <h3>Example</h3>
+    <h3>Complete example request</h3>
     <pre><code>POST /  HTTP/1.1
+Host: &lt;your-http-api-id&gt;.execute-api.ap-south-1.amazonaws.com
 Content-Type: application/json
 Idempotency-Key: f47ac10b-58cc-4372-a567-0e02b2c3d479
 Origin: https://vidyaone.com
+Referer: https://vidyaone.com/contact
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36
 
 {
   "form_type": "contact",
@@ -226,66 +248,77 @@ Origin: https://vidyaone.com
     "url": "https://vidyaone.com/contact"
   }
 }</code></pre>
-    <p class="note">
-      The body must be UTF-8 JSON. If API Gateway delivers it base64-encoded
-      (it does this for some content types), it is decoded automatically before
-      validation — you do not need to do anything.
-    </p>
 
     <h3>Field reference</h3>
     <table>
       <thead>
-        <tr><th>Field</th><th>Required</th><th>Rules</th></tr>
+        <tr><th>Field</th><th>Type</th><th>Required</th><th>Constraints</th></tr>
       </thead>
       <tbody>
         <tr>
           <td><code>form_type</code></td>
+          <td>string</td>
           <td class="required">Required</td>
-          <td>String. One of the allowed values in <a href="#form-types">§4</a>. Case-insensitive (lower-cased server-side).</td>
+          <td>Trimmed and lower-cased server-side, then must be one of the values in <a href="#form-types">§4</a>. Empty / missing &rarr; <span class="status-400">400</span>. Unknown value &rarr; <span class="status-400">400</span> (a truncated copy of the value is echoed in the error).</td>
         </tr>
         <tr>
           <td><code>subject</code></td>
+          <td>string</td>
           <td class="optional">Optional</td>
-          <td>String, ≤ 5000 chars, restricted character set (<a href="#limits">§5</a>).</td>
+          <td>Trimmed. If present: &le; 5000 chars and must match the restricted character set (<a href="#limits">§5</a>).</td>
         </tr>
         <tr>
           <td><code>form_fields</code></td>
+          <td>object</td>
           <td class="required">Required</td>
-          <td>JSON object with <strong>at least one non-blank value</strong> (a
-            number or boolean counts; blank strings and <code>null</code> do
-            not). Keys must be strings ≤ 100 chars. May nest objects/arrays up
-            to <strong>5 levels</strong> deep, ≤ 500 entries per object/array.</td>
+          <td>Must be a JSON object with <strong>at least one non-blank value</strong>. An empty object, or one holding only blank strings / <code>null</code>, is <span class="status-400">400</span>. Keys must be strings &le; 100 chars. May nest objects / arrays up to <strong>5 levels</strong> deep, &le; 500 entries per object or array.</td>
         </tr>
         <tr>
           <td><code>form_fields.&lt;key&gt;</code></td>
+          <td>string · number · boolean · null · object · array</td>
           <td>—</td>
           <td>
-            <strong>Every</strong> string value — including strings nested
-            inside objects and arrays — must be ≤ 5000 chars, match the
-            restricted character set (<a href="#limits">§5</a>), and must not
-            contain <code>..</code> or <code>\</code>.
-            <code>null</code>, numbers and booleans are allowed anywhere.
-            Any other type (e.g. a nested value that is not string / number /
-            bool / object / array / null) is <span class="status-400">400</span>.
+            <strong>Every</strong> string leaf — including strings nested inside
+            objects and arrays — must be &le; 5000 chars, match the restricted
+            character set (<a href="#limits">§5</a>), and must not contain
+            <code>..</code> or <code>\</code> (path-traversal guard).
+            <code>null</code>, numbers and booleans are accepted anywhere.
+            Any other value type &rarr; <span class="status-400">400</span>
+            (<code>has an unsupported value type</code>).
           </td>
         </tr>
         <tr>
           <td><code>form_fields.email</code></td>
-          <td>If key present</td>
-          <td>Must look like <code>local@domain</code> (e.g. <code>name@example.com</code>).</td>
+          <td>string</td>
+          <td>If a key named <code>email</code> is present</td>
+          <td>Case-insensitive key match. Value must match <code>local@domain</code> — local part 1–64 chars, domain 1–255 chars, no spaces or extra <code>@</code>. Invalid &rarr; <span class="status-400">400</span>.</td>
+        </tr>
+        <tr>
+          <td><code>page</code></td>
+          <td>object</td>
+          <td class="required">Required (for <code>page.url</code>)</td>
+          <td>Container for <code>url</code>. A missing <code>page</code> is treated as <code>{}</code>, which then fails the <code>page.url</code> required check.</td>
         </tr>
         <tr>
           <td><code>page.url</code></td>
+          <td>string</td>
           <td class="required">Required</td>
-          <td>Valid <code>http(s)://</code> URL whose host is <code>vidyaone.com</code> or a subdomain.</td>
+          <td>Trimmed. Must match <code>http(s)://…</code> (&le; 2000 chars, no whitespace / <code>&lt; &gt; " '</code>) <em>and</em> its host must be <code>vidyaone.com</code> or a subdomain. Otherwise <span class="status-400">400</span>.</td>
         </tr>
       </tbody>
     </table>
+    <p class="note">
+      Unknown top-level keys are ignored. Only <code>form_type</code>,
+      <code>subject</code>, <code>form_fields</code> and <code>page.url</code> are
+      read from the body; <code>idempotency_key</code> is taken from the
+      <em>header</em>, never the body.
+    </p>
   </section>
 
   <!-- ------------------------------------------------------------------ -->
   <section id="form-types">
     <h2>4. Allowed <code>form_type</code> values</h2>
+    <p>Comparison is done after trim + lower-case. 20 values:</p>
     <div>
       <span class="pill">contact</span>
       <span class="pill">feedback</span>
@@ -295,24 +328,12 @@ Origin: https://vidyaone.com
       <span class="pill">customization_callback</span>
       <span class="pill">advance_technical_callback</span>
       <span class="pill">callback</span>
-      <span class="pill">callback_vss</span>
-      <span class="pill">callback_scl_website</span>
-      <span class="pill">callback_pre_website</span>
       <span class="pill">complaint</span>
-      <span class="pill">complaint_vss</span>
-      <span class="pill">complaint_scl_website</span>
-      <span class="pill">complaint_pre_website</span>
       <span class="pill">lead</span>
-      <span class="pill">lead_vss</span>
-      <span class="pill">lead_scl_website</span>
-      <span class="pill">lead_pre_website</span>
-      <span class="pill">demo_scl_website</span>
-      <span class="pill">demo_vss</span>
-      <span class="pill">demo_pre_website</span>
+      <span class="pill">demo</span>
+      <span class="pill">trial</span>
       <span class="pill">trial_vss</span>
-      <span class="pill">onboarding_vss</span>
-      <span class="pill">onboarding_scl_website</span>
-      <span class="pill">onboarding_pre_website</span>
+      <span class="pill">onboarding</span>
       <span class="pill">domain_booking_scl_website</span>
       <span class="pill">activate_ssl_scl_website</span>
       <span class="pill">domain_booking_pre_website</span>
@@ -320,24 +341,41 @@ Origin: https://vidyaone.com
       <span class="pill">success_story</span>
       <span class="pill">payment_reminder</span>
     </div>
+    <p class="note">
+      Source of truth: <code>config.ALLOWED_FORM_TYPES</code>. A submission whose
+      <code>form_type</code> is not in this list is rejected with
+      <span class="status-400">400</span>, but if it is otherwise safe and genuine
+      it is still forwarded to the failure queue (<a href="#failure">§11</a>) so a
+      newly-introduced type is not lost.
+    </p>
   </section>
 
   <!-- ------------------------------------------------------------------ -->
   <section id="limits">
     <h2>5. Character set &amp; size limits</h2>
-    <p>Character-set check applies to <code>subject</code>, <code>form_type</code>, and every string value in <code>form_fields</code> (including nested ones):</p>
+    <p>The character-set check applies to <code>subject</code>, <code>form_type</code>, and every string value in <code>form_fields</code> (including nested ones):</p>
     <pre><code>Allowed: letters, digits, underscore, whitespace (incl. newlines), and
          @ . , - ! ? : ; ' " ( ) [ ] / &amp; % # * + = ~ $ |
-Rejected: &lt; &gt; { } \ ` ^  and any other character</code></pre>
+Rejected: &lt; &gt; { } \ ` ^   and any other character
+Also rejected in form_fields string values: the substrings ".." and "\"</code></pre>
     <table>
       <tbody>
-        <tr><td>Max total payload size</td><td>1,000,000 bytes</td></tr>
+        <tr><td>Max total payload size</td><td>1,000,000 bytes (error text says "1000 KB limit")</td></tr>
         <tr><td>Max chars per string value / <code>subject</code></td><td>5,000</td></tr>
         <tr><td>Max chars per <code>form_fields</code> key</td><td>100</td></tr>
         <tr><td>Max <code>form_fields</code> nesting depth</td><td>5</td></tr>
         <tr><td>Max entries per nested object / array</td><td>500</td></tr>
+        <tr><td><code>page.url</code> max length</td><td>2,000 chars</td></tr>
+        <tr><td><code>Idempotency-Key</code></td><td>GUID <code>8-4-4-4-12</code> hex, or literal <code>none</code></td></tr>
       </tbody>
     </table>
+    <p class="note">
+      Server-side truncation on the emitted message: <code>userAgent</code> &rarr;
+      500 chars, each <code>location</code> string &rarr; 200 chars,
+      <code>sourceIp</code> &rarr; 45 chars. On failure-queue messages
+      <code>failureReason</code> &rarr; 2000 chars and <code>formType</code> &rarr;
+      100 chars.
+    </p>
   </section>
 
   <!-- ------------------------------------------------------------------ -->
@@ -353,27 +391,59 @@ Rejected: &lt; &gt; { } \ ` ^  and any other character</code></pre>
     <h3>How to use it</h3>
     <ul>
       <li>Generate one GUID per logical submission and reuse it on every retry
-        (network drop, timeout) so your consumer can collapse the duplicates.</li>
-      <li>Generate a fresh GUID when the user submits again on purpose.</li>
+        (network drop, timeout, <span class="status-500">500</span>) so your
+        consumer can collapse the duplicates.</li>
+      <li>Generate a fresh GUID when the user deliberately submits again.</li>
       <li>No GUID available? Send <code>none</code> — the emitted
         <code>idempotencyKey</code> will be <code>""</code>, and you must
         de-dupe on submission content downstream.</li>
     </ul>
     <p class="note">
-      De-duplication is entirely the consumer's responsibility. Suggested key:
-      a hash of <code>formType</code> + <code>formFields</code> +
-      <code>location.sourceIp</code> within a short time window when
-      <code>idempotencyKey</code> is empty.
+      De-duplication is entirely the consumer's responsibility. Suggested fallback
+      key when <code>idempotencyKey</code> is empty: a hash of
+      <code>formType</code> + <code>formFields</code> +
+      <code>location.sourceIp</code> within a short time window.
     </p>
   </section>
 
   <!-- ------------------------------------------------------------------ -->
-  <section>
-    <h2>7. Responses</h2>
-    <p>Every response body includes <code>requestId</code> — the AWS request id for that invocation. Log it; it appears in CloudWatch and on the queued message.</p>
+  <section id="bots">
+    <h2>7. Bot / spam screening</h2>
+    <p>
+      After all field validation passes, three transport-level signals are checked.
+      The submission is rejected with <span class="status-400">400</span> and body
+      <code>"Submission rejected"</code> once <strong>2 or more</strong> fire:
+    </p>
+    <table>
+      <thead><tr><th>Signal</th><th>Fires when</th></tr></thead>
+      <tbody>
+        <tr><td><code>missing_user_agent</code></td><td>No <code>User-Agent</code> header.</td></tr>
+        <tr><td><code>bot_user_agent</code></td><td><code>User-Agent</code> contains a known bot/tool token: <code>bot</code>, <code>crawler</code>, <code>spider</code>, <code>slurp</code>, <code>bingbot</code>, <code>googlebot</code>, <code>facebookexternalhit</code>, <code>semrush</code>, <code>ahrefsbot</code>, <code>mj12bot</code>, <code>dotbot</code>, <code>petalbot</code>, <code>yandexbot</code>, <code>baiduspider</code>, <code>wget</code>, <code>curl</code>, <code>python-requests</code>, <code>go-http-client</code>, <code>axios</code>.</td></tr>
+        <tr><td><code>missing_referer</code></td><td>No <code>Referer</code> header.</td></tr>
+      </tbody>
+    </table>
+    <h3>Worked example</h3>
+    <p>
+      A server-to-server <code>curl</code> POST with no <code>Referer</code>:
+      <code>bot_user_agent</code> (UA contains "curl") + <code>missing_referer</code>
+      = 2 signals &rarr; <span class="status-400">400</span> <code>{"error":"Submission rejected"}</code>.
+      The same request with a real browser <code>User-Agent</code> and a
+      <code>Referer</code> of <code>https://vidyaone.com/contact</code> = 0 signals
+      &rarr; accepted.
+    </p>
+    <p class="note">
+      A rejected-as-bot submission is <strong>not</strong> forwarded to the failure
+      queue — it is dropped with only a CloudWatch <code>[WARN]</code> line.
+    </p>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section id="responses">
+    <h2>8. Responses</h2>
+    <p>Every JSON response body includes <code>requestId</code> — the AWS request id for that invocation. Log it; it appears in CloudWatch and on every emitted message.</p>
     <table>
       <thead>
-        <tr><th>Status</th><th>Body</th><th>When</th></tr>
+        <tr><th>Status</th><th>Body</th><th>When</th><th>Retry?</th></tr>
       </thead>
       <tbody>
         <tr>
@@ -382,7 +452,8 @@ Rejected: &lt; &gt; { } \ ` ^  and any other character</code></pre>
   "message": "Submission received",
   "requestId": "…"
 }</code></pre></td>
-          <td>Accepted and queued to SQS (SNS fan-out is best-effort). Every valid submission is queued — no de-duplication happens here.</td>
+          <td>Parsed, validated, not bot-flagged, and durably written to the primary SQS queue. SNS fan-out is best-effort and does not affect this response.</td>
+          <td>No.</td>
         </tr>
         <tr>
           <td class="status-400">400</td>
@@ -391,14 +462,20 @@ Rejected: &lt; &gt; { } \ ` ^  and any other character</code></pre>
   "requestId": "…"
 }</code></pre></td>
           <td>
-            Invalid JSON or bad base64 (<code>"Invalid request body"</code>),
-            missing/invalid <code>Idempotency-Key</code>, missing/invalid field,
-            disallowed character or nested value type in <code>form_fields</code>,
-            <code>form_fields</code> nested too deep, disallowed
-            <code>form_type</code>, disallowed <code>page.url</code> domain,
-            payload too large, or flagged as bot/spam
-            (<code>"Submission rejected"</code>). Do not retry unchanged.
+            Validation failure — <code>&lt;reason&gt;</code> is a specific message
+            (e.g. <code>Field 'form_type' is required</code>,
+            <code>Header 'Idempotency-Key' must be a GUID</code>,
+            <code>form_fields.&lt;key&gt; contains disallowed characters</code>,
+            <code>form_fields is nested too deeply</code>,
+            <code>Invalid form_type '…'</code>,
+            <code>page.url domain is not allowed …</code>,
+            <code>Payload exceeds 1000 KB limit</code>,
+            <code>Submission rejected</code> for bot/spam).
+            <br>
+            For malformed JSON / bad base64 / non-object body the reason is the
+            generic <code>Invalid request body</code>.
           </td>
+          <td>Not unchanged — fix the request first.</td>
         </tr>
         <tr>
           <td class="status-500">500</td>
@@ -406,79 +483,182 @@ Rejected: &lt; &gt; { } \ ` ^  and any other character</code></pre>
   "error": "Internal server error",
   "requestId": "…"
 }</code></pre></td>
-          <td>Unexpected server-side failure (e.g. the queue write failed). Safe to retry; reuse the <strong>same</strong> <code>Idempotency-Key</code> so the consumer can collapse any duplicate that still got through.</td>
+          <td>Unexpected server-side failure — most commonly the primary SQS write failing after retries. If the submission had already been fully parsed it is best-effort forwarded to the failure queue with <code>failureReason: "sqs_delivery_failed: …"</code>.</td>
+          <td>Yes. Reuse the <strong>same</strong> <code>Idempotency-Key</code> so the consumer can collapse any duplicate that still got through.</td>
         </tr>
         <tr>
           <td class="status-200">204</td>
           <td><em>(no body)</em></td>
           <td><code>OPTIONS</code> preflight.</td>
+          <td>—</td>
         </tr>
       </tbody>
     </table>
-    <h3>CORS</h3>
+
+    <h3>Response headers (all responses)</h3>
+    <table>
+      <tbody>
+        <tr><td><code>Content-Type</code></td><td><code>application/json</code></td></tr>
+        <tr><td><code>Vary</code></td><td><code>Origin</code></td></tr>
+        <tr><td><code>X-Content-Type-Options</code></td><td><code>nosniff</code></td></tr>
+        <tr><td><code>X-Frame-Options</code></td><td><code>DENY</code></td></tr>
+        <tr><td><code>Strict-Transport-Security</code></td><td><code>max-age=31536000; includeSubDomains</code></td></tr>
+        <tr><td><code>Cache-Control</code></td><td><code>no-store, no-cache, must-revalidate</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="cors">CORS</h3>
     <p>
-      When <code>Origin</code> is an allowed <code>*.vidyaone.com</code> host the response carries
-      <code>Access-Control-Allow-Origin: &lt;origin&gt;</code>,
-      <code>Access-Control-Allow-Headers: Content-Type,Authorization,Idempotency-Key</code>,
-      <code>Access-Control-Allow-Methods: POST,OPTIONS</code>.
-      Other origins get the response without CORS headers (browser blocks it).
-      All responses carry <code>Vary: Origin</code> and
-      <code>Cache-Control: no-store</code>.
+      When <code>Origin</code> is an allowed <code>https://*.vidyaone.com</code> host, the response additionally carries:
+    </p>
+    <pre><code>Access-Control-Allow-Origin: &lt;the request Origin&gt;
+Access-Control-Allow-Headers: Content-Type,Authorization,Idempotency-Key
+Access-Control-Allow-Methods: POST,OPTIONS</code></pre>
+    <p>
+      For any other <code>Origin</code> (or <code>http://</code>, or no
+      <code>Origin</code>) those three headers are omitted and the browser blocks
+      the response. The preflight <span class="status-200">204</span> follows the
+      same rule.
     </p>
   </section>
 
   <!-- ------------------------------------------------------------------ -->
   <section>
-    <h2>8. What lands on the queue <span class="badge">consumers</span></h2>
-    <p>On success the Lambda sends this enriched JSON to SQS (and the same shape to SNS). Device and location are derived server-side from headers.</p>
+    <h2>9. Processing flow &amp; side effects</h2>
+    <ol>
+      <li><strong>Parse + validate</strong> the event (headers, body, size, character set, bot screening). Failure &rarr; <span class="status-400">400</span>.</li>
+      <li><strong>Send to primary SQS</strong> (<code>vone-form-data-queue</code>) — mandatory. Failure &rarr; <span class="status-500">500</span> (and best-effort forward to the failure queue).</li>
+      <li><strong>Publish to SNS</strong> (<code>vone-form-data-topic</code>) — non-fatal. A failure here is logged only; the response is still <span class="status-200">200</span>.</li>
+      <li>Return <span class="status-200">200</span>.</li>
+    </ol>
+    <p class="note">
+      On <span class="status-400">400</span> from validation or a parse error, the
+      Lambda independently re-scans the raw body; if it is genuine, non-blank,
+      non-bot and free of disallowed characters / path traversal / bad URL domain,
+      a copy is forwarded to the failure queue (<a href="#failure">§11</a>). This
+      re-scan and forward never affects the client response.
+    </p>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section id="queue">
+    <h2>10. What lands on the primary queue <span class="badge">consumers</span></h2>
+    <p>On success the Lambda sends this exact enriched JSON as the SQS message body, and the same shape as the SNS message. <code>device</code> and <code>location</code> are derived server-side from request headers.</p>
     <pre><code>{
   "requestId":      "a1b2c3d4-1111-2222-3333-444455556666",
-  "idempotencyKey": "f47ac10b-58cc-4372-a567-0e02b2c3d479",  // "" if client sent "none"
-  "submittedAt":    "2026-08-27T10:15:30.123456+00:00",
+  "idempotencyKey": "f47ac10b-58cc-4372-a567-0e02b2c3d479",   // "" if client sent "none"
+  "submittedAt":    "2026-09-01T10:15:30.123456+00:00",        // UTC ISO-8601
 
   "formType":   "contact",
-  "subject":    "New enquiry",
+  "subject":    "New enquiry",                                 // "" if not sent
   "formFields": { "name": "Jane Doe", "email": "jane@example.com", "message": "…" },
   "pageUrl":    "https://vidyaone.com/contact",
 
   "device": {
-    "userAgent": "Mozilla/5.0 …",
-    "browser": "Chrome 128",
-    "os": "Windows 10/11",
-    "deviceType": "desktop",     // desktop | mobile | tablet | bot | unknown
-    "isMobile": false
+    "userAgent":  "Mozilla/5.0 …",     // truncated to 500 chars
+    "browser":    "Chrome 128",
+    "os":         "Windows 10/11",
+    "deviceType": "desktop",           // desktop | mobile | tablet | bot | unknown
+    "isMobile":   false
   },
-  "location": {                  // from CloudFront headers — "" if not present
+  "location": {                        // from CloudFront headers — "" when absent
     "countryCode": "IN",
     "countryName": "India",
-    "region": "Karnataka",
-    "city": "Bengaluru",
-    "timezone": "Asia/Kolkata",
-    "sourceIp": "203.0.113.7"
+    "region":      "Karnataka",
+    "city":        "Bengaluru",
+    "timezone":    "Asia/Kolkata",
+    "sourceIp":    "203.0.113.7"
   },
   "botDetection": { "isBot": false, "reasons": [] }
 }</code></pre>
-    <p><strong>SQS message attributes:</strong> <code>formType</code>, <code>requestId</code>, <code>isBot</code>.</p>
-    <p><code>formFields</code> is echoed as submitted, so it may contain nested objects/arrays if the client sent them.</p>
+    <table>
+      <thead><tr><th>Channel</th><th>Message attributes</th><th>Other</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>SQS <code>vone-form-data-queue</code></td>
+          <td><code>formType</code> (String), <code>requestId</code> (String), <code>isBot</code> (String — <code>"True"</code>/<code>"False"</code>)</td>
+          <td>Body is the JSON above, UTF-8, non-ASCII preserved.</td>
+        </tr>
+        <tr>
+          <td>SNS <code>vone-form-data-topic</code></td>
+          <td><code>formType</code> (String), <code>isBot</code> (String), <code>source</code> (String = <code>vone-form-ingest-lambda</code>)</td>
+          <td>Subject: <code>FormSubmission-&lt;formType&gt;</code>. Message is the same JSON.</td>
+        </tr>
+      </tbody>
+    </table>
     <p class="note">
-      A separate <em>failure queue</em> receives submissions that were
-      <strong>rejected or undelivered but still safe and genuine</strong>:
-      (a) validation- or parse-rejected content that passed the character /
-      path / bot / URL-domain screening, and (b) fully-valid submissions that
-      failed to reach the main queue. Those messages add a
-      <code>failureReason</code> body field holding the human-readable cause
-      (the validation message, or a string prefixed <code>parse_error:</code> /
-      <code>sqs_delivery_failed:</code>), plus a <code>reason</code> message
-      attribute of <code>validation_rejected</code> or
-      <code>sqs_delivery_failed</code>. Blank, malformed, bot-flagged, or
-      dangerous submissions are dropped with only a log line.
+      <code>botDetection.isBot</code> on the primary queue is always
+      <code>false</code> — bot-flagged submissions are rejected before this point.
+      The field is kept for schema stability. <code>formFields</code> is echoed as
+      submitted, so it may contain nested objects / arrays.
+    </p>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section id="failure">
+    <h2>11. Failure queue <span class="badge">consumers</span></h2>
+    <p>
+      <code>vone-form-data-spam-queue</code> receives two kinds of records, both
+      of which already passed the same character / path-traversal / bot /
+      URL-domain screening as the main pipeline. Blank, malformed, bot-flagged, or
+      dangerous submissions are never sent here — they are dropped with a log line
+      only.
+    </p>
+
+    <h3>11a. Validation- or parse-rejected but safe &amp; genuine</h3>
+    <p>Message attributes: <code>requestId</code> (String), <code>reason</code> (String = <code>validation_rejected</code> — this tag is used for both validation and parse rejections). Body:</p>
+    <pre><code>{
+  "requestId":     "a1b2c3d4-…",
+  "rejectedAt":    "2026-09-01T10:15:30.123456+00:00",
+  "failureReason": "Invalid form_type 'newsletter_signup'",   // or "parse_error: …"
+  "formType":      "newsletter_signup",                       // trimmed, lower-cased, ≤100 chars
+  "subject":       "",
+  "formFields":    { "name": "Jane Doe", "email": "jane@example.com" },
+  "pageUrl":       "https://vidyaone.com/newsletter",
+  "origin":        "https://vidyaone.com",                    // may be null
+  "sourceIp":      "203.0.113.7"                              // ≤45 chars
+}</code></pre>
+    <p>Fires when validation fails (e.g. unmapped <code>form_type</code>, bad email format, over-length field) or a parse error occurs on a well-formed body, and the re-scan confirms the content is real and safe to replay. <code>failureReason</code> holds the validation message, or a string prefixed <code>parse_error:</code>.</p>
+
+    <h3>11b. Fully valid but failed to persist</h3>
+    <p>Message attributes: <code>requestId</code> (String), <code>reason</code> (String = <code>sqs_delivery_failed</code>). Body is the full <a href="#queue">§10</a> enriched shape, plus one extra field:</p>
+    <pre><code>{
+  "requestId": "…", "idempotencyKey": "…", "submittedAt": "…",
+  "formType": "contact", "subject": "…", "formFields": { … }, "pageUrl": "…",
+  "device": { … }, "location": { … }, "botDetection": { "isBot": false, "reasons": [] },
+  "failureReason": "sqs_delivery_failed: &lt;error detail&gt;"
+}</code></pre>
+    <p>Fires when every check passed but the write to <code>vone-form-data-queue</code> failed. The client received <span class="status-500">500</span>; this record lets the data be recovered.</p>
+
+    <p class="note">
+      Sends to the failure queue are best-effort — if the failure queue write also
+      fails it is logged and swallowed, and the client response is unchanged.
+    </p>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section>
+    <h2>12. Timeouts &amp; retries (ops)</h2>
+    <p>The boto3 clients for SQS and SNS use bounded timeouts and retries so one slow AWS call cannot burn the whole Lambda budget:</p>
+    <table>
+      <tbody>
+        <tr><td>Connect timeout</td><td>3 s</td></tr>
+        <tr><td>Read timeout</td><td>5 s</td></tr>
+        <tr><td>Retries</td><td>max 3 attempts, <code>standard</code> mode</td></tr>
+      </tbody>
+    </table>
+    <p class="note">
+      Both <code>vone-form-data-queue</code> and
+      <code>vone-form-data-spam-queue</code> must have their SQS <em>Maximum
+      message size</em> set to at least 1,048,576 bytes — the enriched message adds
+      device / location / bot metadata on top of the raw body.
     </p>
   </section>
 
 </main>
 
 <footer>
-  Generated from <code>lambda_function.py</code>, <code>event_parser.py</code>, <code>publish_helper.py</code>, and <code>config.py</code> in this project.
+  Generated from <code>lambda_function.py</code>, <code>event_parser.py</code>, <code>publish_helper.py</code>, and <code>config.py</code> in this project. Region <code>ap-south-1</code>.
 </footer>
 
 </body>
