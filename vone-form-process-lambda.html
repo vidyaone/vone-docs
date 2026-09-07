@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vone-form-process-lambda — Developer Docs</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #161923;
+    --border: #262b3a;
+    --text: #e6e8ef;
+    --muted: #9aa1b5;
+    --accent: #7c9cff;
+    --ok: #4ade80;
+    --err: #f87171;
+    --warn: #fbbf24;
+    --code-bg: #0b0d13;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+  }
+  header {
+    padding: 32px 24px 20px;
+    border-bottom: 1px solid var(--border);
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  header h1 { margin: 0 0 6px; font-size: 1.6rem; }
+  header p { margin: 0; color: var(--muted); }
+  main { max-width: 960px; margin: 0 auto; padding: 24px; }
+  section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+  section h2 {
+    margin-top: 0;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  section h3 { font-size: 0.95rem; margin: 18px 0 6px; }
+  section h2 .badge {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--accent);
+    color: #0f1117;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 700;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    font-size: 0.85rem;
+  }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; }
+  p code, td code, li code {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 0.85em;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th, td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .required { color: var(--err); font-weight: 600; }
+  .optional { color: var(--muted); }
+  .pill {
+    display: inline-block;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 8px;
+    margin: 2px 4px 2px 0;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.8rem;
+  }
+  .status-200 { color: var(--ok); font-weight: 700; }
+  .status-400 { color: var(--warn); font-weight: 700; }
+  .status-500 { color: var(--err); font-weight: 700; }
+  .note {
+    border-left: 3px solid var(--accent);
+    padding: 8px 14px;
+    margin: 12px 0 0;
+    background: rgba(124,156,255,0.07);
+    color: var(--muted);
+    font-size: 0.86rem;
+  }
+  .warnnote {
+    border-left: 3px solid var(--warn);
+    padding: 8px 14px;
+    margin: 12px 0 0;
+    background: rgba(251,191,36,0.07);
+    color: var(--muted);
+    font-size: 0.86rem;
+  }
+  ol.toc { columns: 2; margin: 0; padding-left: 18px; font-size: 0.9rem; }
+  ol.toc a { color: var(--accent); text-decoration: none; }
+  footer {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 8px 24px 40px;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>vone-form-process-lambda</h1>
+  <p>Developer reference for the form-submission consumer (region: <code>ap-south-1</code>). This is the downstream half of <code>vone-form-post-lambda</code>: it drains the SQS queue, persists each submission to DynamoDB, and forwards it to a Zoho Flow webhook.</p>
+</header>
+
+<main>
+
+  <section>
+    <h2>Contents</h2>
+    <ol class="toc">
+      <li><a href="#what">What it does</a></li>
+      <li><a href="#entry">Entry point &amp; trigger</a></li>
+      <li><a href="#input">Input message contract</a></li>
+      <li><a href="#example-in">Example input event</a></li>
+      <li><a href="#phone">Phone-field normalization</a></li>
+      <li><a href="#geo">Geo enrichment</a></li>
+      <li><a href="#idem">Idempotency &amp; de-duplication</a></li>
+      <li><a href="#dynamo">DynamoDB record shape</a></li>
+      <li><a href="#webhook">Zoho Flow webhook (downstream emit)</a></li>
+      <li><a href="#email">Email (SES) — disabled</a></li>
+      <li><a href="#batch">Partial-batch failure &amp; retry</a></li>
+      <li><a href="#budget">Time-budget deferral</a></li>
+      <li><a href="#size">Large-payload handling</a></li>
+      <li><a href="#failure">Failure matrix</a></li>
+      <li><a href="#formtypes">form_type → prefix table</a></li>
+      <li><a href="#config">Configuration reference</a></li>
+    </ol>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section id="what">
+    <h2>1. What it does</h2>
+    <p>
+      Consumes enriched form-submission messages from an SQS queue (produced by
+      <code>vone-form-post-lambda</code>). For every SQS record it:
+    </p>
+    <ol>
+      <li>Parses and structurally validates the message body into a typed <code>SubmissionEvent</code>.</li>
+      <li>Normalizes <code>mobile</code> / <code>whatsapp</code> fields inside <code>formFields</code> to numeric strings.</li>
+      <li>Geo-enriches <code>location</code> from <code>sourceIp</code> via ip-api.com (non-fatal).</li>
+      <li>Resolves a <code>prefix</code> for the <code>formType</code> from config.</li>
+      <li>Writes the submission to DynamoDB table <code>vone-form-data</code> with a conditional (idempotent) put.</li>
+      <li>POSTs the submission to a Zoho Flow incoming webhook. This step is <strong>fatal</strong> — a failure returns the record to SQS.</li>
+    </ol>
+    <p>
+      An SES email step exists in the code but is <strong>currently commented out</strong> (see <a href="#email">§10</a>).
+      Partial-batch failure reporting is used so only failed / deferred records are retried.
+    </p>
+    <table>
+      <tbody>
+        <tr><td>Entry point</td><td><code>lambda_function.lambda_handler</code></td></tr>
+        <tr><td>Region</td><td><code>ap-south-1</code> &nbsp;·&nbsp; account <code>767750127056</code></td></tr>
+        <tr><td>Trigger</td><td>SQS event source mapping (records with <code>eventSource == "aws:sqs"</code>)</td></tr>
+        <tr><td>DynamoDB table</td><td><code>vone-form-data</code> — PK <code>pk</code> (S), SK <code>sk</code> (S), TTL attr <code>ttl</code></td></tr>
+        <tr><td>Downstream</td><td>Zoho Flow incoming webhook (<a href="#webhook">§9</a>)</td></tr>
+        <tr><td>Runtime logging</td><td><code>print()</code> to CloudWatch, prefixed <code>[INFO]</code> / <code>[WARN]</code> / <code>[ERROR]</code></td></tr>
+      </tbody>
+    </table>
+    <p class="note">
+      There is no HTTP endpoint, no API Gateway, and therefore no request method,
+      content-type, CORS, or auth on the invocation. Auth to the one outbound
+      dependency (Zoho Flow) is the <code>zapikey</code> embedded in the webhook URL.
+    </p>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section id="entry">
+    <h2>2. Entry point &amp; trigger</h2>
+    <p>
+      Invoked by the Lambda SQS poller with a standard SQS event. The event source
+      mapping <strong>must have <code>ReportBatchItemFailures</code> enabled</strong> —
+      the handler returns <code>batchItemFailures</code> and relies on SQS to
+      re-drive only the listed messages.
+    </p>
+    <pre><code>{
+  "Records": [
+    {
+      "messageId": "d5f9…",          // used as fallback requestId and as the failure identifier
+      "eventSource": "aws:sqs",       // REQUIRED — any other value ⇒ record discarded
+      "body": "{ …JSON string… }",    // the submission payload, see §3
+      "attributes": { … },            // ignored
+      "messageAttributes": { … }      // ignored
+    }
+  ]
+}</code></pre>
+    <p class="note">
+      Only <code>messageId</code>, <code>eventSource</code> and <code>body</code> are read.
+      Message attributes set by the publisher are not consumed here.
+    </p>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section id="input">
+    <h2>3. Input message contract</h2>
+    <p>
+      <code>Records[].body</code> is a JSON <em>string</em>; parsed it must be a JSON
+      object with the fields below. Shape mirrors
+      <code>publish_helper._build_message()</code> in <code>vone-form-post-lambda</code>.
+    </p>
+    <table>
+      <thead>
+        <tr><th>Field</th><th>Type</th><th>Required</th><th>Rules / handling</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>formType</code></td><td>string</td><td class="required">Yes</td>
+          <td>Trimmed and lower-cased. Empty or missing ⇒ <code>ParseError</code> ⇒ record <strong>discarded</strong> (not retried).</td>
+        </tr>
+        <tr>
+          <td><code>formFields</code></td><td>object</td><td class="required">Yes</td>
+          <td>Must be a JSON object. Any other type ⇒ <code>ParseError</code> ⇒ discarded. Arbitrary keys allowed; values pass through except phone normalization (<a href="#phone">§5</a>) and float→Decimal on the DynamoDB copy.</td>
+        </tr>
+        <tr>
+          <td><code>requestId</code></td><td>string</td><td class="optional">No</td>
+          <td>If absent or falsy, falls back to the SQS <code>messageId</code>. Stored as-is; also used in the <code>REQUEST#</code> dedup key when no idempotency key is present.</td>
+        </tr>
+        <tr>
+          <td><code>idempotencyKey</code></td><td>string</td><td class="optional">No</td>
+          <td>Client GUID passed through by the ingest lambda. Empty string when the client opted out (<code>Idempotency-Key: none</code>). Absent on older queued messages. Drives dedup (<a href="#idem">§7</a>).</td>
+        </tr>
+        <tr>
+          <td><code>subject</code></td><td>string</td><td class="optional">No</td>
+          <td>Trimmed, then <strong>capped to 500 chars</strong>.</td>
+        </tr>
+        <tr>
+          <td><code>pageUrl</code></td><td>string</td><td class="optional">No</td>
+          <td>Trimmed, then <strong>capped to 1000 chars</strong>.</td>
+        </tr>
+        <tr>
+          <td><code>submittedAt</code></td><td>string (ISO-8601)</td><td class="optional">No</td>
+          <td>Lenient parse; trailing <code>Z</code> accepted. Unparseable or missing ⇒ <code>now(UTC)</code>. A value with no offset is kept as-is (naive).</td>
+        </tr>
+        <tr>
+          <td><code>device</code></td><td>object</td><td class="optional">No</td>
+          <td>Read keys: <code>userAgent</code> (≤500), <code>browser</code> (def. <code>"Unknown"</code>), <code>os</code> (def. <code>"Unknown"</code>), <code>deviceType</code> (def. <code>"unknown"</code>), <code>isMobile</code> (bool, def. <code>false</code>). Missing block ⇒ defaults.</td>
+        </tr>
+        <tr>
+          <td><code>location</code></td><td>object</td><td class="optional">No</td>
+          <td>Read keys: <code>sourceIp</code> (≤45), plus optional pre-filled geo keys <code>countryCode</code> / <code>countryName</code> / <code>region</code> / <code>city</code> / <code>timezone</code>. If <code>countryCode</code> is already set, geo lookup is skipped.</td>
+        </tr>
+        <tr>
+          <td><code>botDetection</code></td><td>object</td><td class="optional">No</td>
+          <td>Read keys: <code>isBot</code> (bool, def. <code>false</code>), <code>reasons</code> (list, or a bare string kept whole; any other type ⇒ empty). Stored and forwarded; never causes rejection.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="warnnote">
+      A message that is valid JSON but the wrong shape (e.g. <code>location</code> sent as a string) raises
+      <code>ParseError</code> and is <strong>discarded</strong>. Only unexpected/transient errors (bugs, throttling,
+      DynamoDB / webhook failures) are returned to SQS for retry.
+    </p>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section id="example-in">
+    <h2>4. Example input event</h2>
+    <pre><code>{
+  "Records": [
+    {
+      "messageId": "8f1c0e2a-7b44-4d1e-9a3c-2b6f9d0e1a55",
+      "eventSource": "aws:sqs",
+      "body": "{\"requestId\":\"550e8400-e29b-41d4-a716-446655440000\",\"idempotencyKey\":\"c0ffee00-1234-5678-9abc-def012345678\",\"formType\":\"complaint\",\"subject\":\"complaint from ankit\",\"pageUrl\":\"https://vidyaone.com/help\",\"submittedAt\":\"2026-09-07T09:15:30Z\",\"formFields\":{\"name\":\"Ankit\",\"email\":\"ankit@example.com\",\"mobile\":\"09876543210\",\"product\":\"ExamModule\",\"message\":\"App keeps logging me out.\"},\"device\":{\"userAgent\":\"Mozilla/5.0 …\",\"browser\":\"Chrome\",\"os\":\"Android\",\"deviceType\":\"mobile\",\"isMobile\":true},\"location\":{\"sourceIp\":\"49.36.12.7\"},\"botDetection\":{\"isBot\":false,\"reasons\":[]}}"
+    }
+  ]
+}</code></pre>
+    <p>After processing, <code>formFields.mobile</code> becomes <code>"919876543210"</code>, <code>location</code> is
+    filled from ip-api, a DynamoDB item is written (<a href="#dynamo">§8</a>), and the webhook body in
+    <a href="#webhook">§9</a> is POSTed.</p>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section id="phone">
+    <h2>5. Phone-field normalization</h2>
+    <p>
+      Applies to <code>formFields</code> keys <code>mobile</code> and <code>whatsapp</code>
+      (case-insensitive, trimmed key match). Runs before the record is stored or forwarded,
+      so DynamoDB and the webhook see the normalized value. Never raises.
+    </p>
+    <table>
+      <thead><tr><th>Step</th><th>Rule</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Skip if value is <code>None</code>, a bool, or a non-integer float.</td></tr>
+        <tr><td>2</td><td>Integer-valued numbers use their exact integer form (no <code>".0"</code>).</td></tr>
+        <tr><td>3</td><td>Strip every non-digit character.</td></tr>
+        <tr><td>4</td><td>Drop leading zero(s).</td></tr>
+        <tr><td>5</td><td>Exactly 10 digits ⇒ prefix <code>91</code> ⇒ 12-digit string.</td></tr>
+        <tr><td>6</td><td>Any other length (incl. already 12) ⇒ kept as the stripped digit string, no prefix.</td></tr>
+        <tr><td>7</td><td>No digits at all / all zeros ⇒ field left untouched.</td></tr>
+        <tr><td>8</td><td>When a value is processed it is <strong>always written back as a string</strong> — the field type is consistent across submissions.</td></tr>
+      </tbody>
+    </table>
+    <h3>Worked examples</h3>
+    <table>
+      <thead><tr><th>Input</th><th>Stored / forwarded</th></tr></thead>
+      <tbody>
+        <tr><td><code>"9876543210"</code></td><td><code>"919876543210"</code></td></tr>
+        <tr><td><code>"09876543210"</code></td><td><code>"919876543210"</code></td></tr>
+        <tr><td><code>"+91 98765-43210"</code></td><td><code>"919876543210"</code></td></tr>
+        <tr><td><code>919876543210</code> (number)</td><td><code>"919876543210"</code></td></tr>
+        <tr><td><code>"00919876543210"</code></td><td><code>"919876543210"</code></td></tr>
+        <tr><td><code>"98765"</code></td><td><code>"98765"</code> (too short, no prefix)</td></tr>
+        <tr><td><code>"N/A"</code> / <code>""</code> / <code>null</code></td><td>unchanged</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section id="geo">
+    <h2>6. Geo enrichment</h2>
+    <p>
+      If <code>location.sourceIp</code> is present and <code>location.countryCode</code> is empty,
+      the consumer calls:
+    </p>
+    <pre><code>GET http://ip-api.com/json/&lt;sourceIp&gt;?fields=countryCode,country,regionName,city,timezone
+User-Agent: vone-form-consumer-lambda/1.0
+timeout: 3s   (config.GEO_LOOKUP_TIMEOUT_SECONDS)</code></pre>
+    <table>
+      <tbody>
+        <tr><td>Skipped when</td><td>disabled in config · <code>sourceIp</code> empty · <code>countryCode</code> already set</td></tr>
+        <tr><td>On success</td><td><code>location</code> filled: <code>countryCode</code> (≤10), <code>countryName</code> (≤100), <code>region</code> (≤100), <code>city</code> (≤100), <code>timezone</code> (≤60)</td></tr>
+        <tr><td>On any failure</td><td>non-fatal — logged as <code>[WARN]</code>, record proceeds with <code>location</code> unchanged</td></tr>
+        <tr><td>Cache</td><td>per-container, successes only, keyed by IP, max 2000 entries, FIFO eviction</td></tr>
+        <tr><td>Rate limit</td><td>ip-api free tier ≈ 45 req/min; over that ip-api returns an error and the lookup is skipped (non-fatal)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section id="idem">
+    <h2>7. Idempotency &amp; de-duplication</h2>
+    <p>The DynamoDB write is a conditional put keyed on:</p>
+    <table>
+      <tbody>
+        <tr><td><code>pk</code></td><td><code>FORM#&lt;FORMTYPE&gt;</code> — form_type upper-cased</td></tr>
+        <tr><td><code>sk</code></td><td><code>IDEMPOTENCY#&lt;idempotencyKey&gt;</code> when the key is present<br><code>REQUEST#&lt;requestId&gt;</code> when the client opted out (blank key)</td></tr>
+        <tr><td>Condition</td><td><code>attribute_not_exists(pk) AND attribute_not_exists(sk)</code></td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li><strong>Fresh write</strong> ⇒ <code>is_new = true</code> ⇒ webhook fires.</li>
+      <li><strong><code>ConditionalCheckFailedException</code></strong> ⇒ duplicate ⇒ <code>is_new = false</code>, no error. The webhook then fires <em>only</em> if the existing record's <code>zohoFlowSync</code> is still <code>false</code> (i.e. a prior attempt never confirmed delivery).</li>
+      <li>Re-using one <code>idempotencyKey</code> across separate ingest POSTs (each with its own <code>requestId</code>) collapses to a single stored record and a single webhook delivery.</li>
+      <li>SQS at-least-once redelivery of the same message is absorbed by the same condition.</li>
+    </ul>
+    <p class="warnnote">
+      Delivery to Zoho is <strong>best-effort exactly-once</strong>, not guaranteed exactly-once: a crash
+      between a successful POST and the <code>zohoFlowSync=true</code> marker, or an independent SQS
+      redelivery in that window, can produce a duplicate POST. Consumers should de-dupe on
+      <code>requestId</code>.
+    </p>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section id="dynamo">
+    <h2>8. DynamoDB record shape <span class="badge">table vone-form-data</span></h2>
+    <p>Written by <code>db_helper.save()</code>. Relevant to anything querying the table or the
+       downstream DynamoDB→Postgres sync job.</p>
+    <table>
+      <thead><tr><th>Attribute</th><th>Type</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td><code>pk</code></td><td>S</td><td><code>FORM#&lt;FORMTYPE&gt;</code></td></tr>
+        <tr><td><code>sk</code></td><td>S</td><td><code>IDEMPOTENCY#…</code> or <code>REQUEST#…</code></td></tr>
+        <tr><td><code>requestId</code></td><td>S</td><td>from message (or SQS messageId fallback)</td></tr>
+        <tr><td><code>idempotencyKey</code></td><td>S</td><td>from message; <code>""</code> when opted out</td></tr>
+        <tr><td><code>submittedAt</code></td><td>S</td><td>ISO-8601 from message (or write-time UTC)</td></tr>
+        <tr><td><code>savedAt</code></td><td>S</td><td>ISO-8601 UTC, write time</td></tr>
+        <tr><td><code>prefix</code></td><td>S</td><td>from <code>FORM_TYPE_EMAILS[formType].prefix</code>, else <code>formType.upper()</code></td></tr>
+        <tr><td><code>formType</code></td><td>S</td><td>lower-cased</td></tr>
+        <tr><td><code>subject</code></td><td>S</td><td>≤500 chars</td></tr>
+        <tr><td><code>formFields</code></td><td>M</td><td>submission fields; floats → <code>Decimal</code>; <code>NaN</code>/<code>Infinity</code> → string; replaced with <code>{"_truncated": "…"}</code> if serialized &gt; 380&nbsp;KB</td></tr>
+        <tr><td><code>pageUrl</code></td><td>S</td><td>≤1000 chars</td></tr>
+        <tr><td><code>device</code></td><td>M</td><td><code>{userAgent, browser, os, deviceType, isMobile}</code></td></tr>
+        <tr><td><code>location</code></td><td>M</td><td><code>{countryCode, countryName, region, city, timezone, sourceIp}</code></td></tr>
+        <tr><td><code>botDetection</code></td><td>M</td><td><code>{isBot: BOOL, reasons: L[S]}</code></td></tr>
+        <tr><td><code>status</code></td><td>S</td><td><code>SAVED</code> or <code>SAVED_TRUNCATED</code></td></tr>
+        <tr><td><code>dbSync</code></td><td>BOOL</td><td><code>false</code> — flag for the downstream Postgres sync job</td></tr>
+        <tr><td><code>zohoFlowSync</code></td><td>BOOL</td><td><code>false</code> → <code>true</code> after a confirmed webhook POST</td></tr>
+        <tr><td><code>ttl</code></td><td>N</td><td>epoch seconds, write time + 180 days (<code>RECORD_TTL_DAYS</code>)</td></tr>
+      </tbody>
+    </table>
+    <p class="note">
+      The Postgres target (<code>vone_form_data.sql</code> → <code>tbl_form_submission</code>) has
+      <code>subject varchar(500)</code> and <code>page_url varchar(500)</code>; <code>pageUrl</code> here is
+      capped at 1000, so the sync job must truncate or the column widened.
+    </p>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section id="webhook">
+    <h2>9. Zoho Flow webhook (downstream emit) <span class="badge">POST · JSON</span></h2>
+    <table>
+      <tbody>
+        <tr><td>URL</td><td><code>https://flow.zoho.com/715676020/flow/webhook/incoming?zapikey=&lt;key&gt;&amp;isdebug=false</code> (<code>config.ZOHO_FLOW_WEBHOOK_URL</code>)</td></tr>
+        <tr><td>Method / type</td><td><code>POST</code>, <code>Content-Type: application/json</code>, <code>User-Agent: vone-form-consumer-lambda/1.0</code></td></tr>
+        <tr><td>Auth</td><td><code>zapikey</code> query param on the URL</td></tr>
+        <tr><td>Timeout</td><td>5s (<code>config.ZOHO_FLOW_WEBHOOK_TIMEOUT_SECONDS</code>); TLS connection reused across records in a batch</td></tr>
+        <tr><td>In-process retry</td><td>1 retry on a transport error only (covers a stale keep-alive socket); a non-2xx is <em>not</em> retried in-process</td></tr>
+        <tr><td>When it fires</td><td>after a successful DynamoDB save, for <strong>every</strong> form_type; on the fresh write, and again on SQS redelivery of a record whose <code>zohoFlowSync</code> is still <code>false</code></td></tr>
+        <tr><td>When it is skipped</td><td><code>ZOHO_FLOW_WEBHOOK_ENABLED = false</code> (record is <em>not</em> marked synced), or a duplicate whose <code>zohoFlowSync</code> is already <code>true</code></td></tr>
+      </tbody>
+    </table>
+    <h3>Body</h3>
+    <pre><code>{
+  "form_fields": {
+    "name": "Ankit",
+    "email": "ankit@example.com",
+    "mobile": "919876543210",
+    "product": "ExamModule",
+    "message": "App keeps logging me out."
+  },
+  "subject": "complaint from ankit",
+  "form_type": "complaint",
+  "page": { "url": "https://vidyaone.com/help" },
+  "requestId": "550e8400-e29b-41d4-a716-446655440000"
+}</code></pre>
+    <p class="note">
+      Fixed shape — no <code>device</code> / <code>location</code> / <code>botDetection</code> / <code>submittedAt</code> in the webhook body.
+      <code>form_fields</code> is the normalized submission map. If the serialized body exceeds
+      256&nbsp;KB (<code>ZOHO_FLOW_WEBHOOK_MAX_BODY_BYTES</code>), <code>form_fields</code> is replaced in the POST
+      with <code>{"_truncated": "…full submission in DynamoDB"}</code>.
+    </p>
+    <h3>Webhook responses</h3>
+    <table>
+      <thead><tr><th>Result</th><th>Consumer handling</th></tr></thead>
+      <tbody>
+        <tr><td><span class="status-200">2xx</span></td><td>success — record marked <code>zohoFlowSync = true</code></td></tr>
+        <tr><td><span class="status-400">non-2xx</span> (incl. 4xx)</td><td><code>WebhookError</code> ⇒ record returned to SQS ⇒ retried by SQS ⇒ eventually DLQ</td></tr>
+        <tr><td>timeout / connection failure</td><td>1 in-process retry, then <code>WebhookError</code> ⇒ SQS retry ⇒ DLQ</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section id="email">
+    <h2>10. Email (SES) — disabled</h2>
+    <p>
+      <code>notification_helper.py</code>, <code>SES_SENDER_EMAIL</code> and the 21-entry
+      <code>FORM_TYPE_EMAILS</code> map are all still present, but the
+      <code>notify.send_email(evt)</code> call in the handler is <strong>commented out</strong> —
+      no email is sent for any submission today.
+    </p>
+    <p>When re-enabled it would: send one HTML + plain-text email via SES per form_type,
+       to <code>FORM_TYPE_EMAILS[formType].recipients</code>, from
+       <code>FORM_TYPE_EMAILS[formType].sender</code> (fallback <code>SES_SENDER_EMAIL</code>),
+       only on a fresh save, and non-fatally (SES failure is logged, not retried).
+       Subject format:</p>
+    <pre><code>{prefix}#v#{reply_to_email}#e#{requestId}#r#{product}#p#{subject}
+e.g.  COMPLAINT#v#ankit@example.com#e#550e8400-…#r#ExamModule#p#complaint from ankit</code></pre>
+    <p><code>reply_to_email</code> = <code>formFields.email</code> if it looks like an email, else blank.
+       <code>product</code> = <code>formFields.product</code> if present, else blank.</p>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section id="batch">
+    <h2>11. Partial-batch failure &amp; retry</h2>
+    <p>The handler returns:</p>
+    <pre><code>{ "batchItemFailures": [ { "itemIdentifier": "&lt;messageId&gt;" }, … ] }</code></pre>
+    <table>
+      <thead><tr><th>Per-record outcome</th><th>In <code>batchItemFailures</code>?</th></tr></thead>
+      <tbody>
+        <tr><td>processed OK (saved + webhook 2xx, or duplicate already synced)</td><td>no</td></tr>
+        <tr><td><code>ParseError</code> (malformed / wrong-shape message)</td><td><strong>no</strong> — discarded, logged <code>[ERROR] Parse error — discarding</code></td></tr>
+        <tr><td>webhook failure, DynamoDB error, or any unexpected exception</td><td>yes — SQS re-drives that message; after <code>maxReceiveCount</code> it goes to the DLQ</td></tr>
+        <tr><td>deferred for time budget (<a href="#budget">§12</a>)</td><td>yes</td></tr>
+      </tbody>
+    </table>
+    <p class="note">
+      Requires <code>FunctionResponseTypes = ["ReportBatchItemFailures"]</code> on the event source
+      mapping, otherwise SQS retries the <em>whole</em> batch on any thrown error.
+    </p>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section id="budget">
+    <h2>12. Time-budget deferral</h2>
+    <p>
+      Before starting each record the handler checks
+      <code>context.get_remaining_time_in_millis()</code>. If it is below
+      <code>config.LAMBDA_MIN_REMAINING_MS</code> (10&nbsp;000&nbsp;ms), the current record and every
+      remaining record in the batch are added to <code>batchItemFailures</code> and the loop stops:
+    </p>
+    <pre><code>[WARN] Time budget low (8200ms) — deferring 4 record(s) to SQS retry | request_id=…</code></pre>
+    <p>This prevents a mid-record Lambda timeout that would otherwise reprocess work whose side
+       effects (DynamoDB write, webhook POST) already ran. It is a heuristic, not a guarantee — set
+       a comfortable function timeout and a modest SQS <code>BatchSize</code>.</p>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section id="size">
+    <h2>13. Large-payload handling</h2>
+    <table>
+      <thead><tr><th>Limit</th><th>Trigger</th><th>Effect</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>DynamoDB — 380&nbsp;KB (<code>_MAX_FIELDS_BYTES</code>)</td>
+          <td>serialized <code>formFields</code> exceeds it</td>
+          <td>stored <code>formFields</code> = <code>{"_truncated": "…"}</code>, <code>status = "SAVED_TRUNCATED"</code>. The webhook still receives the full <code>form_fields</code> (subject to its own cap).</td>
+        </tr>
+        <tr>
+          <td>Webhook — 256&nbsp;KB (<code>ZOHO_FLOW_WEBHOOK_MAX_BODY_BYTES</code>)</td>
+          <td>serialized POST body exceeds it</td>
+          <td>POST body's <code>form_fields</code> replaced with <code>{"_truncated": "…full submission in DynamoDB"}</code>; DynamoDB copy is unaffected.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section id="failure">
+    <h2>14. Failure matrix</h2>
+    <table>
+      <thead><tr><th>Situation</th><th>Outcome</th></tr></thead>
+      <tbody>
+        <tr><td><code>eventSource</code> ≠ <code>aws:sqs</code></td><td><code>ParseError</code> → discarded</td></tr>
+        <tr><td>body not JSON / not an object</td><td><code>ParseError</code> → discarded</td></tr>
+        <tr><td>missing <code>formType</code> / <code>formFields</code> not an object</td><td><code>ParseError</code> → discarded</td></tr>
+        <tr><td>wrong-shape sub-object (<code>KeyError</code>/<code>ValueError</code>/<code>TypeError</code>/<code>AttributeError</code>)</td><td><code>ParseError</code> → discarded</td></tr>
+        <tr><td>any other exception (bug, <code>MemoryError</code>, …)</td><td>propagates → record in <code>batchItemFailures</code> → SQS retry → DLQ</td></tr>
+        <tr><td>DynamoDB <code>ConditionalCheckFailedException</code></td><td>duplicate → <code>is_new = false</code>, processing continues</td></tr>
+        <tr><td>DynamoDB other <code>ClientError</code> / <code>BotoCoreError</code></td><td>raised → record fails → SQS retry → DLQ</td></tr>
+        <tr><td>geo lookup failure / rate-limit</td><td>non-fatal — <code>[WARN]</code>, proceeds without geo</td></tr>
+        <tr><td>webhook non-2xx / timeout / connection failure</td><td><code>WebhookError</code> → record fails → SQS retry → DLQ</td></tr>
+        <tr><td><code>zohoFlowSync</code> marker update fails</td><td>logged <code>[ERROR] … (non-fatal)</code> and swallowed — record already saved &amp; delivered</td></tr>
+        <tr><td>&lt; 10&nbsp;s execution time remaining</td><td>current + remaining records deferred to <code>batchItemFailures</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section id="formtypes">
+    <h2>15. form_type → prefix table</h2>
+    <p>From <code>config.FORM_TYPE_EMAILS</code>. All entries currently route email (when enabled) to
+       <code>support@vidyaonepvtltd.zohodesk.com</code>. A <code>formType</code> <em>not</em> in this table is
+       still saved and still POSTed to the webhook — its <code>prefix</code> falls back to
+       <code>formType.upper()</code> and email is skipped.</p>
+    <table>
+      <thead><tr><th>form_type</th><th>prefix</th><th>sender (email only)</th></tr></thead>
+      <tbody>
+        <tr><td><code>contact</code></td><td>LEAD</td><td>enquiry@vidyaone.com</td></tr>
+        <tr><td><code>feedback</code></td><td>FEEDBACK</td><td>feedback@vidyaone.com</td></tr>
+        <tr><td><code>talk_to_an_expert</code></td><td>LEAD</td><td>enquiry@vidyaone.com</td></tr>
+        <tr><td><code>branding_consultation</code></td><td>PREMIUM_SERVICES</td><td>service-request@vidyaone.com</td></tr>
+        <tr><td><code>setup_implementation</code></td><td>PREMIUM_SERVICES</td><td>service-request@vidyaone.com</td></tr>
+        <tr><td><code>customization_callback</code></td><td>PREMIUM_SERVICES</td><td>callback-enquiry@vidyaone.com</td></tr>
+        <tr><td><code>advance_technical_callback</code></td><td>PREMIUM_SERVICES</td><td>callback-enquiry@vidyaone.com</td></tr>
+        <tr><td><code>callback</code></td><td>LEAD_CALLBACK</td><td>callback-enquiry@vidyaone.com</td></tr>
+        <tr><td><code>complaint</code></td><td>COMPLAINT</td><td>complaint@vidyaone.com</td></tr>
+        <tr><td><code>lead</code></td><td>LEAD</td><td>enquiry@vidyaone.com</td></tr>
+        <tr><td><code>demo</code></td><td>DEMO</td><td>demo-enquiry@vidyaone.com</td></tr>
+        <tr><td><code>trial</code></td><td>TRIAL</td><td>trial-enquiry@vidyaone.com</td></tr>
+        <tr><td><code>trial_vss</code></td><td>TRIAL</td><td>trial-enquiry@vidyaone.com</td></tr>
+        <tr><td><code>onboarding</code></td><td>ONBOARDING</td><td>onboarding@vidyaone.com</td></tr>
+        <tr><td><code>domain_booking_scl_website</code></td><td>DOMAIN_REQUEST</td><td>domain-request@vidyaone.com</td></tr>
+        <tr><td><code>activate_ssl_scl_website</code></td><td>SSL_REQUEST</td><td>ssl-request@vidyaone.com</td></tr>
+        <tr><td><code>domain_booking_pre_website</code></td><td>DOMAIN_REQUEST</td><td>domain-request@vidyaone.com</td></tr>
+        <tr><td><code>activate_ssl_pre_website</code></td><td>SSL_REQUEST</td><td>ssl-request@vidyaone.com</td></tr>
+        <tr><td><code>success_story</code></td><td>SUCCESS_STORY</td><td>feedback@vidyaone.com</td></tr>
+        <tr><td><code>payment_reminder</code></td><td>PAYMENT_REMINDER</td><td>complaint@vidyaone.com</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <section id="config">
+    <h2>16. Configuration reference <span class="badge">config.py</span></h2>
+    <p>All configuration is in-file — no environment variables, no Secrets Manager. Change and redeploy.</p>
+    <table>
+      <thead><tr><th>Key</th><th>Value</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>REGION</code></td><td><code>ap-south-1</code></td><td>all AWS clients</td></tr>
+        <tr><td><code>ACCOUNT_ID</code></td><td><code>767750127056</code></td><td>reference</td></tr>
+        <tr><td><code>DYNAMODB_TABLE</code></td><td><code>vone-form-data</code></td><td>submissions table</td></tr>
+        <tr><td><code>RECORD_TTL_DAYS</code></td><td><code>180</code></td><td><code>ttl</code> attribute horizon</td></tr>
+        <tr><td><code>LAMBDA_MIN_REMAINING_MS</code></td><td><code>10000</code></td><td>time-budget deferral threshold</td></tr>
+        <tr><td><code>GEO_LOOKUP_ENABLED</code></td><td><code>True</code></td><td>toggle ip-api enrichment</td></tr>
+        <tr><td><code>GEO_LOOKUP_TIMEOUT_SECONDS</code></td><td><code>3</code></td><td>per-lookup timeout</td></tr>
+        <tr><td><code>SES_SENDER_EMAIL</code></td><td><code>enquiry@vidyaone.com</code></td><td>fallback email sender (email disabled)</td></tr>
+        <tr><td><code>FORM_TYPE_EMAILS</code></td><td>21 entries</td><td>per-form_type prefix / sender / recipients</td></tr>
+        <tr><td><code>ZOHO_FLOW_WEBHOOK_ENABLED</code></td><td><code>True</code></td><td>toggle the webhook POST</td></tr>
+        <tr><td><code>ZOHO_FLOW_WEBHOOK_TIMEOUT_SECONDS</code></td><td><code>5</code></td><td>per-POST timeout</td></tr>
+        <tr><td><code>ZOHO_FLOW_WEBHOOK_MAX_BODY_BYTES</code></td><td><code>262144</code></td><td>above this, <code>form_fields</code> in the POST is truncated</td></tr>
+        <tr><td><code>ZOHO_FLOW_WEBHOOK_URL</code></td><td>Zoho Flow incoming webhook (with <code>zapikey</code>)</td><td>POST target</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</main>
+
+<footer>
+  Generated from source: <code>lambda_function.py</code>, <code>event_parser.py</code>, <code>db_helper.py</code>,
+  <code>geo_helper.py</code>, <code>webhook_helper.py</code>, <code>notification_helper.py</code>, <code>config.py</code>,
+  <code>vone_form_data.sql</code>. Keep this file in sync on any change to the input contract, the DynamoDB
+  item, the webhook body, limits, or failure behaviour.
+</footer>
+
+</body>
+</html>
