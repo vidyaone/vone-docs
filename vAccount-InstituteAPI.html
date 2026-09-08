@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>vAccount-InstituteAPI — Developer Guide (InstituteType · Organization · OrganizationType)</title>
+<style>
+  :root{
+    --accent:#0b6bcb;
+    --ink:#1c1e21;
+    --muted:#5b6470;
+    --line:#e3e6ea;
+    --bg:#fcfcfd;
+    --code-bg:#f5f6f8;
+    --ok:#0a7d33;
+    --warn:#9a6700;
+    --err:#b42318;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6;
+    font-size:15px;
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:40px 28px 120px}
+  header.page{border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:8px}
+  h1{font-size:26px;margin:0 0 6px}
+  h2{font-size:20px;margin:48px 0 12px;padding-top:10px;border-top:1px solid var(--line)}
+  h3{font-size:17px;margin:34px 0 10px}
+  h4{font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:20px 0 8px}
+  p{margin:10px 0}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:13px;background:var(--code-bg);padding:1px 5px;border-radius:4px}
+  pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto;font-size:13px;line-height:1.5}
+  pre code{background:none;padding:0}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#f1f3f5;font-weight:600}
+  td.req{color:var(--err);font-weight:600;white-space:nowrap}
+  td.opt{color:var(--muted);white-space:nowrap}
+  .method{display:inline-block;font-family:ui-monospace,monospace;font-size:12px;font-weight:700;padding:2px 8px;border-radius:5px;color:#fff;vertical-align:middle}
+  .m-get{background:#0a7d33}
+  .m-post{background:#0b6bcb}
+  .m-put{background:#9a6700}
+  .m-delete{background:#b42318}
+  .endpoint-path{font-family:ui-monospace,monospace;font-size:15px;font-weight:600;margin-left:8px}
+  nav.toc{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px 22px;margin:24px 0 8px}
+  nav.toc ol{margin:6px 0;padding-left:22px}
+  nav.toc ol ol{padding-left:20px}
+  nav.toc li{margin:3px 0}
+  .pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.03em;padding:1px 7px;border-radius:20px;border:1px solid var(--line);color:var(--muted);background:#fff;margin-left:6px}
+  .note{border-left:3px solid var(--accent);background:#f4f8fd;padding:10px 14px;border-radius:0 8px 8px 0;margin:14px 0}
+  .note.warn{border-left-color:var(--warn);background:#fdf8ef}
+  .small{font-size:13px;color:var(--muted)}
+  .sec{scroll-margin-top:20px}
+  hr{border:none;border-top:1px solid var(--line);margin:40px 0}
+  .status-ok{color:var(--ok);font-weight:600}
+  .status-err{color:var(--err);font-weight:600}
+  ul.tight{margin:8px 0;padding-left:20px}
+  ul.tight li{margin:3px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="page">
+  <h1>vAccount-InstituteAPI — Developer Guide</h1>
+  <p class="small">
+    Scope: the <strong>InstituteType</strong>, <strong>Organization</strong> and <strong>OrganizationType</strong> controllers only.
+    ASP.NET Core Web API on AWS Lambda + API Gateway · region <code>ap-south-1</code> · content type <code>application/json</code>.
+  </p>
+</header>
+
+<nav class="toc">
+  <strong>Contents</strong>
+  <ol>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#auth">Authentication &amp; common request rules</a></li>
+    <li><a href="#envelope">Response envelope &amp; error codes</a></li>
+    <li><a href="#baseurls">Base URLs</a></li>
+    <li><a href="#insttype">InstituteType controller</a>
+      <ol>
+        <li><a href="#insttype-list">GET /insttype/list</a></li>
+        <li><a href="#insttype-options">GET /insttype/options</a></li>
+      </ol>
+    </li>
+    <li><a href="#orgtype">OrganizationType controller</a>
+      <ol>
+        <li><a href="#orgtype-list">GET /orgtype/list</a></li>
+        <li><a href="#orgtype-options">GET /orgtype/options</a></li>
+      </ol>
+    </li>
+    <li><a href="#org">Organization controller</a>
+      <ol>
+        <li><a href="#org-post">POST /org</a></li>
+        <li><a href="#org-put">PUT /org</a></li>
+        <li><a href="#org-edit">GET /org/edit</a></li>
+        <li><a href="#org-default">PUT /org/default</a></li>
+        <li><a href="#org-deactive">PUT /org/deactive</a></li>
+        <li><a href="#org-delete">DELETE /org</a></li>
+        <li><a href="#org-options">GET /org/options</a></li>
+        <li><a href="#org-listbyuser">GET /org/listbyuser</a></li>
+        <li><a href="#org-view">GET /org/view</a></li>
+      </ol>
+    </li>
+    <li><a href="#behaviours">Special behaviours</a></li>
+  </ol>
+</nav>
+
+<!-- ============================================================= -->
+<h2 id="overview" class="sec">1. Overview</h2>
+<p>
+  This service manages <strong>organizations</strong> owned by a user and exposes two shared reference-data
+  lookups (<strong>institute types</strong> and <strong>organization types</strong>). All routes documented here
+  live on three controllers:
+</p>
+<table>
+  <thead><tr><th>Controller</th><th>Route prefix</th><th>Purpose</th><th>Endpoints</th></tr></thead>
+  <tbody>
+    <tr><td>InstituteTypeController</td><td><code>/insttype</code></td><td>Global institute-type reference data (read-only)</td><td><code>GET list</code>, <code>GET options</code></td></tr>
+    <tr><td>OrganizationTypeController</td><td><code>/orgtype</code></td><td>Global organization-type reference data (read-only)</td><td><code>GET list</code>, <code>GET options</code></td></tr>
+    <tr><td>OrganizationController</td><td><code>/org</code></td><td>Create / read / update / deactivate / soft-delete a user's organizations, plus KYC</td><td>9 endpoints (see §7)</td></tr>
+  </tbody>
+</table>
+<ul class="tight">
+  <li><strong>Auth model:</strong> account cookie (<code>vacc-account-auth</code>) + a required <code>product</code> query parameter. See §2.</li>
+  <li><strong>CORS &amp; OPTIONS:</strong> handled at AWS API Gateway. Pre-flight <code>OPTIONS</code> is answered <code>200</code> before auth runs.</li>
+  <li><strong>Every response</strong> — success or failure — uses the same JSON envelope. See §3.</li>
+  <li><strong>Reference data</strong> (institute/org types) is not user-scoped; <strong>organization</strong> data is always scoped to the authenticated user.</li>
+</ul>
+
+<!-- ============================================================= -->
+<h2 id="auth" class="sec">2. Authentication &amp; common request rules</h2>
+<p>Every endpoint on all three controllers is protected by the <code>[AccountPayload]</code> filter. On each request it:</p>
+<ol>
+  <li>Reads the <code>product</code> value from the query string. If missing/blank → <span class="status-err">400</span> with code <code>REQUIRED_FIELD</code>.</li>
+  <li>Strips a leading <code>test-</code> from the product (e.g. <code>test-lms</code> → <code>lms</code>) and, if present, marks the request <em>test mode</em>.</li>
+  <li>Resolves the account auth cookie for that product. If missing/expired/invalid → <span class="status-err">401</span> with code <code>UNAUTHORIZED</code>.</li>
+  <li>Exposes the caller's <code>UserId</code> to the handler. All organization reads/writes are scoped to this <code>UserId</code>; it is never taken from the request body.</li>
+</ol>
+
+<h4>Required on every request</h4>
+<table>
+  <thead><tr><th>Where</th><th>Name</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Query string</td><td><code>product</code></td><td class="req">yes</td><td>Calling product identifier, e.g. <code>lms</code>. Prefix with <code>test-</code> to hit test mode. Required by the auth filter on <em>every</em> route, including the GET lookups.</td></tr>
+    <tr><td>Header</td><td><code>Cookie: vacc-account-auth=&lt;token&gt;</code></td><td class="req">yes</td><td>Sent automatically by the browser for <code>*.vidyaone.com</code>. For <code>curl</code>, pass it explicitly.</td></tr>
+    <tr><td>Header</td><td><code>Content-Type: application/json</code></td><td class="opt">writes only</td><td>Required for <code>POST</code>/<code>PUT</code>/<code>DELETE</code> requests that carry a body.</td></tr>
+  </tbody>
+</table>
+<div class="note">
+  There is no bearer token and no custom auth header. Identity comes entirely from the <code>vacc-account-auth</code> cookie
+  plus the <code>product</code> query parameter.
+</div>
+
+<!-- ============================================================= -->
+<h2 id="envelope" class="sec">3. Response envelope &amp; error codes</h2>
+<p>Responses are serialized camelCase, and <strong>null properties are omitted</strong>. The full shape is:</p>
+<pre><code>{
+  "success": true | false,
+  "message": "human-readable string",          // omitted when null
+  "data":    { ... } | [ ... ],                 // omitted when null (present on GET success)
+  "errors":  [ { "code": "...", "message": "...", "field": "..." } ]  // omitted when null
+}</code></pre>
+<ul class="tight">
+  <li><strong>Command success</strong> (<code>POST</code>/<code>PUT</code>/<code>DELETE</code>): <code>{ "success": true, "message": "&lt;text&gt;" }</code> — no <code>data</code>.</li>
+  <li><strong>Query success</strong> (<code>GET</code>): <code>{ "success": true, "data": &lt;payload&gt; }</code> — no <code>message</code>.</li>
+  <li>Each entry in <code>errors[]</code> has a machine-readable <code>code</code>; switch on <code>code</code>, not <code>message</code>. <code>field</code> is present for validation / required-field errors.</li>
+</ul>
+
+<h4>Status codes used by these controllers</h4>
+<table>
+  <thead><tr><th>Status</th><th>When</th><th>Representative body</th><th>Error <code>code</code></th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="status-ok">200</td><td>Success (including "no rows matched a filter but the operation is a no-op" is <em>not</em> 200 — see 404)</td>
+      <td><code>{"success":true,"message":"Success."}</code></td><td>—</td>
+    </tr>
+    <tr>
+      <td class="status-err">400</td><td>FluentValidation failure, or malformed/❌-typed query param / JSON body</td>
+      <td><code>{"success":false,"message":"Validation failed.","errors":[{"code":"VALIDATION_FAILED","message":"OrgName is required.","field":"PostDTO.OrgName"}]}</code></td>
+      <td><code>VALIDATION_FAILED</code></td>
+    </tr>
+    <tr>
+      <td class="status-err">400</td><td>A required DB column came through null (NOT&nbsp;NULL violation)</td>
+      <td><code>{"success":false,"message":"org_name is required.","errors":[{"code":"REQUIRED_FIELD","message":"org_name is required.","field":"org_name"}]}</code></td>
+      <td><code>REQUIRED_FIELD</code></td>
+    </tr>
+    <tr>
+      <td class="status-err">400</td><td>Per-user organization cap reached (POST /org only)</td>
+      <td><code>{"success":false,"message":"Validation failed.","errors":[{"code":"VALIDATION_FAILED","message":"You can create a maximum of 3 organizations.","field":"PostDTO"}]}</code></td>
+      <td><code>VALIDATION_FAILED</code></td>
+    </tr>
+    <tr>
+      <td class="status-err">401</td><td>Missing / invalid account cookie</td>
+      <td><code>{"success":false,"message":"Authentication cookie missing or invalid.","errors":[{"code":"UNAUTHORIZED","message":"Authentication cookie missing or invalid."}]}</code></td>
+      <td><code>UNAUTHORIZED</code></td>
+    </tr>
+    <tr>
+      <td class="status-err">404</td><td>Target org missing, not owned by the caller, or soft-deleted (writes &amp; single-item reads)</td>
+      <td><code>{"success":false,"message":"Tbl_Organization not found. Key=123"}</code></td>
+      <td><code>RECORD_NOT_FOUND</code></td>
+    </tr>
+    <tr>
+      <td class="status-err">409</td><td>Duplicate <code>orgName</code> / <code>regNo</code> for this user (POST /org)</td>
+      <td><code>{"success":false,"message":"Tbl_Organization already exists. Field=OrgName, Value=Acme","errors":[{"code":"DUPLICATE_RECORD","message":"OrgName 'Acme' is already in use.","field":"OrgName"}]}</code></td>
+      <td><code>DUPLICATE_RECORD</code></td>
+    </tr>
+    <tr>
+      <td class="status-err">409</td><td>A foreign key (<code>orgTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code>) does not exist</td>
+      <td><code>{"success":false,"message":"One of OrgTypeId / DistrictId / StateId / CountryId does not reference an existing record."}</code></td>
+      <td><code>FOREIGN_KEY_VIOLATION</code></td>
+    </tr>
+    <tr>
+      <td class="status-err">500</td><td>Unexpected error</td>
+      <td><code>{"success":false,"message":"An unexpected error occurred."}</code> (detail is exposed only in the Development environment)</td>
+      <td><code>INTERNAL_ERROR</code></td>
+    </tr>
+  </tbody>
+</table>
+<p class="small">Retry guidance: <code>400</code>/<code>401</code>/<code>404</code>/<code>409</code> are terminal — fix the request. <code>500</code> may be retried with backoff; the DB layer already retries transient faults 3× internally.</p>
+
+<!-- ============================================================= -->
+<h2 id="baseurls" class="sec">4. Base URLs</h2>
+<p>Concatenate the environment base URL with the route below. There is no version segment.</p>
+<table>
+  <thead><tr><th>Environment</th><th>Base URL</th><th>Source</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>https://api-vacc.vidyaone.com/test/inst/</code></td><td><code>appsettings.Testing.json → App:BaseUrl</code></td></tr>
+    <tr><td>Production</td><td><code>https://api-vacc.vidyaone.com/inst/</code></td><td><code>appsettings.json → App:BaseUrl</code></td></tr>
+    <tr><td>Local (Development)</td><td><code>http://localhost:5000/</code></td><td><code>dotnet run</code> (no <code>App:BaseUrl</code> in <code>appsettings.Development.json</code>)</td></tr>
+  </tbody>
+</table>
+<p class="small">Example: <code>GET /org/view</code> → Testing <code>https://api-vacc.vidyaone.com/test/inst/org/view</code> · Production <code>https://api-vacc.vidyaone.com/inst/org/view</code>.</p>
+
+<!-- ============================================================================= -->
+<!-- INSTITUTETYPE -->
+<!-- ============================================================================= -->
+<h2 id="insttype" class="sec">5. InstituteType controller</h2>
+<p>Read-only access to the global <code>ref_institute_type</code> lookup table. Not user-scoped. No caching layer — each call hits the database.</p>
+
+<!-- 5.1 -->
+<h3 id="insttype-list" class="sec"><span class="method m-get">GET</span><span class="endpoint-path">/insttype/list</span></h3>
+<p><strong>Summary.</strong> Returns a paged list of institute types, ordered by name. Call this to populate a management/admin table of institute types.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>Method &amp; URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/insttype/list</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/insttype/list</code></td></tr>
+  </tbody>
+</table>
+<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code> (required).</p>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints / default</th></tr></thead>
+  <tbody>
+    <tr><td><code>product</code></td><td>string</td><td class="req">yes</td><td>Product identifier (auth). e.g. <code>lms</code>.</td></tr>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>1-based. Omit or pass <code>0</code> to use the default <code>1</code>. Must be <code>&gt; 0</code> if sent.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Omit or pass <code>0</code> to use the default <code>10</code>. Must be <code>&gt; 0</code> and <code>&le; 200</code> if sent.</td></tr>
+  </tbody>
+</table>
+<p><strong>Body:</strong> none.</p>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{
+  "success": true,
+  "data": {
+    "records": [
+      { "instTypeId": 1, "instTypeName": "School" },
+      { "instTypeId": 2, "instTypeName": "College" }
+    ],
+    "metaData": {
+      "totalCount": 2,
+      "pageSize": 10,
+      "currentPage": 1,
+      "totalPages": 1,
+      "hasNext": false,
+      "hasPrevious": false
+    }
+  }
+}</code></pre>
+<table>
+  <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>data.records[].instTypeId</code></td><td>number</td><td>Primary key.</td></tr>
+    <tr><td><code>data.records[].instTypeName</code></td><td>string</td><td>Empty string if the row's name is null.</td></tr>
+    <tr><td><code>data.metaData</code></td><td>object</td><td>Standard pagination block (see fields above).</td></tr>
+  </tbody>
+</table>
+
+<h4>Error responses</h4>
+<ul class="tight">
+  <li><span class="status-err">400</span> <code>VALIDATION_FAILED</code> — <code>pageNumber</code>/<code>pageSize</code> not a valid integer, or <code>pageSize &gt; 200</code>.</li>
+  <li><span class="status-err">401</span> <code>UNAUTHORIZED</code> — missing/invalid cookie, or <code>product</code> missing (<code>REQUIRED_FIELD</code>, status <code>400</code>).</li>
+</ul>
+
+<h4>Example</h4>
+<pre><code>curl -sS "https://api-vacc.vidyaone.com/test/inst/insttype/list?product=lms&amp;pageNumber=1&amp;pageSize=25" \
+  --cookie "vacc-account-auth=$AUTH"
+# prod: https://api-vacc.vidyaone.com/inst/insttype/list</code></pre>
+
+<!-- 5.2 -->
+<h3 id="insttype-options" class="sec"><span class="method m-get">GET</span><span class="endpoint-path">/insttype/options</span></h3>
+<p><strong>Summary.</strong> Returns every institute type as <code>{ id, name }</code> pairs, ordered by name, with no paging. Call this to fill a dropdown / select control.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>Method &amp; URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/insttype/options</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/insttype/options</code></td></tr>
+  </tbody>
+</table>
+<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code> (required).</p>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>product</code></td><td>string</td><td class="req">yes</td><td>Product identifier (auth).</td></tr>
+  </tbody>
+</table>
+<p><strong>Body:</strong> none.</p>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 2, "name": "College" },
+    { "id": 1, "name": "School" }
+  ]
+}</code></pre>
+<p><code>data</code> is an array (possibly empty). <code>id</code> = number, <code>name</code> = string (empty string if null).</p>
+
+<h4>Error responses</h4>
+<ul class="tight">
+  <li><span class="status-err">400</span> <code>REQUIRED_FIELD</code> — <code>product</code> missing.</li>
+  <li><span class="status-err">401</span> <code>UNAUTHORIZED</code> — missing/invalid cookie.</li>
+</ul>
+
+<h4>Example</h4>
+<pre><code>curl -sS "https://api-vacc.vidyaone.com/test/inst/insttype/options?product=lms" \
+  --cookie "vacc-account-auth=$AUTH"</code></pre>
+
+<!-- ============================================================================= -->
+<!-- ORGANIZATIONTYPE -->
+<!-- ============================================================================= -->
+<h2 id="orgtype" class="sec">6. OrganizationType controller</h2>
+<p>Read-only access to the global <code>ref_organization_type</code> lookup table. Identical shape and rules to §5, but the data items use <code>orgTypeId</code> / <code>orgTypeName</code>.</p>
+
+<!-- 6.1 -->
+<h3 id="orgtype-list" class="sec"><span class="method m-get">GET</span><span class="endpoint-path">/orgtype/list</span></h3>
+<p><strong>Summary.</strong> Returns a paged list of organization types, ordered by name. Use for an admin table of org types. An <code>orgTypeId</code> from here is the value you send as <code>orgTypeId</code> when creating/updating an organization (§7.1, §7.2).</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>Method &amp; URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/orgtype/list</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/orgtype/list</code></td></tr>
+  </tbody>
+</table>
+<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code> (required).</p>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints / default</th></tr></thead>
+  <tbody>
+    <tr><td><code>product</code></td><td>string</td><td class="req">yes</td><td>Product identifier (auth).</td></tr>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Omit / <code>0</code> → <code>1</code>. Must be <code>&gt; 0</code> if sent.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Omit / <code>0</code> → <code>10</code>. Must be <code>&gt; 0</code> and <code>&le; 200</code> if sent.</td></tr>
+  </tbody>
+</table>
+<p><strong>Body:</strong> none.</p>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{
+  "success": true,
+  "data": {
+    "records": [
+      { "orgTypeId": 1, "orgTypeName": "Private Limited" },
+      { "orgTypeId": 2, "orgTypeName": "Trust" }
+    ],
+    "metaData": {
+      "totalCount": 2, "pageSize": 10, "currentPage": 1,
+      "totalPages": 1, "hasNext": false, "hasPrevious": false
+    }
+  }
+}</code></pre>
+
+<h4>Error responses</h4>
+<ul class="tight">
+  <li><span class="status-err">400</span> <code>VALIDATION_FAILED</code> — bad page params or <code>pageSize &gt; 200</code>.</li>
+  <li><span class="status-err">401</span> <code>UNAUTHORIZED</code>; <span class="status-err">400</span> <code>REQUIRED_FIELD</code> — <code>product</code> missing.</li>
+</ul>
+
+<h4>Example</h4>
+<pre><code>curl -sS "https://api-vacc.vidyaone.com/test/inst/orgtype/list?product=lms&amp;pageSize=50" \
+  --cookie "vacc-account-auth=$AUTH"</code></pre>
+
+<!-- 6.2 -->
+<h3 id="orgtype-options" class="sec"><span class="method m-get">GET</span><span class="endpoint-path">/orgtype/options</span></h3>
+<p><strong>Summary.</strong> Returns every organization type as <code>{ id, name }</code> pairs, ordered by name, no paging. Use to fill the "organization type" dropdown on the create/edit org form.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>Method &amp; URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/orgtype/options</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/orgtype/options</code></td></tr>
+  </tbody>
+</table>
+<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code> (required). &nbsp; <strong>Query:</strong> <code>product</code> (required). &nbsp; <strong>Body:</strong> none.</p>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "Private Limited" },
+    { "id": 2, "name": "Trust" }
+  ]
+}</code></pre>
+<p><code>data</code> is an array (possibly empty).</p>
+
+<h4>Error responses</h4>
+<ul class="tight">
+  <li><span class="status-err">400</span> <code>REQUIRED_FIELD</code> — <code>product</code> missing. &nbsp; <span class="status-err">401</span> <code>UNAUTHORIZED</code>.</li>
+</ul>
+
+<h4>Example</h4>
+<pre><code>curl -sS "https://api-vacc.vidyaone.com/test/inst/orgtype/options?product=lms" \
+  --cookie "vacc-account-auth=$AUTH"</code></pre>
+
+<!-- ============================================================================= -->
+<!-- ORGANIZATION -->
+<!-- ============================================================================= -->
+<h2 id="org" class="sec">7. Organization controller</h2>
+<p>
+  Every endpoint is scoped to the authenticated user (<code>creatorUserId</code> = cookie <code>UserId</code>).
+  A user may own at most <strong>3 non-deleted organizations</strong>. Soft-deleted organizations are excluded
+  from the cap and from every read endpoint. See §8 for the full request/response field reference and §9 for
+  the <code>isDefault</code>, KYC-upsert, and soft-delete behaviours.
+</p>
+
+<!-- 7.1 -->
+<h3 id="org-post" class="sec"><span class="method m-post">POST</span><span class="endpoint-path">/org</span></h3>
+<p><strong>Summary.</strong> Creates one organization for the caller, optionally with a linked KYC record inserted in the same transaction. Call this from the "add organization" form. Rejected with <span class="status-err">409</span> if the caller already has an org with the same <code>orgName</code> or <code>regNo</code>, and with <span class="status-err">400</span> if the caller already owns 3 organizations.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>Method &amp; URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>POST https://api-vacc.vidyaone.com/test/inst/org</code></td></tr>
+    <tr><td>Production</td><td><code>POST https://api-vacc.vidyaone.com/inst/org</code></td></tr>
+  </tbody>
+</table>
+<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code>, <code>Content-Type: application/json</code>. &nbsp; <strong>Query:</strong> <code>product</code> (required).</p>
+<p><strong>Body</strong> — the organization payload is nested under <code>postDTO</code>:</p>
+<pre><code>{ "postDTO": { ...fields below... } }</code></pre>
+<table>
+  <thead><tr><th>postDTO field</th><th>Type</th><th>Required</th><th>Constraints</th><th>Default if omitted</th></tr></thead>
+  <tbody>
+    <tr><td><code>orgName</code></td><td>string</td><td class="req">yes</td><td>non-empty, max 150 chars</td><td>—</td></tr>
+    <tr><td><code>orgTypeId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0; must exist in <code>ref_organization_type</code></td><td>—</td></tr>
+    <tr><td><code>mobile</code></td><td>string</td><td class="req">yes</td><td>exactly 10 digits (<code>^\d{10}$</code>)</td><td>—</td></tr>
+    <tr><td><code>districtId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0; must exist</td><td>—</td></tr>
+    <tr><td><code>stateId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0; must exist</td><td>—</td></tr>
+    <tr><td><code>countryId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0; must exist</td><td>—</td></tr>
+    <tr><td><code>regNo</code></td><td>string</td><td class="opt">no</td><td>—</td><td><code>""</code> → column null</td></tr>
+    <tr><td><code>regDate</code></td><td>string (date-time)</td><td class="opt">no</td><td>ISO-8601</td><td>server timestamp "now"</td></tr>
+    <tr><td><code>email</code></td><td>string</td><td class="opt">no</td><td>valid email format when non-empty</td><td><code>""</code> → column null</td></tr>
+    <tr><td><code>address</code></td><td>string</td><td class="opt">no</td><td>max 500 chars when non-empty</td><td><code>""</code> → column null</td></tr>
+    <tr><td><code>pincode</code></td><td>string</td><td class="opt">no</td><td>—</td><td><code>""</code> → column null</td></tr>
+    <tr><td><code>logo</code></td><td>string</td><td class="opt">no</td><td>path/URL to the stored logo asset</td><td><code>""</code> → column null</td></tr>
+    <tr><td><code>isOwner</code></td><td>boolean</td><td class="opt">no</td><td>—</td><td><code>false</code></td></tr>
+    <tr><td><code>ownerName</code></td><td>string</td><td class="opt">no</td><td>max 150 chars when non-empty</td><td><code>""</code> → column null</td></tr>
+    <tr><td><code>ownerEmail</code></td><td>string</td><td class="opt">no</td><td>valid email + max 150 chars when non-empty</td><td><code>""</code> → column null</td></tr>
+    <tr><td><code>isWhatsappNumber</code></td><td>boolean</td><td class="opt">no</td><td>flags <code>mobile</code> as WhatsApp-capable</td><td><code>false</code></td></tr>
+    <tr><td><code>isDefault</code></td><td>boolean</td><td class="opt">no</td><td><code>true</code> → after insert this org becomes the caller's default and the flag is cleared on their other orgs (§9)</td><td><code>false</code></td></tr>
+    <tr><td><code>creatorUserId</code></td><td>integer</td><td class="opt">ignored</td><td>Overwritten server-side with the cookie <code>UserId</code>. Do not send.</td><td>from cookie</td></tr>
+    <tr><td><code>kyc</code></td><td>object</td><td class="opt">no</td><td>Optional KYC block — see the table below</td><td><code>null</code> (no KYC row created)</td></tr>
+  </tbody>
+</table>
+<p><strong><code>postDTO.kyc</code> object</strong> (only validated / persisted when <code>kyc</code> is present):</p>
+<table>
+  <thead><tr><th>kyc field</th><th>Type</th><th>Required</th><th>Constraints</th><th>Default if omitted</th></tr></thead>
+  <tbody>
+    <tr><td><code>proceedWithKyc</code></td><td>boolean</td><td class="opt">no</td><td>—</td><td><code>true</code></td></tr>
+    <tr><td><code>legalDocumentPath</code></td><td>string</td><td class="opt">no</td><td>max 255</td><td><code>null</code></td></tr>
+    <tr><td><code>legalDocumentType</code></td><td>string</td><td class="opt">no</td><td>max 50</td><td><code>null</code></td></tr>
+    <tr><td><code>identityProofPath</code></td><td>string</td><td class="opt">no</td><td>max 255</td><td><code>null</code></td></tr>
+    <tr><td><code>identityProofType</code></td><td>string</td><td class="opt">no</td><td>max 50</td><td><code>null</code></td></tr>
+    <tr><td><code>kycStatus</code></td><td>string</td><td class="opt">no</td><td>max 20</td><td><code>null</code></td></tr>
+    <tr><td><code>remarks</code></td><td>string</td><td class="opt">no</td><td>max 500</td><td><code>null</code></td></tr>
+    <tr><td><code>submittedAt</code></td><td>string (date-time)</td><td class="opt">no</td><td>—</td><td><code>null</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{ "success": true, "message": "Success." }</code></pre>
+
+<h4>Error responses</h4>
+<table>
+  <thead><tr><th>Status</th><th>code</th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Any field constraint above fails, or the body is missing / not valid JSON.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Caller already owns 3 non-deleted organizations — message <code>"You can create a maximum of 3 organizations."</code></td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or a NOT NULL DB column ended up null.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Missing / invalid cookie.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>Caller already has an org with this <code>orgName</code> or this <code>regNo</code> (non-deleted).</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td><code>orgTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> does not reference an existing row.</td></tr>
+  </tbody>
+</table>
+
+<h4>Example</h4>
+<pre><code>curl -sS -X POST "https://api-vacc.vidyaone.com/test/inst/org?product=lms" \
+  --cookie "vacc-account-auth=$AUTH" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "postDTO": {
+          "orgName": "Acme Institute",
+          "orgTypeId": 1,
+          "mobile": "9876543210",
+          "email": "info@acme.example",
+          "regNo": "REG-2024-0007",
+          "address": "12 MG Road",
+          "districtId": 501, "stateId": 27, "countryId": 91,
+          "pincode": "560001",
+          "logo": "org/acme/logo.png",
+          "isOwner": true,
+          "ownerName": "Asha Rao",
+          "ownerEmail": "asha@acme.example",
+          "isWhatsappNumber": true,
+          "isDefault": true,
+          "kyc": {
+            "proceedWithKyc": true,
+            "legalDocumentType": "GST",
+            "legalDocumentPath": "org/acme/gst.pdf",
+            "kycStatus": "SUBMITTED",
+            "submittedAt": "2026-09-09T10:15:00Z"
+          }
+        }
+      }'
+# prod: https://api-vacc.vidyaone.com/inst/org?product=lms</code></pre>
+
+<!-- 7.2 -->
+<h3 id="org-put" class="sec"><span class="method m-put">PUT</span><span class="endpoint-path">/org</span></h3>
+<p><strong>Summary.</strong> Updates one organization the caller owns (and upserts its KYC row) in a single transaction. Call this to save the edit form returned by <code>GET /org/edit</code>. Only a row matching <code>orgId</code> + the authenticated user + <em>not soft-deleted</em> is touched; anything else → <span class="status-err">404</span>.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>Method &amp; URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>PUT https://api-vacc.vidyaone.com/test/inst/org</code></td></tr>
+    <tr><td>Production</td><td><code>PUT https://api-vacc.vidyaone.com/inst/org</code></td></tr>
+  </tbody>
+</table>
+<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code>, <code>Content-Type: application/json</code>. &nbsp; <strong>Query:</strong> <code>product</code> (required).</p>
+<p><strong>Body</strong> — payload nested under <code>putDTO</code>:</p>
+<pre><code>{ "putDTO": { "orgId": 123, ...same fields as POST postDTO... } }</code></pre>
+<table>
+  <thead><tr><th>putDTO field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>orgId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0. The organization to update; must be owned by the caller and not soft-deleted.</td></tr>
+    <tr><td><code>creatorUserId</code></td><td>integer</td><td class="req">yes (validation)</td><td>Must be <code>&gt; 0</code> or validation fails. The server scopes the update by the <em>authenticated</em> user, not by this value — send the caller's own user id.</td></tr>
+    <tr><td colspan="4"><em>All other fields — <code>orgName</code>, <code>orgTypeId</code>, <code>mobile</code>, <code>regNo</code>, <code>regDate</code>, <code>email</code>, <code>address</code>, <code>districtId</code>, <code>stateId</code>, <code>countryId</code>, <code>pincode</code>, <code>logo</code>, <code>isOwner</code>, <code>ownerName</code>, <code>ownerEmail</code>, <code>isWhatsappNumber</code>, <code>isDefault</code>, <code>kyc</code> — carry the same types, requiredness, constraints and defaults as <a href="#org-post">POST /org</a> §7.1.</em></td></tr>
+  </tbody>
+</table>
+<div class="note">
+  Every writable column is overwritten with the value you send. There is no partial/patch merge — omitting <code>email</code>
+  sends <code>""</code> and clears the column. Read the current row with <code>GET /org/edit</code> first and send it back whole.
+</div>
+<ul class="tight">
+  <li><strong>KYC:</strong> when <code>kyc</code> is present, an existing <code>tbl_organization_kyc</code> row for this org is updated (and un-deleted if it had been soft-deleted); if none exists, one is inserted and linked. Same transaction as the org update.</li>
+  <li><strong><code>isDefault: true</code></strong> → within the same transaction, this org is promoted to default and the flag is cleared on the caller's other orgs. <code>isDefault: false</code> leaves the current default untouched.</li>
+</ul>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{ "success": true, "message": "Organisation updated successfully." }</code></pre>
+
+<h4>Error responses</h4>
+<table>
+  <thead><tr><th>Status</th><th>code</th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Field constraint fails, <code>orgId &le; 0</code>, <code>creatorUserId &le; 0</code>, or body missing / invalid JSON.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or a NOT NULL column ended up null.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Missing / invalid cookie.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No row matches <code>orgId</code> + caller + not-deleted — message <code>"Tbl_Organization not found. Key=&lt;orgId&gt;"</code>.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>The new <code>orgName</code>/<code>regNo</code> collides with another of the caller's orgs (DB unique constraint).</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td><code>orgTypeId</code>/<code>districtId</code>/<code>stateId</code>/<code>countryId</code> does not exist.</td></tr>
+  </tbody>
+</table>
+
+<h4>Example</h4>
+<pre><code>curl -sS -X PUT "https://api-vacc.vidyaone.com/test/inst/org?product=lms" \
+  --cookie "vacc-account-auth=$AUTH" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "putDTO": {
+          "orgId": 123,
+          "creatorUserId": 10432,
+          "orgName": "Acme Institute (Renamed)",
+          "orgTypeId": 1,
+          "mobile": "9876543210",
+          "email": "info@acme.example",
+          "regNo": "REG-2024-0007",
+          "address": "12 MG Road",
+          "districtId": 501, "stateId": 27, "countryId": 91,
+          "pincode": "560001",
+          "logo": "org/acme/logo-v2.png",
+          "isOwner": true,
+          "ownerName": "Asha Rao",
+          "ownerEmail": "asha@acme.example",
+          "isWhatsappNumber": true,
+          "isDefault": false,
+          "kyc": { "proceedWithKyc": true, "kycStatus": "VERIFIED", "remarks": "docs ok" }
+        }
+      }'
+# prod: https://api-vacc.vidyaone.com/inst/org?product=lms</code></pre>
+
+<!-- 7.3 -->
+<h3 id="org-edit" class="sec"><span class="method m-get">GET</span><span class="endpoint-path">/org/edit</span></h3>
+<p><strong>Summary.</strong> Returns one organization in an <em>edit-ready</em> shape (raw table row + KYC block, with <code>remarks</code>) so the result round-trips straight back into <code>PUT /org</code>. Reads <code>tbl_organization</code> directly. Scoped to the caller and non-deleted rows only.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>Method &amp; URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/org/edit</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/org/edit</code></td></tr>
+  </tbody>
+</table>
+<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code> (required).</p>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>product</code></td><td>string</td><td class="req">yes</td><td>Product identifier (auth).</td></tr>
+    <tr><td><code>orgId</code></td><td>integer (Int64)</td><td class="req">yes</td><td>&gt; 0.</td></tr>
+  </tbody>
+</table>
+<p><strong>Body:</strong> none.</p>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{
+  "success": true,
+  "data": {
+    "orgId": 123,
+    "orgTypeId": 1,
+    "orgName": "Acme Institute",
+    "regNo": "REG-2024-0007",
+    "regDate": "2024-04-01T00:00:00+00:00",
+    "email": "info@acme.example",
+    "mobile": "9876543210",
+    "address": "12 MG Road",
+    "districtId": 501,
+    "stateId": 27,
+    "countryId": 91,
+    "pincode": "560001",
+    "logo": "org/acme/logo.png",
+    "creatorUserId": 10432,
+    "isOwner": true,
+    "ownerName": "Asha Rao",
+    "ownerEmail": "asha@acme.example",
+    "isWhatsappNumber": true,
+    "isDefault": true,
+    "kyc": {
+      "proceedWithKyc": true,
+      "legalDocumentPath": "org/acme/gst.pdf",
+      "legalDocumentType": "GST",
+      "identityProofPath": null,
+      "identityProofType": null,
+      "kycStatus": "VERIFIED",
+      "remarks": "docs ok",
+      "submittedAt": "2026-09-09T10:15:00+00:00"
+    }
+  }
+}</code></pre>
+<p><code>data.kyc</code> is <code>null</code> when the org has no KYC row. Empty string fields come back as <code>""</code>; nullable KYC fields come back as <code>null</code>.</p>
+
+<h4>Error responses</h4>
+<ul class="tight">
+  <li><span class="status-err">400</span> <code>VALIDATION_FAILED</code> — <code>orgId</code> missing, <code>&le; 0</code>, or not an integer.</li>
+  <li><span class="status-err">401</span> <code>UNAUTHORIZED</code>; <span class="status-err">400</span> <code>REQUIRED_FIELD</code> — <code>product</code> missing.</li>
+  <li><span class="status-err">404</span> <code>RECORD_NOT_FOUND</code> — org missing, not owned by the caller, or soft-deleted.</li>
+</ul>
+
+<h4>Example</h4>
+<pre><code>curl -sS "https://api-vacc.vidyaone.com/test/inst/org/edit?product=lms&amp;orgId=123" \
+  --cookie "vacc-account-auth=$AUTH"</code></pre>
+
+<!-- 7.4 -->
+<h3 id="org-default" class="sec"><span class="method m-put">PUT</span><span class="endpoint-path">/org/default</span></h3>
+<p><strong>Summary.</strong> Makes one organization the caller's default and clears the flag on all their other organizations, in a single transaction — so the caller always has exactly one default. Use the dedicated "set as default" action; you can also do this via <code>isDefault:true</code> on <code>POST</code>/<code>PUT</code>.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>Method &amp; URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>PUT https://api-vacc.vidyaone.com/test/inst/org/default</code></td></tr>
+    <tr><td>Production</td><td><code>PUT https://api-vacc.vidyaone.com/inst/org/default</code></td></tr>
+  </tbody>
+</table>
+<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code>, <code>Content-Type: application/json</code>. &nbsp; <strong>Query:</strong> <code>product</code> (required).</p>
+<table>
+  <thead><tr><th>Body field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>orgId</code></td><td>integer (Int64)</td><td class="req">yes</td><td>&gt; 0. Must be owned by the caller and not soft-deleted.</td></tr>
+  </tbody>
+</table>
+<pre><code>{ "orgId": 123 }</code></pre>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{ "success": true, "message": "Organisation set as default successfully." }</code></pre>
+
+<h4>Error responses</h4>
+<ul class="tight">
+  <li><span class="status-err">400</span> <code>VALIDATION_FAILED</code> — <code>orgId &le; 0</code> or body missing / invalid.</li>
+  <li><span class="status-err">401</span> <code>UNAUTHORIZED</code>; <span class="status-err">400</span> <code>REQUIRED_FIELD</code> — <code>product</code> missing.</li>
+  <li><span class="status-err">404</span> <code>RECORD_NOT_FOUND</code> — org missing, not owned, or soft-deleted. No other row is touched in this case.</li>
+</ul>
+
+<h4>Example</h4>
+<pre><code>curl -sS -X PUT "https://api-vacc.vidyaone.com/test/inst/org/default?product=lms" \
+  --cookie "vacc-account-auth=$AUTH" \
+  -H "Content-Type: application/json" \
+  -d '{ "orgId": 123 }'</code></pre>
+
+<!-- 7.5 -->
+<h3 id="org-deactive" class="sec"><span class="method m-put">PUT</span><span class="endpoint-path">/org/deactive</span></h3>
+<p><strong>Summary.</strong> Bulk-deactivates one or more of the caller's organizations — sets <code>isActive = false</code> and stamps <code>inactiveAt</code>. Deactivated orgs still exist and still count toward the 3-org cap; they drop out of <code>GET /org/options</code> but remain in <code>GET /org/listbyuser</code>. To remove an org entirely, use <a href="#org-delete">DELETE /org</a>.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>Method &amp; URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>PUT https://api-vacc.vidyaone.com/test/inst/org/deactive</code></td></tr>
+    <tr><td>Production</td><td><code>PUT https://api-vacc.vidyaone.com/inst/org/deactive</code></td></tr>
+  </tbody>
+</table>
+<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code>, <code>Content-Type: application/json</code>. &nbsp; <strong>Query:</strong> <code>product</code> (required).</p>
+<table>
+  <thead><tr><th>Body field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>orgIds</code></td><td>array of integer (Int64)</td><td class="req">yes</td><td>At least one element; each element <code>&gt; 0</code>.</td></tr>
+  </tbody>
+</table>
+<pre><code>{ "orgIds": [123, 124] }</code></pre>
+<div class="note">
+  <strong>Partial match is allowed.</strong> Ids that are not owned by the caller, already inactive, or soft-deleted are
+  silently skipped. The call succeeds as long as <em>at least one</em> row is affected; it returns <span class="status-err">404</span>
+  only when <em>none</em> of the ids match an eligible row.
+</div>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{ "success": true, "message": "Organisation deactivated successfully." }</code></pre>
+
+<h4>Error responses</h4>
+<ul class="tight">
+  <li><span class="status-err">400</span> <code>VALIDATION_FAILED</code> — <code>orgIds</code> empty/missing, or any element <code>&le; 0</code>, or body invalid.</li>
+  <li><span class="status-err">401</span> <code>UNAUTHORIZED</code>; <span class="status-err">400</span> <code>REQUIRED_FIELD</code> — <code>product</code> missing.</li>
+  <li><span class="status-err">404</span> <code>RECORD_NOT_FOUND</code> — none of the ids matched an owned, active, non-deleted org.</li>
+</ul>
+
+<h4>Example</h4>
+<pre><code>curl -sS -X PUT "https://api-vacc.vidyaone.com/test/inst/org/deactive?product=lms" \
+  --cookie "vacc-account-auth=$AUTH" \
+  -H "Content-Type: application/json" \
+  -d '{ "orgIds": [123, 124] }'</code></pre>
+
+<!-- 7.6 -->
+<h3 id="org-delete" class="sec"><span class="method m-delete">DELETE</span><span class="endpoint-path">/org</span></h3>
+<p><strong>Summary.</strong> Bulk <em>soft-deletes</em> one or more of the caller's organizations — sets <code>isDeleted = true</code> and stamps <code>deletedAt</code>. The row is never physically removed. A soft-deleted org no longer counts toward the 3-org cap and disappears from <code>options</code>, <code>listbyuser</code>, <code>view</code> and <code>edit</code>.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>Method &amp; URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>DELETE https://api-vacc.vidyaone.com/test/inst/org</code></td></tr>
+    <tr><td>Production</td><td><code>DELETE https://api-vacc.vidyaone.com/inst/org</code></td></tr>
+  </tbody>
+</table>
+<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code>, <code>Content-Type: application/json</code>. &nbsp; <strong>Query:</strong> <code>product</code> (required).</p>
+<table>
+  <thead><tr><th>Body field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>orgIds</code></td><td>array of integer (Int64)</td><td class="req">yes</td><td>At least one element; each element <code>&gt; 0</code>.</td></tr>
+  </tbody>
+</table>
+<pre><code>{ "orgIds": [123] }</code></pre>
+<div class="note warn">
+  This <code>DELETE</code> carries a request body. Some HTTP clients strip <code>DELETE</code> bodies by default — use one that
+  sends it (curl does). Partial-match semantics are the same as <code>deactive</code>: already-deleted / not-owned ids are
+  skipped, and <span class="status-err">404</span> fires only when nothing is affected.
+</div>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{ "success": true, "message": "Organisation deleted successfully." }</code></pre>
+
+<h4>Error responses</h4>
+<ul class="tight">
+  <li><span class="status-err">400</span> <code>VALIDATION_FAILED</code> — <code>orgIds</code> empty/missing or any element <code>&le; 0</code>.</li>
+  <li><span class="status-err">401</span> <code>UNAUTHORIZED</code>; <span class="status-err">400</span> <code>REQUIRED_FIELD</code> — <code>product</code> missing.</li>
+  <li><span class="status-err">404</span> <code>RECORD_NOT_FOUND</code> — none of the ids matched an owned, non-deleted org.</li>
+</ul>
+
+<h4>Example</h4>
+<pre><code>curl -sS -X DELETE "https://api-vacc.vidyaone.com/test/inst/org?product=lms" \
+  --cookie "vacc-account-auth=$AUTH" \
+  -H "Content-Type: application/json" \
+  -d '{ "orgIds": [123] }'</code></pre>
+
+<!-- 7.7 -->
+<h3 id="org-options" class="sec"><span class="method m-get">GET</span><span class="endpoint-path">/org/options</span></h3>
+<p><strong>Summary.</strong> Returns the caller's <strong>active, non-deleted</strong> organizations as <code>{ id, name }</code> pairs, ordered by name. Use to fill an "organization" picker. Returns an empty array when the caller has none.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>Method &amp; URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/org/options</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/org/options</code></td></tr>
+  </tbody>
+</table>
+<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code> (required). &nbsp; <strong>Query:</strong> <code>product</code> (required). &nbsp; <strong>Body:</strong> none.</p>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 123, "name": "Acme Institute" },
+    { "id": 140, "name": "Beacon Academy" }
+  ]
+}</code></pre>
+
+<h4>Error responses</h4>
+<ul class="tight">
+  <li><span class="status-err">400</span> <code>REQUIRED_FIELD</code> — <code>product</code> missing. &nbsp; <span class="status-err">401</span> <code>UNAUTHORIZED</code>.</li>
+</ul>
+
+<h4>Example</h4>
+<pre><code>curl -sS "https://api-vacc.vidyaone.com/test/inst/org/options?product=lms" \
+  --cookie "vacc-account-auth=$AUTH"</code></pre>
+
+<!-- 7.8 -->
+<h3 id="org-listbyuser" class="sec"><span class="method m-get">GET</span><span class="endpoint-path">/org/listbyuser</span></h3>
+<p><strong>Summary.</strong> Returns a paged list of the caller's organizations (active <em>and</em> inactive; never soft-deleted), with lookup names resolved, ordered by name. Use for the "my organizations" table. A page request past the end is clamped to the last page.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>Method &amp; URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/org/listbyuser</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/org/listbyuser</code></td></tr>
+  </tbody>
+</table>
+<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code> (required).</p>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints / default</th></tr></thead>
+  <tbody>
+    <tr><td><code>product</code></td><td>string</td><td class="req">yes</td><td>Product identifier (auth).</td></tr>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Omit / <code>0</code> → <code>1</code>. Must be <code>&gt; 0</code> if sent. Values past the last page are clamped down.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Omit / <code>0</code> → <code>50</code>. Must be <code>&gt; 0</code> and <code>&le; 200</code> if sent.</td></tr>
+  </tbody>
+</table>
+<p><strong>Body:</strong> none.</p>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{
+  "success": true,
+  "data": {
+    "records": [
+      {
+        "orgId": 123,
+        "orgTypeName": "Private Limited",
+        "orgName": "Acme Institute",
+        "regNo": "REG-2024-0007",
+        "email": "info@acme.example",
+        "districtName": "Bengaluru Urban",
+        "stateName": "Karnataka",
+        "countryName": "India",
+        "logo": "org/acme/logo.png",
+        "creatorName": "Asha Rao",
+        "isDefault": true,
+        "isActive": true
+      }
+    ],
+    "metaData": {
+      "totalCount": 1, "pageSize": 50, "currentPage": 1,
+      "totalPages": 1, "hasNext": false, "hasPrevious": false
+    }
+  }
+}</code></pre>
+<table>
+  <thead><tr><th>records[] field</th><th>Type</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>orgId</code></td><td>number</td><td>—</td></tr>
+    <tr><td><code>orgTypeName</code>, <code>districtName</code>, <code>stateName</code>, <code>countryName</code>, <code>creatorName</code></td><td>string</td><td>Resolved lookup names; <code>""</code> if null.</td></tr>
+    <tr><td><code>orgName</code>, <code>regNo</code>, <code>email</code>, <code>logo</code></td><td>string</td><td><code>""</code> if null.</td></tr>
+    <tr><td><code>isDefault</code>, <code>isActive</code></td><td>boolean</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<h4>Error responses</h4>
+<ul class="tight">
+  <li><span class="status-err">400</span> <code>VALIDATION_FAILED</code> — bad page params or <code>pageSize &gt; 200</code>.</li>
+  <li><span class="status-err">401</span> <code>UNAUTHORIZED</code>; <span class="status-err">400</span> <code>REQUIRED_FIELD</code> — <code>product</code> missing.</li>
+</ul>
+
+<h4>Example</h4>
+<pre><code>curl -sS "https://api-vacc.vidyaone.com/test/inst/org/listbyuser?product=lms&amp;pageNumber=1&amp;pageSize=20" \
+  --cookie "vacc-account-auth=$AUTH"</code></pre>
+
+<!-- 7.9 -->
+<h3 id="org-view" class="sec"><span class="method m-get">GET</span><span class="endpoint-path">/org/view</span></h3>
+<p><strong>Summary.</strong> Returns one organization for read-only display — all raw fields plus resolved lookup names, a KYC block (without <code>remarks</code>), and an audit block. Reads the <code>vw_organization</code> view (soft-deleted rows are excluded by the view). Scoped to the caller.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>Method &amp; URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/org/view</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/org/view</code></td></tr>
+  </tbody>
+</table>
+<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code> (required).</p>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>product</code></td><td>string</td><td class="req">yes</td><td>Product identifier (auth).</td></tr>
+    <tr><td><code>orgId</code></td><td>integer (Int64)</td><td class="req">yes</td><td>&gt; 0.</td></tr>
+  </tbody>
+</table>
+<p><strong>Body:</strong> none.</p>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{
+  "success": true,
+  "data": {
+    "orgId": 123,
+    "orgTypeId": 1,
+    "orgName": "Acme Institute",
+    "regNo": "REG-2024-0007",
+    "regDate": "2024-04-01T00:00:00+00:00",
+    "email": "info@acme.example",
+    "mobile": "9876543210",
+    "address": "12 MG Road",
+    "districtId": 501,
+    "stateId": 27,
+    "countryId": 91,
+    "pincode": "560001",
+    "logo": "org/acme/logo.png",
+    "creatorUserId": 10432,
+    "isOwner": true,
+    "ownerName": "Asha Rao",
+    "ownerEmail": "asha@acme.example",
+    "isWhatsappNumber": true,
+    "isDefault": true,
+    "orgTypeName": "Private Limited",
+    "districtName": "Bengaluru Urban",
+    "stateName": "Karnataka",
+    "countryName": "India",
+    "creatorName": "Asha Rao",
+    "kyc": {
+      "proceedWithKyc": true,
+      "legalDocumentPath": "org/acme/gst.pdf",
+      "legalDocumentType": "GST",
+      "identityProofPath": null,
+      "identityProofType": null,
+      "kycStatus": "VERIFIED",
+      "remarks": null,
+      "submittedAt": "2026-09-09T10:15:00+00:00"
+    },
+    "audit": {
+      "isActive": true,
+      "createdAt": "2026-09-01T08:00:00+00:00",
+      "updatedAt": "2026-09-09T10:20:00+00:00"
+    }
+  }
+}</code></pre>
+<ul class="tight">
+  <li><code>kyc</code> is <code>null</code> when the org has no KYC row. <code>kyc.remarks</code> is always <code>null</code> here — the view does not carry it; use <code>GET /org/edit</code> if you need <code>remarks</code>.</li>
+  <li><code>audit</code> carries <code>isActive</code>, <code>createdAt</code>, <code>updatedAt</code> only.</li>
+</ul>
+
+<h4>Error responses</h4>
+<ul class="tight">
+  <li><span class="status-err">400</span> <code>VALIDATION_FAILED</code> — <code>orgId</code> missing, <code>&le; 0</code>, or not an integer.</li>
+  <li><span class="status-err">401</span> <code>UNAUTHORIZED</code>; <span class="status-err">400</span> <code>REQUIRED_FIELD</code> — <code>product</code> missing.</li>
+  <li><span class="status-err">404</span> <code>RECORD_NOT_FOUND</code> — org missing or not owned by the caller (message <code>"Vw_Organization not found. Key=&lt;orgId&gt;"</code>).</li>
+</ul>
+
+<h4>Example</h4>
+<pre><code>curl -sS "https://api-vacc.vidyaone.com/test/inst/org/view?product=lms&amp;orgId=123" \
+  --cookie "vacc-account-auth=$AUTH"</code></pre>
+
+<!-- ============================================================= -->
+<h2 id="behaviours" class="sec">8. Special behaviours</h2>
+
+<h3>8.1 Test mode</h3>
+<p>
+  Prefix the <code>product</code> value with <code>test-</code> (e.g. <code>?product=test-lms</code>) to run the request in
+  test mode. The prefix is stripped before the product is resolved; the flag is carried through to the handlers.
+  Use the same base URL — test mode is a property of the request, not a separate host.
+</p>
+
+<h3>8.2 Per-user organization cap</h3>
+<p>
+  <code>POST /org</code> rejects creation with <span class="status-err">400</span> (<code>"You can create a maximum of 3 organizations."</code>)
+  once the caller owns <strong>3 non-deleted</strong> organizations. Deactivated orgs still count; soft-deleted orgs do not.
+  <span class="small">The cap is enforced in application code, so a burst of concurrent <code>POST</code>s from one user can momentarily exceed it.</span>
+</p>
+
+<h3>8.3 Exactly one default per user</h3>
+<p>Setting a default always clears it elsewhere, in one transaction. Three ways to set it, all equivalent:</p>
+<ul class="tight">
+  <li><code>PUT /org/default</code> with <code>{ "orgId": N }</code>.</li>
+  <li><code>POST /org</code> with <code>postDTO.isDefault = true</code> — the swap runs immediately after the insert.</li>
+  <li><code>PUT /org</code> with <code>putDTO.isDefault = true</code> — the swap runs inside the update transaction.</li>
+</ul>
+<p><code>isDefault = false</code> on <code>POST</code>/<code>PUT</code> is a no-op for the default flag — it does <em>not</em> clear an existing default. You move the default by promoting another org.</p>
+<p class="warn small">If a user has never set a default, none of their orgs is default — there is no automatic "first org becomes default".</p>
+
+<h3>8.4 KYC upsert (PUT /org)</h3>
+<p>
+  When <code>putDTO.kyc</code> is present: if a <code>tbl_organization_kyc</code> row exists for the org it is updated in place
+  (and un-deleted if it had been soft-deleted); otherwise a new row is inserted and linked. This happens in the same
+  transaction as the org update — if either part fails, neither is applied. <code>POST /org</code> inserts the KYC row in the
+  same unit of work as the org insert.
+</p>
+
+<h3>8.5 Soft-delete visibility</h3>
+<table>
+  <thead><tr><th>State</th><th>Counts toward cap</th><th><code>options</code></th><th><code>listbyuser</code></th><th><code>view</code> / <code>edit</code></th><th>Updatable</th></tr></thead>
+  <tbody>
+    <tr><td>Active</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Deactivated (<code>isActive=false</code>)</td><td>yes</td><td>no</td><td>yes</td><td>yes</td><td>yes</td></tr>
+    <tr><td>Soft-deleted (<code>isDeleted=true</code>)</td><td>no</td><td>no</td><td>no</td><td>no (<span class="status-err">404</span>)</td><td>no (<span class="status-err">404</span>)</td></tr>
+  </tbody>
+</table>
+
+<h3>8.6 Full write / no partial merge</h3>
+<p>
+  <code>PUT /org</code> overwrites every writable column with the value in the payload. Optional string fields default to
+  <code>""</code> when omitted, which clears the column. Always load the current row with <code>GET /org/edit</code>, mutate it,
+  and send the whole object back.
+</p>
+
+<h3>8.7 Downstream side effects</h3>
+<p>
+  None of these three controllers publish SQS/SNS messages or invoke other Lambdas. The service does write to a
+  notification queue for <em>other</em> flows (trial / onboarding), which are out of scope for this guide.
+</p>
+
+<hr>
+<p class="small">
+  Generated from source: <code>InstituteAPI.Web/src/InstituteAPI.Web/Controllers/{InstituteTypeController,OrganizationTypeController,OrganizationController}.cs</code>,
+  the matching <code>InstituteAPI.Application</code> commands/queries/validators, <code>InstituteAPI.Infrastructure/Repositories/{OrganizationRepository,InstituteTypeRepository,OrganizationTypeRepository}.cs</code>,
+  <code>InstituteAPI.DTO/OrganizationDTO.cs</code>, and the shared <code>Utilities</code> envelope / auth filter / exception middleware.
+  Base URLs from <code>appsettings.json</code> and <code>appsettings.Testing.json → App:BaseUrl</code>.
+</p>
+
+</div>
+</body>
+</html>
