@@ -319,7 +319,7 @@
       <tr><td><code>instName</code></td><td>string</td><td>Institute display name.</td></tr>
       <tr><td><code>instSaaSCode</code></td><td>string</td><td>10-char institute SaaS code (used as the <code>saascode</code> in the renew redirect).</td></tr>
       <tr><td><code>startDate</code></td><td>date-time</td><td>Plan start (UTC, ISO-8601 with offset).</td></tr>
-      <tr><td><code>remainingDays</code></td><td>int</td><td>Days left = <code>max(0, planDays − daysElapsed) + gracePeriodDays</code>; <code>daysElapsed</code> is clamped ≥ 0. Forced to 365 when <code>isFree</code>. Can be <code>0</code> or negative-adjacent → drives the redirect.</td></tr>
+      <tr><td><code>remainingDays</code></td><td>int</td><td>Days left = <code>planDays − max(0, daysElapsed) + gracePeriodDays</code>. Only <code>daysElapsed</code> is clamped ≥ 0 — the result itself is <strong>not</strong> floored, so once the plan window <em>and</em> the grace period are used up it goes <code>0</code> or negative, which is what drives the renew redirect. Forced to <code>365</code> when <code>isFree</code>.</td></tr>
       <tr><td><code>redirectPath</code></td><td>string</td><td>App landing path for this product.</td></tr>
       <tr><td><code>contactPerson</code></td><td>string</td><td>Institute contact.</td></tr>
       <tr><td><code>instAddress</code>, <code>instPincode</code>, <code>instLogo</code></td><td>string</td><td>Institute address / pincode / logo URL.</td></tr>
@@ -441,9 +441,10 @@ Location: https://account.vidyaone.com/renew?saascode=&lt;instSaaSCode&gt;      
   <section id="useredit">
     <h2><span class="idx">06</span> <span class="tag get">GET</span> /user/edit</h2>
     <p class="summary">
-      Returns the caller's own editable profile row plus their active social links — the exact object shape you
-      send back to <code>PUT /user</code>. Call this to pre-fill a "edit my profile" form, then round-trip the
-      whole object to <code>PUT /user</code>. There is no way to read another user's profile.
+      Returns the caller's own editable profile row plus their active social links — essentially the object shape you
+      send back to <code>PUT /user</code>, plus a read-only <code>email</code>. Call this to pre-fill a "edit my
+      profile" form, then round-trip the whole object to <code>PUT /user</code>. There is no way to read another
+      user's profile.
     </p>
 
     <h3>Request</h3>
@@ -467,7 +468,7 @@ Location: https://account.vidyaone.com/renew?saascode=&lt;instSaaSCode&gt;      
       <tbody>
       <tr><td><code>userId</code></td><td>long</td><td>The caller's user id (echo).</td></tr>
       <tr><td><code>fullName</code></td><td>string</td><td>Empty string if unset in DB.</td></tr>
-      <tr><td><code>email</code></td><td>string | null</td><td></td></tr>
+      <tr><td><code>email</code></td><td>string | null</td><td>Read-only — <strong>not</strong> accepted by <code>PUT /user</code>.</td></tr>
       <tr><td><code>mobileCountryCode</code>, <code>mobileNumber</code></td><td>string | null</td><td></td></tr>
       <tr><td><code>isWhatsappMobile</code></td><td>bool</td><td></td></tr>
       <tr><td><code>altMobileCountryCode</code>, <code>altMobileNumber</code></td><td>string | null</td><td></td></tr>
@@ -537,7 +538,8 @@ Location: https://account.vidyaone.com/renew?saascode=&lt;instSaaSCode&gt;      
     <p class="lead">
       <code>putDTO</code> is <strong>required</strong>. A missing/renamed <code>putDTO</code> fails JSON binding →
       <code>400</code>. The DTO also carries <code>userId</code> and <code>testMode</code> in its shape, but both are
-      ignored on input — the server sets them from the cookie.
+      ignored on input — the server sets them from the cookie. <code>email</code> is <strong>not</strong> part of
+      this DTO and cannot be changed here; any <code>email</code> key in the body is ignored.
     </p>
 
     <h4><code>putDTO</code> — field reference (<code>UserInfoDTOPut</code>)</h4>
@@ -545,7 +547,6 @@ Location: https://account.vidyaone.com/renew?saascode=&lt;instSaaSCode&gt;      
       <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
       <tbody>
       <tr><td><code>fullName</code></td><td>string</td><td><span class="tag req">yes</span></td><td>non-empty, ≤ 150 chars</td></tr>
-      <tr><td><code>email</code></td><td>string</td><td><span class="tag opt">no</span></td><td>valid email; ≤ 150</td></tr>
       <tr><td><code>mobileCountryCode</code></td><td>string</td><td><span class="tag opt">no</span></td><td>≤ 5</td></tr>
       <tr><td><code>mobileNumber</code></td><td>string</td><td><span class="tag opt">no</span></td><td>regex <code>^\d{5,15}$</code></td></tr>
       <tr><td><code>isWhatsappMobile</code></td><td>bool</td><td><span class="tag opt">no</span></td><td>default <code>false</code></td></tr>
@@ -594,7 +595,6 @@ Location: https://account.vidyaone.com/renew?saascode=&lt;instSaaSCode&gt;      
   -d '{
     "putDTO": {
       "fullName": "Asha Rao",
-      "email": "asha@example.com",
       "mobileCountryCode": "91",
       "mobileNumber": "9876543210",
       "isWhatsappMobile": true,
