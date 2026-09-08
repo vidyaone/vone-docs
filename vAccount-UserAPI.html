@@ -6,16 +6,16 @@
 <title>vAccount-UserAPI — API Reference</title>
 <style>
   :root {
-    --bg:        #0f1115;
-    --panel:     #161920;
-    --panel-2:   #1c2029;
-    --border:    #2a2f3a;
-    --text:      #e6e9ef;
-    --text-dim:  #9aa3b2;
-    --accent:    #5b9dff;
-    --ok:        #3ecf8e;
-    --warn:      #f5a524;
-    --err:       #f5556c;
+    --bg:        #ffffff;
+    --panel:     #f6f8fa;
+    --panel-2:   #f0f3f6;
+    --border:    #d0d7de;
+    --text:      #1f2328;
+    --text-dim:  #636c76;
+    --accent:    #0969da;
+    --ok:        #1a7f37;
+    --warn:      #9a6700;
+    --err:       #cf222e;
     --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
@@ -25,20 +25,20 @@
     font-family: var(--sans);
     background: var(--bg);
     color: var(--text);
-    line-height: 1.55;
+    line-height: 1.6;
   }
   header {
-    padding: 32px clamp(16px, 5vw, 64px) 24px;
+    padding: 40px clamp(16px, 5vw, 64px) 28px;
     border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, #151822, var(--bg));
+    background: var(--bg);
   }
-  header h1 { margin: 0 0 6px; font-size: 1.6rem; }
-  header p { margin: 0; color: var(--text-dim); font-size: 0.95rem; }
-  .badges { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+  header h1 { margin: 0 0 8px; font-size: 1.7rem; font-weight: 650; }
+  header p { margin: 0; color: var(--text-dim); font-size: 0.95rem; max-width: 70ch; }
+  .badges { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
   .badge {
     font-family: var(--mono);
-    font-size: 0.75rem;
-    padding: 3px 9px;
+    font-size: 0.72rem;
+    padding: 3px 10px;
     border-radius: 999px;
     border: 1px solid var(--border);
     color: var(--text-dim);
@@ -46,147 +46,135 @@
   }
   nav {
     position: sticky; top: 0; z-index: 10;
-    display: flex; gap: 4px; flex-wrap: wrap;
+    display: flex; gap: 2px; flex-wrap: wrap;
     padding: 10px clamp(16px, 5vw, 64px);
-    background: rgba(15,17,21,0.92);
-    backdrop-filter: blur(6px);
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--border);
   }
   nav a {
     color: var(--text-dim);
     text-decoration: none;
-    font-size: 0.85rem;
-    padding: 6px 10px;
+    font-size: 0.83rem;
+    padding: 5px 9px;
     border-radius: 6px;
   }
-  nav a:hover { color: var(--text); background: var(--panel-2); }
-  main { padding: 8px clamp(16px, 5vw, 64px) 80px; max-width: 1080px; margin: 0 auto; }
-  section { padding: 36px 0; border-bottom: 1px solid var(--border); }
+  nav a:hover { color: var(--accent); background: var(--panel); }
+  main { padding: 8px clamp(16px, 5vw, 64px) 96px; max-width: 1024px; margin: 0 auto; }
+  section { padding: 40px 0; border-bottom: 1px solid var(--border); }
   section:last-child { border-bottom: none; }
   h2 {
-    font-size: 1.15rem;
-    margin: 0 0 4px;
-    display: flex; align-items: center; gap: 10px;
+    font-size: 1.2rem;
+    margin: 0 0 6px;
+    font-weight: 640;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   }
   h2 .idx {
     font-family: var(--mono);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: var(--accent);
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 2px 7px;
+    font-weight: 500;
   }
-  h3 { font-size: 0.95rem; margin: 24px 0 8px; color: var(--text); }
-  h4 { font-size: 0.85rem; margin: 18px 0 6px; color: var(--text); }
+  h3 { font-size: 0.98rem; margin: 26px 0 8px; }
+  h4 { font-size: 0.86rem; margin: 20px 0 6px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; }
+  p.summary {
+    margin: 8px 0 0;
+    font-size: 0.95rem;
+    padding: 12px 16px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+  }
   p.lead { color: var(--text-dim); margin-top: 6px; }
   code {
     font-family: var(--mono);
-    background: var(--panel-2);
+    background: var(--panel);
     border: 1px solid var(--border);
-    padding: 1px 6px;
+    padding: 1px 5px;
     border-radius: 4px;
     font-size: 0.85em;
   }
   pre {
     font-family: var(--mono);
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 16px 18px;
     overflow-x: auto;
     margin: 10px 0 0;
-    line-height: 1.5;
+    line-height: 1.55;
+    color: var(--text);
   }
   pre code { background: none; border: none; padding: 0; }
-  .str { color: #a6e3a1; }
-  .num { color: #f5c078; }
-  .kw  { color: #89b4fa; }
-  .lit { color: #cba6f7; }
+  .str { color: #0a3069; }
+  .num { color: #953800; }
+  .lit { color: #8250df; }
   .comment { color: var(--text-dim); }
   table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
-    font-size: 0.85rem;
+    font-size: 0.86rem;
   }
   th, td {
     text-align: left;
-    padding: 8px 10px;
+    padding: 9px 12px;
     border-bottom: 1px solid var(--border);
     vertical-align: top;
   }
+  thead th { border-bottom: 2px solid var(--border); }
   th {
     color: var(--text-dim);
     font-weight: 600;
-    font-size: 0.75rem;
+    font-size: 0.74rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
-  tr:hover td { background: var(--panel); }
+  tbody tr:hover td { background: var(--panel); }
   td code { white-space: nowrap; }
   .tag {
     display: inline-block;
     font-family: var(--mono);
     font-size: 0.7rem;
     padding: 1px 7px;
-    border-radius: 999px;
+    border-radius: 5px;
     font-weight: 600;
+    border: 1px solid transparent;
   }
-  .tag.req  { background: rgba(245,85,108,0.15); color: var(--err); }
-  .tag.cond { background: rgba(245,165,36,0.15); color: var(--warn); }
-  .tag.opt  { background: rgba(62,207,142,0.15); color: var(--ok); }
-  .tag.get  { background: rgba(62,207,142,0.15); color: var(--ok); }
-  .tag.put  { background: rgba(245,165,36,0.15); color: var(--warn); }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
-  .card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px 18px;
-  }
-  .card h4 { margin: 0 0 8px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-  .dot.ok  { background: var(--ok); }
-  .dot.err { background: var(--err); }
-  .flow {
-    font-family: var(--mono);
-    font-size: 0.8rem;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px 20px;
-    overflow-x: auto;
-    white-space: pre;
-    color: var(--text-dim);
-  }
-  .flow .step { color: var(--text); }
-  .flow .gate { color: var(--warn); }
-  .flow .final { color: var(--ok); }
-  .status {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-family: var(--mono); font-weight: 700; font-size: 0.9rem;
-    padding: 4px 10px; border-radius: 8px; margin-bottom: 8px;
-  }
-  .status.s200 { background: rgba(62,207,142,0.12); color: var(--ok); }
-  .status.s302 { background: rgba(91,157,255,0.12); color: var(--accent); }
-  .status.s400 { background: rgba(245,165,36,0.12); color: var(--warn); }
-  .status.s401 { background: rgba(245,165,36,0.12); color: var(--warn); }
-  .status.s404 { background: rgba(245,165,36,0.12); color: var(--warn); }
-  .status.s409 { background: rgba(245,165,36,0.12); color: var(--warn); }
-  .status.s500 { background: rgba(245,85,108,0.12); color: var(--err); }
-  ul.notes { margin: 10px 0 0; padding-left: 20px; font-size: 0.88rem; color: var(--text-dim); }
-  ul.notes li { margin-bottom: 8px; }
-  ul.notes code { color: var(--text); }
+  .tag.req  { background: #ffebe9; color: var(--err); border-color: #ffc9c2; }
+  .tag.cond { background: #fff8c5; color: var(--warn); border-color: #f5e08a; }
+  .tag.opt  { background: #dafbe1; color: var(--ok);  border-color: #aceebb; }
+  .tag.get  { background: #dafbe1; color: var(--ok);  border-color: #aceebb; }
+  .tag.put  { background: #fff8c5; color: var(--warn); border-color: #f5e08a; }
   .callout {
     margin-top: 12px; padding: 12px 16px; border-radius: 10px;
     border: 1px solid var(--border); background: var(--panel-2);
-    font-size: 0.86rem; color: var(--text-dim);
+    font-size: 0.87rem; color: var(--text-dim);
   }
   .callout strong { color: var(--text); }
+  ul.notes { margin: 10px 0 0; padding-left: 20px; font-size: 0.89rem; color: var(--text-dim); }
+  ul.notes li { margin-bottom: 8px; }
+  ul.notes code { color: var(--text); }
+  .status {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-weight: 700; font-size: 0.85rem;
+    padding: 3px 9px; border-radius: 7px; margin-bottom: 6px;
+    border: 1px solid var(--border);
+  }
+  .status.s200 { background: #dafbe1; color: var(--ok); border-color: #aceebb; }
+  .status.s302 { background: #ddf4ff; color: var(--accent); border-color: #b6e3ff; }
+  .status.s400,
+  .status.s401,
+  .status.s404,
+  .status.s409 { background: #fff8c5; color: var(--warn); border-color: #f5e08a; }
+  .status.s500 { background: #ffebe9; color: var(--err); border-color: #ffc9c2; }
   footer {
-    padding: 24px clamp(16px, 5vw, 64px) 40px;
+    padding: 28px clamp(16px, 5vw, 64px) 48px;
     color: var(--text-dim);
     font-size: 0.8rem;
     text-align: center;
@@ -205,24 +193,22 @@
     <span class="badge">ap-south-1</span>
     <span class="badge">Content-Type: application/json</span>
     <span class="badge">Auth: vAccount SaaS cookie</span>
-    <span class="badge">No pagination · no events emitted</span>
   </div>
 </header>
 
 <nav>
   <a href="#overview">Overview</a>
   <a href="#transport">Transport</a>
-  <a href="#auth">Authentication</a>
-  <a href="#endpoints">Endpoints</a>
+  <a href="#auth">Auth</a>
   <a href="#userinstdetail">GET /saas/userinstdetail</a>
   <a href="#userdetail">GET /saas/userdetail</a>
   <a href="#useredit">GET /user/edit</a>
   <a href="#userput">PUT /user</a>
-  <a href="#social">Social links reconcile</a>
-  <a href="#envelope">Response envelope</a>
+  <a href="#social">Social links</a>
+  <a href="#envelope">Envelope</a>
   <a href="#responses">Status codes</a>
-  <a href="#examples">Examples</a>
-  <a href="#notes">Limits &amp; behaviour</a>
+  <a href="#internal">Internal routes</a>
+  <a href="#notes">Limits</a>
 </nav>
 
 <main>
@@ -231,7 +217,7 @@
     <h2><span class="idx">01</span> Overview</h2>
     <p class="lead">
       This service is consumed by other VIDYAOne front-ends / BFF layers on behalf of a signed-in user.
-      It has two groups of routes:
+      It has two developer-facing route groups:
     </p>
     <ul class="notes">
       <li><code>/saas/*</code> — resolve the caller's institute, product, plan, support tier, org and
@@ -239,23 +225,30 @@
       <li><code>/user/*</code> — read the caller's editable profile (incl. social links) and write it back.</li>
     </ul>
     <div class="callout">
-      The <code>/internal/*</code> routes (service-to-service user validation) are <strong>not covered here</strong> —
-      they are reachable only from private Lambdas inside AWS and are not part of the developer-facing contract.
+      The <code>/internal/*</code> routes (service-to-service user validation) are <strong>not part of the
+      developer-facing contract</strong> — they are reachable only from private Lambdas inside AWS. They are
+      listed in §<a href="#internal">10</a> (with testing URLs) for completeness only; their request/response
+      shapes are not documented here.
     </div>
   </section>
 
   <section id="transport">
     <h2><span class="idx">02</span> Transport</h2>
     <table>
-      <tr><th>Property</th><th>Value</th></tr>
-      <tr><td>Base URL</td><td><code>https://&lt;vaccount-api-base&gt;</code> — the API Gateway host for the vAccount platform. Test and production are separate hosts; obtain the correct base from the platform team.</td></tr>
+      <thead><tr><th>Property</th><th>Value</th></tr></thead>
+      <tbody>
+      <tr><td>Base URL</td><td>Per environment — see the two rows below. The value comes from <code>App:BaseUrl</code> in that environment's <code>appsettings.&lt;Environment&gt;.json</code>. Full URL = base + controller route.</td></tr>
+      <tr><td>Testing base URL</td><td><code>https://api-vacc.vidyaone.com/test/user/</code> &nbsp;<span class="badge">appsettings.Testing.json → App:BaseUrl</span></td></tr>
+      <tr><td>Production base URL</td><td><code>https://api-vacc.vidyaone.com/user/</code> &nbsp;<span class="badge">appsettings.json → App:BaseUrl</span></td></tr>
       <tr><td>Region</td><td><code>ap-south-1</code></td></tr>
       <tr><td>Runtime</td><td>ASP.NET Core on AWS Lambda, fronted by API Gateway <strong>HTTP API v2</strong>.</td></tr>
       <tr><td>Methods</td><td><code>GET</code>, <code>PUT</code> (+ <code>OPTIONS</code> preflight).</td></tr>
       <tr><td>Request content type</td><td><code>application/json</code> (only relevant to <code>PUT /user</code>).</td></tr>
-      <tr><td>Response content type</td><td><code>application/json</code> (except the renew redirect — see §5).</td></tr>
+      <tr><td>Response content type</td><td><code>application/json</code> (except the renew redirect — see §3).</td></tr>
       <tr><td><code>Accept</code></td><td>Not enforced — the server disables 406, so a missing/odd <code>Accept</code> still returns JSON.</td></tr>
       <tr><td>Number parsing</td><td>Lenient — numeric fields may be sent as JSON strings (<code>"5"</code> is accepted for an <code>int</code>).</td></tr>
+      <tr><td><code>?product=</code></td><td>Every documented route accepts a <code>?product=&lt;subdomain&gt;</code> query param. Currently <strong>unused</strong> by handler logic; pass it for forward compatibility if you already have it.</td></tr>
+      </tbody>
     </table>
   </section>
 
@@ -283,7 +276,7 @@
         </ul>
       </li>
       <li>A missing / expired / invalid cookie is rejected by the SaaS-cookie middleware before the action runs
-          (see §<a href="#responses">08</a>).</li>
+          (see §<a href="#responses">9</a>).</li>
       <li><strong>CORS / preflight:</strong> <code>OPTIONS</code> is short-circuited with <code>200</code> before auth
           runs. Actual <code>Access-Control-Allow-*</code> headers are emitted by the shared <code>vOne.Utilities</code>
           pipeline — confirm the allowed origin list with the platform team; cross-origin browser calls must be
@@ -291,63 +284,36 @@
     </ul>
   </section>
 
-  <section id="endpoints">
-    <h2><span class="idx">04</span> Endpoints</h2>
-    <table>
-      <tr><th>Method</th><th>Path</th><th>Auth payload</th><th>Purpose</th><th>Success</th></tr>
-      <tr>
-        <td><span class="tag get">GET</span></td>
-        <td><code>/saas/userinstdetail</code></td>
-        <td>SaaSPayload</td>
-        <td>Institute + product + plan + org + subscription status for the current SaaS context.</td>
-        <td><code>200</code> JSON, or <code>302</code> redirect if the paid plan has lapsed.</td>
-      </tr>
-      <tr>
-        <td><span class="tag get">GET</span></td>
-        <td><code>/saas/userdetail</code></td>
-        <td>AccountPayload</td>
-        <td>Lightweight identity card for the signed-in user (name, role, email, picture).</td>
-        <td><code>200</code> JSON</td>
-      </tr>
-      <tr>
-        <td><span class="tag get">GET</span></td>
-        <td><code>/user/edit</code></td>
-        <td>AccountPayload</td>
-        <td>The caller's own editable profile + social links.</td>
-        <td><code>200</code> JSON</td>
-      </tr>
-      <tr>
-        <td><span class="tag put">PUT</span></td>
-        <td><code>/user</code></td>
-        <td>AccountPayload</td>
-        <td>Replace the caller's profile fields and reconcile social links.</td>
-        <td><code>200</code> JSON (message only)</td>
-      </tr>
-    </table>
-    <p class="lead" style="margin-top:14px">
-      Every route also accepts a <code>?product=&lt;subdomain&gt;</code> query parameter. It is currently
-      <strong>not used</strong> by the handler logic but is accepted on all routes; pass it for forward
-      compatibility if your caller already has it.
-    </p>
-  </section>
-
   <section id="userinstdetail">
-    <h2><span class="idx">05</span> GET /saas/userinstdetail</h2>
-    <p class="lead">Resolves the full institute / plan / org / subscription picture for the SaaS context in the cookie.</p>
+    <h2><span class="idx">04</span> <span class="tag get">GET</span> /saas/userinstdetail</h2>
+    <p class="summary">
+      Resolves the full institute / product / plan / org / subscription picture for the SaaS context carried in
+      the cookie. Call this when a product front-end needs to know the signed-in user's institute, their plan and
+      support entitlements, and how many days remain on the subscription. If a paid plan has lapsed it returns a
+      <code>302</code> to the renew page instead of JSON.
+    </p>
 
     <h3>Request</h3>
     <table>
-      <tr><th>Part</th><th>Rule</th></tr>
+      <tbody>
+      <tr><td>Method &amp; URL</td><td><code>GET</code> &nbsp;<code>https://api-vacc.vidyaone.com/test/user/saas/userinstdetail</code><br><span class="lead">prod: <code>https://api-vacc.vidyaone.com/user/saas/userinstdetail</code></span></td></tr>
       <tr><td>Headers</td><td><code>Cookie:</code> vAccount SaaS cookie <span class="tag req">required</span>, minted in an institute/product context (SaaSPayload).</td></tr>
       <tr><td>Query</td><td><code>product</code> <span class="tag opt">optional</span> — accepted, unused.</td></tr>
       <tr><td>Body</td><td>None.</td></tr>
+      </tbody>
     </table>
-    <p>All lookup keys (<code>InstId</code>, <code>UserId</code>, <code>ProductId</code>, <code>ServiceMode</code>,
+    <p class="lead">All lookup keys (<code>InstId</code>, <code>UserId</code>, <code>ProductId</code>, <code>ServiceMode</code>,
        <code>TestMode</code>) come from the cookie — you cannot override them.</p>
+    <pre><code>curl -sS "https://api-vacc.vidyaone.com/test/user/saas/userinstdetail?product=lms" \
+  -H "Cookie: &lt;vaccount-saas-cookie&gt;" \
+  -H "Accept: application/json" \
+  -L   <span class="comment"># follow the 302 to /renew when the plan has lapsed</span></code></pre>
 
-    <h3>Response <code>data</code> — <code>SaaSUserInstituteDetailDTOGet</code></h3>
+    <h3>Expected response</h3>
+    <h4>200 OK — <code>data</code> = <code>SaaSUserInstituteDetailDTOGet</code></h4>
     <table>
-      <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+      <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
       <tr><td><code>isTrial</code></td><td>bool</td><td>True only when <code>planCode == "TRIAL"</code> (exact, case-insensitive).</td></tr>
       <tr><td><code>isFree</code></td><td>bool</td><td>True only when <code>planCode == "FREE"</code>. Free plans get <code>remainingDays</code> forced to <code>365</code>.</td></tr>
       <tr><td><code>instName</code></td><td>string</td><td>Institute display name.</td></tr>
@@ -368,104 +334,216 @@
       <tr><td><code>fullName</code>, <code>userRole</code>, <code>userEmail</code>, <code>userPicture</code></td><td>string</td><td>Signed-in user identity.</td></tr>
       <tr><td><code>serviceMode</code></td><td>bool</td><td>Echoes the cookie's <code>ServiceMode</code> — <code>true</code> when resolved via the service-user view.</td></tr>
       <tr><td><code>token</code></td><td>string</td><td>A fresh 256-bit Base64Url random secret, generated per call. Opaque handoff value for the caller.</td></tr>
+      </tbody>
     </table>
+    <pre><code>{
+  <span class="str">"success"</span>: <span class="lit">true</span>,
+  <span class="str">"statusCode"</span>: <span class="num">200</span>,
+  <span class="str">"message"</span>: <span class="str">""</span>,
+  <span class="str">"data"</span>: {
+    <span class="str">"isTrial"</span>: <span class="lit">false</span>,
+    <span class="str">"isFree"</span>: <span class="lit">false</span>,
+    <span class="str">"instName"</span>: <span class="str">"Sunrise Public School"</span>,
+    <span class="str">"instSaaSCode"</span>: <span class="str">"K7QK2M9F1A"</span>,
+    <span class="str">"startDate"</span>: <span class="str">"2026-06-01T00:00:00+00:00"</span>,
+    <span class="str">"remainingDays"</span>: <span class="num">54</span>,
+    <span class="str">"redirectPath"</span>: <span class="str">"/dashboard"</span>,
+    <span class="str">"productName"</span>: <span class="str">"LMS"</span>,
+    <span class="str">"planName"</span>: <span class="str">"Standard"</span>,
+    <span class="str">"planCode"</span>: <span class="str">"STD"</span>,
+    <span class="str">"selfSupport"</span>: <span class="lit">true</span>,
+    <span class="str">"productSupport"</span>: <span class="lit">true</span>,
+    <span class="str">"premiumSupport"</span>: <span class="lit">false</span>,
+    <span class="str">"isHighestPlan"</span>: <span class="lit">false</span>,
+    <span class="str">"enableModule"</span>: <span class="num">7</span>,
+    <span class="str">"orgName"</span>: <span class="str">"Sunrise Trust"</span>,
+    <span class="str">"fullName"</span>: <span class="str">"Asha Rao"</span>,
+    <span class="str">"userRole"</span>: <span class="str">"Admin"</span>,
+    <span class="str">"userEmail"</span>: <span class="str">"asha@example.com"</span>,
+    <span class="str">"userPicture"</span>: <span class="str">""</span>,
+    <span class="str">"serviceMode"</span>: <span class="lit">false</span>,
+    <span class="str">"token"</span>: <span class="str">"S3v1c...redacted"</span>
+  },
+  <span class="str">"errors"</span>: <span class="lit">null</span>
+}</code></pre>
 
-    <h3>Special behaviour — renew redirect</h3>
-    <p>When <code>remainingDays &le; 0</code> <strong>and</strong> <code>isFree == false</code>, the endpoint does
-       <strong>not</strong> return JSON. It returns:</p>
+    <h4>302 Found — renew redirect</h4>
+    <p class="lead">When <code>remainingDays &le; 0</code> <strong>and</strong> <code>isFree == false</code>, the endpoint
+       does <strong>not</strong> return JSON — it returns a redirect with no body:</p>
     <p><span class="status s302">302 FOUND</span></p>
     <pre><code>Location: https://test-account.vidyaone.com/renew?saascode=&lt;instSaaSCode&gt;   <span class="comment"># when cookie TestMode = true</span>
 Location: https://account.vidyaone.com/renew?saascode=&lt;instSaaSCode&gt;        <span class="comment"># when cookie TestMode = false</span></code></pre>
-    <p class="lead">Browser clients following redirects will land on the renew page. Programmatic clients should
-       treat a <code>302</code> to <code>/renew</code> as "subscription expired".</p>
+    <p class="lead">Browser clients following redirects land on the renew page. Programmatic clients should treat a
+       <code>302</code> to <code>/renew</code> as "subscription expired".</p>
+
+    <h4>Other responses</h4>
+    <ul class="notes">
+      <li><span class="status s401">401</span> missing / expired / invalid cookie, or wrong payload scope.</li>
+      <li><span class="status s404">404</span> SaaS / institute row not found for the cookie's context.</li>
+      <li><span class="status s500">500</span> unhandled error (DB unavailable, etc.) — retry with backoff.</li>
+    </ul>
   </section>
 
   <section id="userdetail">
-    <h2><span class="idx">06</span> GET /saas/userdetail</h2>
-    <p class="lead">Minimal identity card for the signed-in user. No institute/plan resolution.</p>
+    <h2><span class="idx">05</span> <span class="tag get">GET</span> /saas/userdetail</h2>
+    <p class="summary">
+      Lightweight identity card for the signed-in user — name, role, email, picture — with no institute or plan
+      resolution. Call this when you only need to render "who is signed in" and don't need the subscription
+      picture from <code>/saas/userinstdetail</code>.
+    </p>
+
     <h3>Request</h3>
     <table>
-      <tr><th>Part</th><th>Rule</th></tr>
+      <tbody>
+      <tr><td>Method &amp; URL</td><td><code>GET</code> &nbsp;<code>https://api-vacc.vidyaone.com/test/user/saas/userdetail</code><br><span class="lead">prod: <code>https://api-vacc.vidyaone.com/user/saas/userdetail</code></span></td></tr>
       <tr><td>Headers</td><td><code>Cookie:</code> vAccount SaaS cookie <span class="tag req">required</span> (AccountPayload).</td></tr>
       <tr><td>Query</td><td><code>product</code> <span class="tag opt">optional</span> — accepted, unused.</td></tr>
       <tr><td>Body</td><td>None.</td></tr>
+      </tbody>
     </table>
-    <h3>Response <code>data</code> — <code>SaaSUserDetailDTOGet</code></h3>
+    <pre><code>curl -sS "https://api-vacc.vidyaone.com/test/user/saas/userdetail" \
+  -H "Cookie: &lt;vaccount-saas-cookie&gt;"</code></pre>
+
+    <h3>Expected response</h3>
+    <h4>200 OK — <code>data</code> = <code>SaaSUserDetailDTOGet</code></h4>
     <table>
-      <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+      <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
       <tr><td><code>fullName</code></td><td>string</td><td>User's full name.</td></tr>
       <tr><td><code>userRole</code></td><td>string</td><td>Role in the current context.</td></tr>
       <tr><td><code>userEmail</code></td><td>string</td><td>Primary email.</td></tr>
       <tr><td><code>userPicture</code></td><td>string</td><td>Avatar URL (may be empty).</td></tr>
       <tr><td><code>token</code></td><td>string</td><td>Fresh 256-bit Base64Url random secret, per call.</td></tr>
+      </tbody>
     </table>
+    <pre><code>{
+  <span class="str">"success"</span>: <span class="lit">true</span>,
+  <span class="str">"statusCode"</span>: <span class="num">200</span>,
+  <span class="str">"message"</span>: <span class="str">""</span>,
+  <span class="str">"data"</span>: {
+    <span class="str">"fullName"</span>: <span class="str">"Asha Rao"</span>,
+    <span class="str">"userRole"</span>: <span class="str">"Admin"</span>,
+    <span class="str">"userEmail"</span>: <span class="str">"asha@example.com"</span>,
+    <span class="str">"userPicture"</span>: <span class="str">""</span>,
+    <span class="str">"token"</span>: <span class="str">"S3v1c...redacted"</span>
+  },
+  <span class="str">"errors"</span>: <span class="lit">null</span>
+}</code></pre>
+
+    <h4>Other responses</h4>
+    <ul class="notes">
+      <li><span class="status s401">401</span> missing / expired / invalid cookie.</li>
+      <li><span class="status s404">404</span> user row not found for the cookie's <code>UserId</code>.</li>
+      <li><span class="status s500">500</span> unhandled error — retry with backoff.</li>
+    </ul>
   </section>
 
   <section id="useredit">
-    <h2><span class="idx">07</span> GET /user/edit</h2>
-    <p class="lead">Returns the caller's own profile row plus their active social links — the exact shape you
-       send back to <code>PUT /user</code>.</p>
+    <h2><span class="idx">06</span> <span class="tag get">GET</span> /user/edit</h2>
+    <p class="summary">
+      Returns the caller's own editable profile row plus their active social links — the exact object shape you
+      send back to <code>PUT /user</code>. Call this to pre-fill a "edit my profile" form, then round-trip the
+      whole object to <code>PUT /user</code>. There is no way to read another user's profile.
+    </p>
+
     <h3>Request</h3>
     <table>
-      <tr><th>Part</th><th>Rule</th></tr>
+      <tbody>
+      <tr><td>Method &amp; URL</td><td><code>GET</code> &nbsp;<code>https://api-vacc.vidyaone.com/test/user/user/edit</code><br><span class="lead">prod: <code>https://api-vacc.vidyaone.com/user/user/edit</code></span></td></tr>
       <tr><td>Headers</td><td><code>Cookie:</code> vAccount SaaS cookie <span class="tag req">required</span> (AccountPayload).</td></tr>
       <tr><td>Query</td><td><code>product</code> <span class="tag opt">optional</span> — accepted, unused.</td></tr>
       <tr><td>Body</td><td>None.</td></tr>
+      </tbody>
     </table>
-    <p>The row is looked up by the cookie's <code>UserId</code> and must not be soft-deleted
-       (<code>is_deleted = false</code>). There is no way to read another user's profile.</p>
+    <p class="lead">The row is looked up by the cookie's <code>UserId</code> and must not be soft-deleted
+       (<code>is_deleted = false</code>).</p>
+    <pre><code>curl -sS "https://api-vacc.vidyaone.com/test/user/user/edit" \
+  -H "Cookie: &lt;vaccount-saas-cookie&gt;"</code></pre>
 
-    <h3>Response <code>data</code> — <code>UserInfoDTOEdit</code></h3>
+    <h3>Expected response</h3>
+    <h4>200 OK — <code>data</code> = <code>UserInfoDTOEdit</code></h4>
     <table>
-      <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+      <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
       <tr><td><code>userId</code></td><td>long</td><td>The caller's user id (echo).</td></tr>
       <tr><td><code>fullName</code></td><td>string</td><td>Empty string if unset in DB.</td></tr>
-      <tr><td><code>email</code></td><td>string \| null</td><td></td></tr>
-      <tr><td><code>mobileCountryCode</code>, <code>mobileNumber</code></td><td>string \| null</td><td></td></tr>
+      <tr><td><code>email</code></td><td>string | null</td><td></td></tr>
+      <tr><td><code>mobileCountryCode</code>, <code>mobileNumber</code></td><td>string | null</td><td></td></tr>
       <tr><td><code>isWhatsappMobile</code></td><td>bool</td><td></td></tr>
-      <tr><td><code>altMobileCountryCode</code>, <code>altMobileNumber</code></td><td>string \| null</td><td></td></tr>
+      <tr><td><code>altMobileCountryCode</code>, <code>altMobileNumber</code></td><td>string | null</td><td></td></tr>
       <tr><td><code>isWhatsappAltMobile</code></td><td>bool</td><td></td></tr>
-      <tr><td><code>dob</code></td><td>date \| null</td><td><code>YYYY-MM-DD</code>.</td></tr>
-      <tr><td><code>gender</code></td><td>string \| null</td><td></td></tr>
-      <tr><td><code>profileImageUrl</code></td><td>string \| null</td><td></td></tr>
-      <tr><td><code>address</code></td><td>string \| null</td><td></td></tr>
-      <tr><td><code>countryId</code>, <code>stateId</code>, <code>districtId</code></td><td>int \| null</td><td></td></tr>
-      <tr><td><code>pinCode</code></td><td>string \| null</td><td></td></tr>
-      <tr><td><code>employeeId</code>, <code>designation</code>, <code>department</code></td><td>string \| null</td><td></td></tr>
-      <tr><td><code>workEmail</code></td><td>string \| null</td><td></td></tr>
-      <tr><td><code>qualification</code></td><td>string \| null</td><td></td></tr>
-      <tr><td><code>dateOfJoining</code></td><td>date \| null</td><td><code>YYYY-MM-DD</code>.</td></tr>
-      <tr><td><code>employmentType</code></td><td>string \| null</td><td></td></tr>
+      <tr><td><code>dob</code></td><td>date | null</td><td><code>YYYY-MM-DD</code>.</td></tr>
+      <tr><td><code>gender</code></td><td>string | null</td><td></td></tr>
+      <tr><td><code>profileImageUrl</code></td><td>string | null</td><td></td></tr>
+      <tr><td><code>address</code></td><td>string | null</td><td></td></tr>
+      <tr><td><code>countryId</code>, <code>stateId</code>, <code>districtId</code></td><td>int | null</td><td></td></tr>
+      <tr><td><code>pinCode</code></td><td>string | null</td><td></td></tr>
+      <tr><td><code>employeeId</code>, <code>designation</code>, <code>department</code></td><td>string | null</td><td></td></tr>
+      <tr><td><code>workEmail</code></td><td>string | null</td><td></td></tr>
+      <tr><td><code>qualification</code></td><td>string | null</td><td></td></tr>
+      <tr><td><code>dateOfJoining</code></td><td>date | null</td><td><code>YYYY-MM-DD</code>.</td></tr>
+      <tr><td><code>employmentType</code></td><td>string | null</td><td></td></tr>
       <tr><td><code>socialLinks</code></td><td>array</td><td>Active links, ordered by <code>platform</code>. Each item: <code>{ socialLinkId:long, platform:string, profileUrl:string }</code>. Empty array if none.</td></tr>
+      </tbody>
     </table>
+    <pre><code>{
+  <span class="str">"success"</span>: <span class="lit">true</span>,
+  <span class="str">"statusCode"</span>: <span class="num">200</span>,
+  <span class="str">"message"</span>: <span class="str">""</span>,
+  <span class="str">"data"</span>: {
+    <span class="str">"userId"</span>: <span class="num">10432</span>,
+    <span class="str">"fullName"</span>: <span class="str">"Asha Rao"</span>,
+    <span class="str">"email"</span>: <span class="str">"asha@example.com"</span>,
+    <span class="str">"mobileCountryCode"</span>: <span class="str">"91"</span>,
+    <span class="str">"mobileNumber"</span>: <span class="str">"9876543210"</span>,
+    <span class="str">"isWhatsappMobile"</span>: <span class="lit">true</span>,
+    <span class="str">"dob"</span>: <span class="str">"1990-04-12"</span>,
+    <span class="str">"gender"</span>: <span class="str">"Female"</span>,
+    <span class="str">"countryId"</span>: <span class="num">1</span>, <span class="str">"stateId"</span>: <span class="num">21</span>, <span class="str">"districtId"</span>: <span class="num">305</span>,
+    <span class="str">"socialLinks"</span>: [
+      { <span class="str">"socialLinkId"</span>: <span class="num">8</span>, <span class="str">"platform"</span>: <span class="str">"GitHub"</span>,   <span class="str">"profileUrl"</span>: <span class="str">"https://github.com/asha"</span> },
+      { <span class="str">"socialLinkId"</span>: <span class="num">7</span>, <span class="str">"platform"</span>: <span class="str">"LinkedIn"</span>, <span class="str">"profileUrl"</span>: <span class="str">"https://linkedin.com/in/asha"</span> }
+    ]
+  },
+  <span class="str">"errors"</span>: <span class="lit">null</span>
+}</code></pre>
+
+    <h4>Other responses</h4>
+    <ul class="notes">
+      <li><span class="status s401">401</span> missing / expired / invalid cookie.</li>
+      <li><span class="status s404">404</span> no profile row for the caller (row is provisioned by the account/signup flow).</li>
+      <li><span class="status s500">500</span> unhandled error — retry with backoff.</li>
+    </ul>
   </section>
 
   <section id="userput">
-    <h2><span class="idx">08</span> PUT /user</h2>
-    <p class="lead">Overwrites the caller's profile fields and reconciles the social-links collection.
-       Identity is taken from the cookie — never from the body.</p>
+    <h2><span class="idx">07</span> <span class="tag put">PUT</span> /user</h2>
+    <p class="summary">
+      Overwrites the caller's profile fields wholesale and reconciles the social-links collection (see §<a href="#social">8</a>).
+      Identity is taken from the cookie, never from the body. Because the write is wholesale, always
+      <code>GET /user/edit</code> first, mutate the object, and resend all of it — omitting an optional string
+      field clears that column.
+    </p>
 
     <h3>Request</h3>
     <table>
-      <tr><th>Part</th><th>Rule</th></tr>
+      <tbody>
+      <tr><td>Method &amp; URL</td><td><code>PUT</code> &nbsp;<code>https://api-vacc.vidyaone.com/test/user/user</code><br><span class="lead">prod: <code>https://api-vacc.vidyaone.com/user/user</code></span></td></tr>
       <tr><td>Headers</td><td><code>Cookie:</code> vAccount SaaS cookie <span class="tag req">required</span> (AccountPayload); <code>Content-Type: application/json</code> <span class="tag req">required</span>.</td></tr>
       <tr><td>Query</td><td><code>product</code> <span class="tag opt">optional</span> — accepted, unused.</td></tr>
-      <tr><td>Body</td><td>JSON object <span class="tag req">required</span> — see below.</td></tr>
+      <tr><td>Body</td><td>JSON object <span class="tag req">required</span> — <code>{ "putDTO": { … } }</code>.</td></tr>
+      </tbody>
     </table>
-
-    <h4>Body shape</h4>
-    <pre><code>{
-  <span class="str">"putDTO"</span>: { <span class="comment">/* UserInfoDTOPut — see table */</span> }
-}</code></pre>
     <p class="lead">
       <code>putDTO</code> is <strong>required</strong>. A missing/renamed <code>putDTO</code> fails JSON binding →
-      <code>400</code>. The DTO also contains <code>userId</code> and <code>testMode</code> in its shape, but both
-      are ignored on input — the server sets them from the cookie.
+      <code>400</code>. The DTO also carries <code>userId</code> and <code>testMode</code> in its shape, but both are
+      ignored on input — the server sets them from the cookie.
     </p>
 
     <h4><code>putDTO</code> — field reference (<code>UserInfoDTOPut</code>)</h4>
     <table>
-      <tr><th>Field</th><th>Type</th><th>Required</th><th>Constraints</th></tr>
+      <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+      <tbody>
       <tr><td><code>fullName</code></td><td>string</td><td><span class="tag req">yes</span></td><td>non-empty, ≤ 150 chars</td></tr>
       <tr><td><code>email</code></td><td>string</td><td><span class="tag opt">no</span></td><td>valid email; ≤ 150</td></tr>
       <tr><td><code>mobileCountryCode</code></td><td>string</td><td><span class="tag opt">no</span></td><td>≤ 5</td></tr>
@@ -476,7 +554,7 @@ Location: https://account.vidyaone.com/renew?saascode=&lt;instSaaSCode&gt;      
       <tr><td><code>isWhatsappAltMobile</code></td><td>bool</td><td><span class="tag opt">no</span></td><td>default <code>false</code></td></tr>
       <tr><td><code>dob</code></td><td>date <code>YYYY-MM-DD</code></td><td><span class="tag opt">no</span></td><td>must be strictly in the past</td></tr>
       <tr><td><code>gender</code></td><td>string</td><td><span class="tag opt">no</span></td><td>≤ 20</td></tr>
-      <tr><td><code>profileImageUrl</code></td><td>string</td><td><span class="tag opt">no</span></td><td>≤ 200; must be an absolute <code>http</code>/<code>https</code> URL</td></tr>
+      <tr><td><code>profileImageUrl</code></td><td>string</td><td><span class="tag opt">no</span></td><td>≤ 200; absolute <code>http</code>/<code>https</code> URL</td></tr>
       <tr><td><code>address</code></td><td>string</td><td><span class="tag opt">no</span></td><td>≤ 1000</td></tr>
       <tr><td><code>countryId</code></td><td>int</td><td><span class="tag opt">no</span></td><td>&gt; 0 when present</td></tr>
       <tr><td><code>stateId</code></td><td>int</td><td><span class="tag opt">no</span></td><td>&gt; 0 when present</td></tr>
@@ -489,43 +567,89 @@ Location: https://account.vidyaone.com/renew?saascode=&lt;instSaaSCode&gt;      
       <tr><td><code>qualification</code></td><td>string</td><td><span class="tag opt">no</span></td><td>≤ 150</td></tr>
       <tr><td><code>dateOfJoining</code></td><td>date <code>YYYY-MM-DD</code></td><td><span class="tag opt">no</span></td><td>—</td></tr>
       <tr><td><code>employmentType</code></td><td>string</td><td><span class="tag opt">no</span></td><td>≤ 50</td></tr>
-      <tr><td><code>socialLinks</code></td><td>array&lt;object&gt;</td><td><span class="tag opt">no</span></td><td>≤ 50 items; platforms unique (case-insensitive) across the array. See §9.</td></tr>
+      <tr><td><code>socialLinks</code></td><td>array&lt;object&gt;</td><td><span class="tag opt">no</span></td><td>≤ 50 items; platforms unique (case-insensitive). See §8.</td></tr>
       <tr><td><code>userId</code>, <code>testMode</code></td><td>—</td><td>—</td><td>Present in the shape but <strong>ignored on input</strong>.</td></tr>
+      </tbody>
+    </table>
+
+    <h4><code>socialLinks[]</code> item — <code>UserSocialLinkDTO</code></h4>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+      <tbody>
+      <tr><td><code>socialLinkId</code></td><td>long</td><td><span class="tag req">yes</span></td><td>&ge; 0. <code>0</code> = new link; <code>&gt; 0</code> = update an existing link that belongs to the caller.</td></tr>
+      <tr><td><code>platform</code></td><td>string</td><td><span class="tag req">yes</span></td><td>non-empty, ≤ 50. Unique within the array (case-insensitive).</td></tr>
+      <tr><td><code>profileUrl</code></td><td>string</td><td><span class="tag req">yes</span></td><td>non-empty, ≤ 500, absolute <code>http</code>/<code>https</code> URL.</td></tr>
+      </tbody>
     </table>
 
     <div class="callout">
       <strong>Field semantics:</strong> the body is authoritative — every listed profile column is written from
       <code>putDTO</code> as-is. Omitting an optional string field sends <code>null</code>, which
-      <strong>clears</strong> that column. Round-trip <code>GET /user/edit</code> first and resend the whole object
-      if you only want to change one field.
+      <strong>clears</strong> that column.
     </div>
 
-    <h4><code>socialLinks[]</code> item — <code>UserSocialLinkDTO</code></h4>
-    <table>
-      <tr><th>Field</th><th>Type</th><th>Required</th><th>Constraints</th></tr>
-      <tr><td><code>socialLinkId</code></td><td>long</td><td><span class="tag req">yes</span></td><td>&ge; 0. <code>0</code> = new link; <code>&gt; 0</code> = update an existing link that belongs to the caller.</td></tr>
-      <tr><td><code>platform</code></td><td>string</td><td><span class="tag req">yes</span></td><td>non-empty, ≤ 50. Must be unique within the array (case-insensitive).</td></tr>
-      <tr><td><code>profileUrl</code></td><td>string</td><td><span class="tag req">yes</span></td><td>non-empty, ≤ 500, absolute <code>http</code>/<code>https</code> URL.</td></tr>
-    </table>
+    <pre><code>curl -sS -X PUT "https://api-vacc.vidyaone.com/test/user/user" \
+  -H "Cookie: &lt;vaccount-saas-cookie&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "putDTO": {
+      "fullName": "Asha Rao",
+      "email": "asha@example.com",
+      "mobileCountryCode": "91",
+      "mobileNumber": "9876543210",
+      "isWhatsappMobile": true,
+      "dob": "1990-04-12",
+      "gender": "Female",
+      "profileImageUrl": "https://cdn.example.com/u/10432.jpg",
+      "countryId": 1, "stateId": 21, "districtId": 305,
+      "socialLinks": [
+        { "socialLinkId": 7, "platform": "LinkedIn", "profileUrl": "https://linkedin.com/in/asha" },
+        { "socialLinkId": 0, "platform": "YouTube",  "profileUrl": "https://youtube.com/@asha" }
+      ]
+    }
+  }'</code></pre>
 
-    <h3>Response</h3>
-    <p><span class="status s200">200 OK</span></p>
+    <h3>Expected response</h3>
+    <h4>200 OK — message only, <code>data</code> = <code>null</code></h4>
     <pre><code>{
   <span class="str">"success"</span>: <span class="lit">true</span>,
+  <span class="str">"statusCode"</span>: <span class="num">200</span>,
   <span class="str">"message"</span>: <span class="str">"User updated successfully."</span>,
   <span class="str">"data"</span>: <span class="lit">null</span>,
   <span class="str">"errors"</span>: <span class="lit">null</span>
 }</code></pre>
+
+    <h4>400 Bad Request — validation failure</h4>
+    <pre><code>{
+  <span class="str">"success"</span>: <span class="lit">false</span>,
+  <span class="str">"statusCode"</span>: <span class="num">400</span>,
+  <span class="str">"message"</span>: <span class="str">"Validation failed"</span>,
+  <span class="str">"data"</span>: <span class="lit">null</span>,
+  <span class="str">"errors"</span>: [
+    <span class="str">"Full name is required."</span>,
+    <span class="str">"Social link profile URL must be a valid http(s) URL."</span>,
+    <span class="str">"Duplicate social link platform in payload — one link per platform."</span>
+  ]
+}</code></pre>
+
+    <h4>Other responses</h4>
+    <ul class="notes">
+      <li><span class="status s401">401</span> missing / expired / invalid cookie.</li>
+      <li><span class="status s404">404</span> no profile row for the caller, or a <code>socialLinkId &gt; 0</code> that isn't the caller's — nothing is changed.</li>
+      <li><span class="status s409">409</span> write conflict (concurrent modification / social-link uniqueness violation) — re-GET and retry once.</li>
+      <li><span class="status s500">500</span> unhandled error — retry with backoff.</li>
+    </ul>
   </section>
 
   <section id="social">
-    <h2><span class="idx">09</span> Social links — reconcile behaviour</h2>
+    <h2><span class="idx">08</span> Social links — reconcile behaviour</h2>
     <p class="lead">
       <code>putDTO.socialLinks</code> is treated as the <strong>desired full set</strong> of the caller's links.
       Model: <strong>one link per platform per user</strong>.
     </p>
     <table>
-      <tr><th>Payload item</th><th>Effect</th></tr>
+      <thead><tr><th>Payload item</th><th>Effect</th></tr></thead>
+      <tbody>
       <tr><td><code>socialLinkId: 0</code>, new platform</td><td>Insert a new link.</td></tr>
       <tr><td><code>socialLinkId: 0</code>, platform already exists</td><td>Updates the existing link for that platform (idempotent — safe to resend).</td></tr>
       <tr><td><code>socialLinkId: &gt; 0</code></td><td>Updates that link. If the id is not one of the caller's active links → <code>404</code>, nothing is changed.</td></tr>
@@ -533,10 +657,11 @@ Location: https://account.vidyaone.com/renew?saascode=&lt;instSaaSCode&gt;      
       <tr><td><code>socialLinks</code> omitted or <code>null</code></td><td>Links left untouched.</td></tr>
       <tr><td><code>socialLinks: []</code></td><td>All of the caller's links are soft-deleted.</td></tr>
       <tr><td>same <code>platform</code> twice in the array</td><td><code>400</code> — request rejected, nothing changed.</td></tr>
+      </tbody>
     </table>
 
     <h4>Worked example</h4>
-    <p>Caller currently has: <code>#7 LinkedIn → /old</code>, <code>#8 GitHub → /gh</code>, <code>#9 Twitter → /tw</code>.</p>
+    <p class="lead">Caller currently has: <code>#7 LinkedIn → /old</code>, <code>#8 GitHub → /gh</code>, <code>#9 Twitter → /tw</code>.</p>
     <pre><code>PUT /user
 {
   "putDTO": {
@@ -548,7 +673,7 @@ Location: https://account.vidyaone.com/renew?saascode=&lt;instSaaSCode&gt;      
     ]
   }
 }</code></pre>
-    <p>Result:</p>
+    <p class="lead">Result:</p>
     <ul class="notes">
       <li><code>#7 LinkedIn</code> → updated to <code>/in/asha</code>.</li>
       <li><code>YouTube</code> → inserted (new platform).</li>
@@ -558,7 +683,7 @@ Location: https://account.vidyaone.com/renew?saascode=&lt;instSaaSCode&gt;      
   </section>
 
   <section id="envelope">
-    <h2><span class="idx">10</span> Response envelope</h2>
+    <h2><span class="idx">09</span> Response envelope</h2>
     <p class="lead">All JSON responses use the shared <code>vOne.Utilities</code> envelope. Payloads are camelCase.</p>
     <pre><code>{
   <span class="str">"success"</span>:    <span class="lit">true</span> | <span class="lit">false</span>,
@@ -572,15 +697,16 @@ Location: https://account.vidyaone.com/renew?saascode=&lt;instSaaSCode&gt;      
           <code>PUT /user</code>), <code>errors = null</code>.</li>
       <li>On failure: <code>success = false</code>, <code>message</code> describes the error,
           <code>errors</code> carries detail (e.g. per-field validation messages), <code>data</code> is
-          <code>null</code>. The failure envelope is produced centrally by the exception middleware.</li>
-      <li>The <code>302</code> renew redirect (§5) has <strong>no JSON body</strong> — just a <code>Location</code> header.</li>
+          <code>null</code>. Produced centrally by the exception middleware.</li>
+      <li>The <code>302</code> renew redirect (§4) has <strong>no JSON body</strong> — just a <code>Location</code> header.</li>
     </ul>
   </section>
 
   <section id="responses">
-    <h2><span class="idx">11</span> Status codes</h2>
+    <h2><span class="idx">10</span> Status codes</h2>
     <table>
-      <tr><th>Code</th><th>When</th><th>Body</th><th>Retry?</th></tr>
+      <thead><tr><th>Code</th><th>When</th><th>Body</th><th>Retry?</th></tr></thead>
+      <tbody>
       <tr>
         <td><span class="status s200">200</span></td>
         <td>Success.</td>
@@ -626,115 +752,31 @@ Location: https://account.vidyaone.com/renew?saascode=&lt;instSaaSCode&gt;      
         <td>Failure envelope; detail suppressed outside dev.</td>
         <td>Yes — with backoff.</td>
       </tr>
+      </tbody>
     </table>
     <p class="lead">Exact codes are assigned by the shared <code>vOne.Utilities</code> exception middleware; the mapping
        above reflects its conventional behaviour for the exception types this service throws.</p>
   </section>
 
-  <section id="examples">
-    <h2><span class="idx">12</span> Examples</h2>
-
-    <h3>GET /saas/userinstdetail</h3>
-    <pre><code>curl -sS "https://&lt;vaccount-api-base&gt;/saas/userinstdetail?product=lms" \
-  -H "Cookie: &lt;vaccount-saas-cookie&gt;" \
-  -H "Accept: application/json" \
-  -L   <span class="comment"># follow the 302 to /renew when the plan has lapsed</span></code></pre>
-    <pre><code>{
-  <span class="str">"success"</span>: <span class="lit">true</span>,
-  <span class="str">"statusCode"</span>: <span class="num">200</span>,
-  <span class="str">"message"</span>: <span class="str">""</span>,
-  <span class="str">"data"</span>: {
-    <span class="str">"isTrial"</span>: <span class="lit">false</span>,
-    <span class="str">"isFree"</span>: <span class="lit">false</span>,
-    <span class="str">"instName"</span>: <span class="str">"Sunrise Public School"</span>,
-    <span class="str">"instSaaSCode"</span>: <span class="str">"K7QK2M9F1A"</span>,
-    <span class="str">"startDate"</span>: <span class="str">"2026-06-01T00:00:00+00:00"</span>,
-    <span class="str">"remainingDays"</span>: <span class="num">54</span>,
-    <span class="str">"redirectPath"</span>: <span class="str">"/dashboard"</span>,
-    <span class="str">"productName"</span>: <span class="str">"LMS"</span>,
-    <span class="str">"planName"</span>: <span class="str">"Standard"</span>,
-    <span class="str">"planCode"</span>: <span class="str">"STD"</span>,
-    <span class="str">"selfSupport"</span>: <span class="lit">true</span>,
-    <span class="str">"productSupport"</span>: <span class="lit">true</span>,
-    <span class="str">"premiumSupport"</span>: <span class="lit">false</span>,
-    <span class="str">"isHighestPlan"</span>: <span class="lit">false</span>,
-    <span class="str">"enableModule"</span>: <span class="num">7</span>,
-    <span class="str">"orgName"</span>: <span class="str">"Sunrise Trust"</span>,
-    <span class="str">"fullName"</span>: <span class="str">"Asha Rao"</span>,
-    <span class="str">"userRole"</span>: <span class="str">"Admin"</span>,
-    <span class="str">"userEmail"</span>: <span class="str">"asha@example.com"</span>,
-    <span class="str">"userPicture"</span>: <span class="str">""</span>,
-    <span class="str">"serviceMode"</span>: <span class="lit">false</span>,
-    <span class="str">"token"</span>: <span class="str">"S3v1c...redacted"</span>
-  },
-  <span class="str">"errors"</span>: <span class="lit">null</span>
-}</code></pre>
-
-    <h3>GET /user/edit</h3>
-    <pre><code>curl -sS "https://&lt;vaccount-api-base&gt;/user/edit" \
-  -H "Cookie: &lt;vaccount-saas-cookie&gt;"</code></pre>
-    <pre><code>{
-  <span class="str">"success"</span>: <span class="lit">true</span>,
-  <span class="str">"statusCode"</span>: <span class="num">200</span>,
-  <span class="str">"message"</span>: <span class="str">""</span>,
-  <span class="str">"data"</span>: {
-    <span class="str">"userId"</span>: <span class="num">10432</span>,
-    <span class="str">"fullName"</span>: <span class="str">"Asha Rao"</span>,
-    <span class="str">"email"</span>: <span class="str">"asha@example.com"</span>,
-    <span class="str">"mobileCountryCode"</span>: <span class="str">"91"</span>,
-    <span class="str">"mobileNumber"</span>: <span class="str">"9876543210"</span>,
-    <span class="str">"isWhatsappMobile"</span>: <span class="lit">true</span>,
-    <span class="str">"dob"</span>: <span class="str">"1990-04-12"</span>,
-    <span class="str">"gender"</span>: <span class="str">"Female"</span>,
-    <span class="str">"countryId"</span>: <span class="num">1</span>, <span class="str">"stateId"</span>: <span class="num">21</span>, <span class="str">"districtId"</span>: <span class="num">305</span>,
-    <span class="str">"socialLinks"</span>: [
-      { <span class="str">"socialLinkId"</span>: <span class="num">8</span>, <span class="str">"platform"</span>: <span class="str">"GitHub"</span>,   <span class="str">"profileUrl"</span>: <span class="str">"https://github.com/asha"</span> },
-      { <span class="str">"socialLinkId"</span>: <span class="num">7</span>, <span class="str">"platform"</span>: <span class="str">"LinkedIn"</span>, <span class="str">"profileUrl"</span>: <span class="str">"https://linkedin.com/in/asha"</span> }
-    ]
-  },
-  <span class="str">"errors"</span>: <span class="lit">null</span>
-}</code></pre>
-
-    <h3>PUT /user</h3>
-    <pre><code>curl -sS -X PUT "https://&lt;vaccount-api-base&gt;/user" \
-  -H "Cookie: &lt;vaccount-saas-cookie&gt;" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "putDTO": {
-      "fullName": "Asha Rao",
-      "email": "asha@example.com",
-      "mobileCountryCode": "91",
-      "mobileNumber": "9876543210",
-      "isWhatsappMobile": true,
-      "dob": "1990-04-12",
-      "gender": "Female",
-      "profileImageUrl": "https://cdn.example.com/u/10432.jpg",
-      "countryId": 1, "stateId": 21, "districtId": 305,
-      "socialLinks": [
-        { "socialLinkId": 7, "platform": "LinkedIn", "profileUrl": "https://linkedin.com/in/asha" },
-        { "socialLinkId": 0, "platform": "YouTube",  "profileUrl": "https://youtube.com/@asha" }
-      ]
-    }
-  }'</code></pre>
-    <pre><code>{ <span class="str">"success"</span>: <span class="lit">true</span>, <span class="str">"statusCode"</span>: <span class="num">200</span>,
-  <span class="str">"message"</span>: <span class="str">"User updated successfully."</span>, <span class="str">"data"</span>: <span class="lit">null</span>, <span class="str">"errors"</span>: <span class="lit">null</span> }</code></pre>
-
-    <h4>Validation failure</h4>
-    <pre><code>{
-  <span class="str">"success"</span>: <span class="lit">false</span>,
-  <span class="str">"statusCode"</span>: <span class="num">400</span>,
-  <span class="str">"message"</span>: <span class="str">"Validation failed"</span>,
-  <span class="str">"data"</span>: <span class="lit">null</span>,
-  <span class="str">"errors"</span>: [
-    <span class="str">"Full name is required."</span>,
-    <span class="str">"Social link profile URL must be a valid http(s) URL."</span>,
-    <span class="str">"Duplicate social link platform in payload — one link per platform."</span>
-  ]
-}</code></pre>
+  <section id="internal">
+    <h2><span class="idx">11</span> Internal routes (service-to-service only)</h2>
+    <p class="lead">
+      Listed for completeness. These are reachable only from private Lambdas inside AWS; do not call them from
+      developer-facing clients. Full request/response contract is intentionally not documented here.
+    </p>
+    <table>
+      <thead><tr><th>Method</th><th>Route</th><th>Query params</th><th>Testing URL</th></tr></thead>
+      <tbody>
+      <tr><td><span class="tag get">GET</span></td><td><code>/internal/uservalidate</code></td><td><code>cognitoSub</code>, <code>productSubdomain</code></td><td><code>https://api-vacc.vidyaone.com/test/user/internal/uservalidate</code></td></tr>
+      <tr><td><span class="tag get">GET</span></td><td><code>/internal/serviceuservalidate</code></td><td><code>cognitoSub</code>, <code>saaSCode</code>, <code>productSubdomain</code></td><td><code>https://api-vacc.vidyaone.com/test/user/internal/serviceuservalidate</code></td></tr>
+      <tr><td><span class="tag get">GET</span></td><td><code>/internal/cognitouser</code></td><td><code>cognitoSub</code>, <code>productSubdomain</code></td><td><code>https://api-vacc.vidyaone.com/test/user/internal/cognitouser</code></td></tr>
+      </tbody>
+    </table>
+    <p class="lead">Production: swap the base for <code>https://api-vacc.vidyaone.com/user/</code>.</p>
   </section>
 
   <section id="notes">
-    <h2><span class="idx">13</span> Limits &amp; behaviour</h2>
+    <h2><span class="idx">12</span> Limits &amp; behaviour</h2>
     <ul class="notes">
       <li><strong>Idempotency.</strong> <code>PUT /user</code> is safe to retry — re-sending the same body converges
           to the same state (profile is overwritten wholesale; links are matched by id, then by platform).</li>
@@ -746,7 +788,7 @@ Location: https://account.vidyaone.com/renew?saascode=&lt;instSaaSCode&gt;      
       <li><strong>Soft delete.</strong> Removed social links are flagged <code>is_deleted = true</code>, not hard
           deleted; they never reappear in <code>GET /user/edit</code>.</li>
       <li><strong>Limits.</strong> <code>socialLinks</code> ≤ 50 per request; platform unique per user. Field length
-          caps as per §8. No request-rate limiting in this service (API Gateway may impose its own).</li>
+          caps as per §7. No request-rate limiting in this service (API Gateway may impose its own).</li>
       <li><strong>No pagination.</strong> No list endpoints; nothing is paged.</li>
       <li><strong>No bot / spam filtering.</strong> Not applicable — all routes are cookie-authenticated.</li>
       <li><strong>No async side effects / events.</strong> This service does not publish to SQS/SNS or emit any
@@ -765,7 +807,7 @@ Location: https://account.vidyaone.com/renew?saascode=&lt;instSaaSCode&gt;      
 
 <footer>
   vAccount-UserAPI — generated from source (Controllers, Application queries/commands, Infrastructure repositories,
-  Startup pipeline). Internal <code>/internal/*</code> routes intentionally excluded.
+  Startup pipeline). Base URLs from <code>appsettings.*.json → App:BaseUrl</code>.
 </footer>
 
 </body>
