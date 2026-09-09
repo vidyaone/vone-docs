@@ -184,7 +184,7 @@
     <span class="badge">.NET 10 · AWS Lambda · API Gateway (HTTP API v2)</span>
     <span class="badge">ap-south-1</span>
     <span class="badge">Content-Type: application/json</span>
-    <span class="badge">Auth: vAccount SaaS cookie</span>
+    <span class="badge">Auth: none at the app layer</span>
   </div>
 </header>
 
@@ -207,12 +207,12 @@
     <ul class="notes">
       <li><strong><code>POST /ticket</code></strong> — create or update ("upsert") the row in
           <code>public.tbl_form_ticket</code> that links one form submission (<code>requestId</code>) to its
-          vOne ticket and its VKS ticket. Behind the vAccount SaaS cookie.</li>
+          vOne ticket and its VKS ticket. <strong>No application-layer authentication</strong> (see §<a href="#auth">03</a>).</li>
     </ul>
     <div class="callout">
       There is also a bare <code>GET {base}</code> route that returns a one-line
-      <code>text/plain</code> "application / environment" string. It sits behind the same SaaS cookie as
-      <code>/ticket</code> and is only useful as a reachability check — it is not part of the API contract.
+      <code>text/plain</code> "application / environment" string. Unlike <code>/ticket</code> it <em>is</em>
+      behind the vAccount SaaS cookie, and is only useful as a reachability check — it is not part of the API contract.
     </div>
   </section>
 
@@ -242,25 +242,25 @@
   <section id="auth">
     <h2><span class="idx">03</span> Authentication</h2>
     <p class="lead">
-      <code>POST /ticket</code> (and <code>GET {base}</code>) are behind the <strong>vAccount SaaS common-auth
-      cookie</strong>. There is no API key, bearer token or query-string auth.
+      <code>POST /ticket</code> has <strong>no application-layer authentication</strong>. Its path is on the
+      SaaS-cookie middleware's skip list, and the controller carries no auth filter — the request reaches the
+      handler with no identity check. There is no API key, bearer token, cookie or query-string auth on this route.
     </p>
+    <div class="callout">
+      <strong>Access must be restricted upstream.</strong> Because the app performs no auth on <code>/ticket</code>,
+      only AWS API Gateway / network controls stand between a caller and a write to <code>tbl_form_ticket</code>.
+      Confirm the gateway restricts this route before relying on it.
+    </div>
     <ul class="notes">
-      <li>Cookie name <code>vacc-common-auth</code> — an <code>HttpOnly</code>, signed session cookie issued by
-          the vAccount login flow. Its signing key is resolved at runtime from DynamoDB
-          (<code>DynamoDb:CookieConfigKey</code>).</li>
-      <li>The SaaS-cookie middleware validates it before the action runs. Missing / expired / invalid →
-          <code>401</code>.</li>
-      <li><strong>Browser callers:</strong> send credentialed requests
-          (<code>fetch(url, { credentials: 'include' })</code>). The cookie rides along automatically.</li>
-      <li><strong>Server-to-server callers:</strong> forward the end user's
-          <code>Cookie: vacc-common-auth=…</code> header verbatim.</li>
-      <li><strong>Development:</strong> the middleware substitutes a fixed dev identity — no cookie needed when
-          running locally.</li>
-      <li><strong>CORS / preflight:</strong> <code>OPTIONS</code> is answered with <code>200</code> before auth
-          runs; the actual <code>Access-Control-Allow-*</code> headers are emitted by <strong>AWS API Gateway</strong>,
-          not by application code. Confirm the allowed-origin list with the platform team; cross-origin browser
-          calls must be credentialed.</li>
+      <li><strong>Callers:</strong> send the JSON body with <code>Content-Type: application/json</code>. No
+          <code>Cookie</code> or <code>Authorization</code> header is required or inspected.</li>
+      <li><strong><code>GET {base}</code> (reachability check only)</strong> is the one route still behind the
+          <strong>vAccount SaaS common-auth cookie</strong> (<code>vacc-common-auth</code>, an <code>HttpOnly</code>
+          signed session cookie; signing key from <code>DynamoDb:CookieConfigKey</code>). Missing / expired /
+          invalid → <code>401</code>. In Development the middleware substitutes a fixed dev identity.</li>
+      <li><strong>CORS / preflight:</strong> <code>OPTIONS</code> is answered with <code>200</code> before anything
+          else; the actual <code>Access-Control-Allow-*</code> headers are emitted by <strong>AWS API Gateway</strong>,
+          not by application code. Confirm the allowed-origin list with the platform team.</li>
     </ul>
   </section>
 
@@ -288,7 +288,6 @@
       <tbody>
       <tr><td><code>VALIDATION_FAILED</code></td><td>400</td><td>Request body failed field validation / model binding.</td></tr>
       <tr><td><code>INVALID_INPUT</code></td><td>400 / 415</td><td>Malformed body, or unsupported <code>Content-Type</code>.</td></tr>
-      <tr><td><code>UNAUTHORIZED</code></td><td>401</td><td>SaaS cookie missing / expired / invalid.</td></tr>
       <tr><td><code>CONCURRENCY_CONFLICT</code></td><td>409</td><td>A concurrent writer removed the row mid-upsert. Retryable.</td></tr>
       <tr><td><code>RECORD_NOT_FOUND</code></td><td>404</td><td>Unknown route / path.</td></tr>
       <tr><td><code>INTERNAL_ERROR</code></td><td>500</td><td>Unexpected server / database error. Detail is hidden outside Development.</td></tr>
@@ -314,6 +313,7 @@
       <tr><td>Testing URL</td><td><code>https://api-sa.vidyaone.com/test/form/ticket</code></td></tr>
       <tr><td>Production URL</td><td><code>https://api-sa.vidyaone.com/form/ticket</code></td></tr>
       <tr><td>Path / query params</td><td>None.</td></tr>
+      <tr><td>Idempotency</td><td><strong><code>requestId</code> is the idempotency key.</strong> The upsert is keyed on it, so repeating a request with the same <code>requestId</code> is safe — it converges to exactly one row and returns <code>200</code> whether it inserted or updated (no create-vs-update signal). There is no <code>Idempotency-Key</code> header; none is needed.</td></tr>
       </tbody>
     </table>
 
@@ -322,7 +322,7 @@
       <thead><tr><th>Header</th><th>Req?</th><th>Rule</th></tr></thead>
       <tbody>
       <tr><td><code>Content-Type</code></td><td><span class="tag req">required</span></td><td>Must be <code>application/json</code>; otherwise <code>415</code>.</td></tr>
-      <tr><td><code>Cookie</code></td><td><span class="tag req">required</span></td><td>Must contain a valid <code>vacc-common-auth=…</code>. Omitted in Development. Missing/invalid → <code>401</code>.</td></tr>
+      <tr><td><code>Cookie</code> / <code>Authorization</code></td><td><span class="tag opt">n/a</span></td><td>Not required and not inspected — this route has no application-layer auth.</td></tr>
       <tr><td><code>Accept</code></td><td><span class="tag opt">optional</span></td><td>Ignored — response is always JSON.</td></tr>
       </tbody>
     </table>
@@ -343,7 +343,6 @@
     <h4>Example request — Testing</h4>
 <pre><code>POST https://api-sa.vidyaone.com/test/form/ticket
 Content-Type: application/json
-Cookie: vacc-common-auth=eyJhbGciOiJ...&lt;signed session cookie&gt;
 
 {
   "requestId": "798930e2-58de-4ab4-8aa3-906e76faaa1d",
@@ -390,14 +389,6 @@ Cookie: vacc-common-auth=eyJhbGciOiJ...&lt;signed session cookie&gt;
 }</code></pre>
     <p class="lead"><strong>Do not retry</strong> without correcting the body.</p>
 
-    <div class="status s401">401 · UNAUTHORIZED</div>
-    <p class="lead"><code>vacc-common-auth</code> cookie missing, expired or invalid.</p>
-<pre><code>{
-  "success": false,
-  "message": "Authentication cookie missing or invalid."
-}</code></pre>
-    <p class="lead">Re-authenticate (refresh the cookie), then retry.</p>
-
     <div class="status s409">409 · CONCURRENCY_CONFLICT</div>
     <p class="lead">
       Rare. A concurrent request inserted and then deleted the same <code>requestId</code> row in the small
@@ -434,7 +425,6 @@ Cookie: vacc-common-auth=eyJhbGciOiJ...&lt;signed session cookie&gt;
       <tbody>
       <tr><td><code>200</code></td><td>Upsert succeeded. Body <code>{ success: true, message: "Success." }</code>.</td></tr>
       <tr><td><code>400</code></td><td>Body failed validation / model binding. Fix and resend — do not retry unchanged.</td></tr>
-      <tr><td><code>401</code></td><td>SaaS cookie missing / expired / invalid. Re-authenticate and retry.</td></tr>
       <tr><td><code>404</code></td><td>Unknown path. Wrapped as <code>{ success:false, errors:[{code:"RECORD_NOT_FOUND"}] }</code>.</td></tr>
       <tr><td><code>405</code></td><td>Wrong method on a known path (only <code>POST</code> is handled). Wrapped in the envelope.</td></tr>
       <tr><td><code>409</code></td><td><code>CONCURRENCY_CONFLICT</code> — a concurrent writer removed the row mid-upsert. Transient; retry after backoff.</td></tr>
