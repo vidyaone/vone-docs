@@ -313,7 +313,7 @@
       <tr><td>Testing URL</td><td><code>https://api-sa.vidyaone.com/test/form/ticket</code></td></tr>
       <tr><td>Production URL</td><td><code>https://api-sa.vidyaone.com/form/ticket</code></td></tr>
       <tr><td>Path / query params</td><td>None.</td></tr>
-      <tr><td>Idempotency</td><td><strong><code>requestId</code> is the idempotency key.</strong> The upsert is keyed on it, so repeating a request with the same <code>requestId</code> is safe — it converges to exactly one row and returns <code>200</code> whether it inserted or updated (no create-vs-update signal). There is no <code>Idempotency-Key</code> header; none is needed.</td></tr>
+      <tr><td>Idempotency</td><td>Callers send an <code>Idempotency-Key</code> header on every request (VIDYAOne convention), but <strong>this service does not read it</strong> — server-side de-duplication is keyed on the <code>requestId</code> body field. The upsert is keyed on <code>requestId</code>, so repeating a request with the same <code>requestId</code> is safe: it converges to exactly one row and returns <code>200</code> whether it inserted or updated (no create-vs-update signal). To make a retry idempotent, resend the <strong>same <code>requestId</code></strong>.</td></tr>
       </tbody>
     </table>
 
@@ -322,6 +322,7 @@
       <thead><tr><th>Header</th><th>Req?</th><th>Rule</th></tr></thead>
       <tbody>
       <tr><td><code>Content-Type</code></td><td><span class="tag req">required</span></td><td>Must be <code>application/json</code>; otherwise <code>415</code>.</td></tr>
+      <tr><td><code>Idempotency-Key</code></td><td><span class="tag opt">sent by convention</span></td><td>VIDYAOne clients always send this on mutating requests. <strong>Not read or enforced by this service</strong> — it is neither validated nor used for de-duplication. Effective idempotency is via the <code>requestId</code> body field (see the Idempotency row above).</td></tr>
       <tr><td><code>Cookie</code> / <code>Authorization</code></td><td><span class="tag opt">n/a</span></td><td>Not required and not inspected — this route has no application-layer auth.</td></tr>
       <tr><td><code>Accept</code></td><td><span class="tag opt">optional</span></td><td>Ignored — response is always JSON.</td></tr>
       </tbody>
@@ -343,6 +344,7 @@
     <h4>Example request — Testing</h4>
 <pre><code>POST https://api-sa.vidyaone.com/test/form/ticket
 Content-Type: application/json
+Idempotency-Key: 798930e2-58de-4ab4-8aa3-906e76faaa1d   # sent by convention; not read by this service
 
 {
   "requestId": "798930e2-58de-4ab4-8aa3-906e76faaa1d",
@@ -372,8 +374,10 @@ Content-Type: application/json
       <li><strong>If that row had been soft-deleted</strong> (<code>is_deleted = true</code>), the same update
           also revives it: <code>is_active = true</code>, <code>is_deleted = false</code>,
           <code>inactive_at = null</code>, <code>deleted_at = null</code>.</li>
-      <li><strong>Idempotent:</strong> sending the same body twice leaves exactly one row in the same final
-          state. There is no create-vs-update signal in the response and none is needed.</li>
+      <li><strong>Idempotent:</strong> sending the same body (same <code>requestId</code>) twice leaves exactly
+          one row in the same final state. There is no create-vs-update signal in the response and none is
+          needed. The <code>Idempotency-Key</code> header the client sends plays no part — dedupe is on
+          <code>requestId</code> only.</li>
     </ul>
 
     <h4>Error responses</h4>
