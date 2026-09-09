@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>vWebsite-AdminAPI — Developer Guide</title>
+<style>
+  :root {
+    --accent: #2563eb;
+    --bg: #ffffff;
+    --panel: #fbfcfd;
+    --fg: #1f2430;
+    --muted: #667085;
+    --line: #e4e7ec;
+    --code-bg: #f6f8fa;
+    --ok: #067647;
+    --warn: #b54708;
+    --err: #b42318;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 40px 24px 96px; }
+  header h1 { margin: 0 0 6px; font-size: 26px; }
+  header .sub { color: var(--muted); margin: 0 0 4px; }
+  header .meta { color: var(--muted); font-size: 13px; }
+  h2 { margin: 48px 0 10px; padding-top: 10px; font-size: 20px; border-top: 1px solid var(--line); }
+  h3 { margin: 30px 0 8px; font-size: 16px; }
+  h4 { margin: 20px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  p { margin: 8px 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--code-bg); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; font-size: 13px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  pre { background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.5; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  pre code { background: none; border: 0; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 4px; font-size: 14px; }
+  th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--panel); font-weight: 600; }
+  td code { font-size: 12.5px; }
+  .nav { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px; margin: 24px 0 8px; }
+  .nav strong { display: block; margin-bottom: 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .nav ol { margin: 0; padding-left: 20px; }
+  .nav ol ol { padding-left: 18px; margin: 4px 0; }
+  .nav li { margin: 3px 0; }
+  .pill { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .03em; padding: 2px 7px; border-radius: 4px; vertical-align: middle; margin-right: 6px; }
+  .get { background: #e7f0ff; color: #1d4ed8; }
+  .post { background: #e9f7ef; color: #067647; }
+  .note { border-left: 3px solid var(--accent); background: var(--panel); padding: 10px 14px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+  .warn { border-left-color: var(--warn); }
+  .endpoint { border: 1px solid var(--line); border-radius: 10px; padding: 4px 20px 20px; margin: 18px 0 30px; }
+  .status-ok { color: var(--ok); font-weight: 600; }
+  .status-err { color: var(--err); font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line); margin: 28px 0; }
+  .small { font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>vWebsite-AdminAPI — Developer Guide</h1>
+  <p class="sub">Admin API microservice for the vWebsite SaaS platform — domain, template, JSON config, module &amp; page management for multi-tenant institutions.</p>
+  <p class="meta">
+    Runtime: AWS Lambda (APIGatewayHttpApiV2ProxyFunction) &nbsp;·&nbsp; Region: <code>ap-south-1</code> &nbsp;·&nbsp;
+    Lambda: <code>vweb-admin-lambda</code> &nbsp;·&nbsp; Content type: <code>application/json</code>
+  </p>
+  <p class="meta">Last updated: 2026-09-10 &nbsp;·&nbsp; Covers the <b>DataJson</b>, <b>Module</b>, and <b>Page</b> endpoints only &nbsp;·&nbsp; includes <code>Idempotency-Key</code> / repeat-call behaviour per §2.1.</p>
+</header>
+
+<div class="nav">
+  <strong>Contents</strong>
+  <ol>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#auth">Authentication &amp; the <code>product</code> parameter</a>
+      <ol><li><a href="#idempotency">Idempotency &amp; safe retries</a></li></ol>
+    </li>
+    <li><a href="#envelope">Response envelope &amp; error codes</a></li>
+    <li><a href="#base-urls">Base URLs</a></li>
+    <li><a href="#datajson">DataJson endpoints</a>
+      <ol>
+        <li><a href="#get-data">GET /data</a></li>
+        <li><a href="#post-data">POST /data</a></li>
+      </ol>
+    </li>
+    <li><a href="#module">Module endpoints</a>
+      <ol>
+        <li><a href="#get-module">GET /module</a></li>
+        <li><a href="#get-module-status">GET /module/status</a></li>
+        <li><a href="#post-module">POST /module</a></li>
+      </ol>
+    </li>
+    <li><a href="#page">Page endpoints</a>
+      <ol>
+        <li><a href="#get-page">GET /page</a></li>
+        <li><a href="#get-page-status">GET /page/status</a></li>
+        <li><a href="#post-page">POST /page</a></li>
+      </ol>
+    </li>
+  </ol>
+</div>
+
+<!-- ================================================================= -->
+<h2 id="overview">1. Overview</h2>
+<p>
+  Every endpoint is a thin controller that dispatches a MediatR request; business logic lives in the
+  Application layer and all I/O (PostgreSQL, S3, SQS) in the Infrastructure layer. All responses —
+  success or failure — use one JSON envelope (see §3).
+</p>
+<table>
+  <tr><th>Concern</th><th>Detail</th></tr>
+  <tr><td>Transport</td><td>HTTPS only. <code>GET</code> for reads, <code>POST</code> for writes.</td></tr>
+  <tr><td>Request body</td><td><code>Content-Type: application/json</code> (POST only). GET takes query-string only.</td></tr>
+  <tr><td>Auth</td><td>SaaS cookie <code>vacc-{product}-auth</code> + a <code>product</code> query parameter on <em>every</em> request. See §2.</td></tr>
+  <tr><td>CORS / preflight</td><td>Handled at AWS API Gateway. <code>OPTIONS</code> is short-circuited with a bare <code>200</code> before auth.</td></tr>
+  <tr><td>Tenancy</td><td><code>inst_id</code>, <code>user_id</code>, <code>inst_saas_code</code> are read from the validated cookie — never sent in the body. Data is always scoped to the caller's institution.</td></tr>
+  <tr><td>Idempotency</td><td>VIDYAOne clients always send an <code>Idempotency-Key</code> header on mutating calls. <b>This service does not read or enforce it</b> — safety on retry comes from each write being keyed on a natural key (see §2 and each <code>POST</code>).</td></tr>
+</table>
+
+<!-- ================================================================= -->
+<h2 id="auth">2. Authentication &amp; the <code>product</code> parameter</h2>
+<p>Both of the following are required on every call:</p>
+<table>
+  <tr><th>Requirement</th><th>Where</th><th>Rule</th></tr>
+  <tr>
+    <td><code>product</code></td>
+    <td>Query string</td>
+    <td>Required. Your product code (the <code>{product}</code> in the cookie name below), e.g. <code>vweb</code>.
+        Missing / blank &rarr; <span class="status-err">400</span> <code>REQUIRED_FIELD</code>.
+        Prefix with <code>test-</code> (e.g. <code>test-vweb</code>) to run in <b>test mode</b>; the prefix is stripped server-side and <code>TestMode=true</code> is set on the request.</td>
+  </tr>
+  <tr>
+    <td><code>vacc-{product}-auth</code> cookie</td>
+    <td><code>Cookie</code> header</td>
+    <td>Required. HMAC-SHA256 signed token, format <code>{base64url(json-payload)}.{base64url(signature)}</code>.
+        Carries <code>inst_id</code>, <code>user_id</code>, <code>inst_saas_code</code>, <code>product_id</code>, <code>exp</code>, …
+        Missing / invalid signature / expired (30&nbsp;s skew allowed) / <code>inst_id&le;0</code> / <code>user_id&le;0</code> / blank <code>inst_saas_code</code> &rarr; <span class="status-err">401</span> <code>UNAUTHORIZED</code>.</td>
+  </tr>
+  <tr>
+    <td><code>Idempotency-Key</code> header</td>
+    <td><code>Idempotency-Key</code> header</td>
+    <td>Sent by VIDYAOne clients on every mutating (<code>POST</code>) request by platform convention (a UUID). <b>This service does not read, store, or enforce it</b> — it is accepted and ignored. Retry safety instead relies on the effective key each endpoint de-dupes on (documented per <code>POST</code> below).</td>
+  </tr>
+</table>
+<p class="small">Browsers send the cookie automatically for same-site requests. For server-to-server calls, forward the cookie header explicitly.</p>
+
+<h3 id="idempotency">2.1 Idempotency &amp; safe retries</h3>
+<p>
+  Because <code>Idempotency-Key</code> is not honoured here, a retried <code>POST</code> is de-duplicated by a
+  <b>natural key</b>, not the header. Each mutating endpoint below states its effective key and what a
+  repeated identical call does. Summary:
+</p>
+<table>
+  <tr><th>Endpoint</th><th>Effective idempotency key</th><th>Repeat identical call</th></tr>
+  <tr><td><code>POST /data</code></td><td><code>(inst_saas_code, file)</code> — the S3 object key</td><td>Overwrites the same object with the same bytes; returns <span class="status-ok">200</span> with the same <code>file_key</code>. Not distinguished as create vs update. <span class="small">(Each call mints <em>fresh</em> presigned upload URLs when <code>upload_files</code> is sent.)</span></td></tr>
+  <tr><td><code>POST /module</code></td><td><code>(inst_id, module_name)</code> per array item</td><td>Leaves exactly one row per name in the same final <code>module_status</code>; returns <span class="status-ok">200</span> <code>data: true</code>. Response does not distinguish created vs updated rows.</td></tr>
+  <tr><td><code>POST /page</code></td><td><code>(inst_id, page_name)</code> per array item</td><td>Leaves exactly one row per name in the same final <code>page_status</code>; returns <span class="status-ok">200</span> <code>data: true</code>. Response does not distinguish created vs updated rows.</td></tr>
+</table>
+<p class="small">
+  <code>GET</code> endpoints are safe/read-only and naturally idempotent.
+  Duplicate-row protection for <code>POST /module</code> and <code>POST /page</code> under <em>concurrent</em>
+  first-time inserts also depends on a DB unique index on <code>(inst_id, &lt;name&gt;) WHERE is_deleted = false</code>.
+</p>
+
+<!-- ================================================================= -->
+<h2 id="envelope">3. Response envelope &amp; error codes</h2>
+<p>Success:</p>
+<pre><code>{
+  "success": true,
+  "message": null,          // or a short string
+  "data": { ... },          // the payload (object, array, or scalar)
+  "errors": null
+}</code></pre>
+<p>Failure:</p>
+<pre><code>{
+  "success": false,
+  "message": "Validation failed.",
+  "data": null,
+  "errors": [
+    { "code": "VALIDATION_FAILED", "message": "Inst ID must be greater than 0.", "field": "InstId" }
+  ]
+}</code></pre>
+<table>
+  <tr><th>HTTP</th><th><code>code</code></th><th>When</th></tr>
+  <tr><td>400</td><td><code>VALIDATION_FAILED</code></td><td>FluentValidation rule failed (per-field <code>errors[]</code>).</td></tr>
+  <tr><td>400</td><td><code>INVALID_INPUT</code></td><td>Service-layer rejection (bad file name, JSON too deep/large, malformed request body).</td></tr>
+  <tr><td>400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> query parameter missing.</td></tr>
+  <tr><td>401</td><td><code>UNAUTHORIZED</code></td><td>Auth cookie missing / invalid / expired.</td></tr>
+  <tr><td>404</td><td><code>RECORD_NOT_FOUND</code></td><td>Requested file / module / page does not exist for this institution.</td></tr>
+  <tr><td>409</td><td><code>DUPLICATE_RECORD</code></td><td>Unique-constraint conflict (only reachable once the DB unique index is in place).</td></tr>
+  <tr><td>499</td><td>—</td><td>Client disconnected mid-request. No body.</td></tr>
+  <tr><td>500</td><td><code>INTERNAL_ERROR</code></td><td>Unhandled failure (e.g. S3 outage). Message is generic in Production.</td></tr>
+</table>
+
+<!-- ================================================================= -->
+<h2 id="base-urls">4. Base URLs</h2>
+<p>Resolved from <code>App:BaseUrl</code> in the environment's <code>appsettings.*.json</code>, concatenated with the controller route.</p>
+<table>
+  <tr><th>Environment</th><th>Base URL</th><th>Source</th></tr>
+  <tr><td>Testing</td><td><code>https://api-vweb.vidyaone.com/test/admin/</code></td><td><code>appsettings.Testing.json</code> &rarr; <code>App:BaseUrl</code></td></tr>
+  <tr><td>Production</td><td class="small"><em>Not set — add <code>App:BaseUrl</code> to <code>appsettings.json</code>, then regenerate this guide.</em></td><td><code>appsettings.json</code></td></tr>
+  <tr><td>Development</td><td><code>http://localhost:&lt;kestrel-port&gt;/</code></td><td>Local Kestrel (<code>LocalEntryPoint</code>); no <code>App:BaseUrl</code> configured.</td></tr>
+</table>
+<p class="note warn">Only <b>Testing</b> URLs are shown per-endpoint below. Production URLs will be added once <code>App:BaseUrl</code> exists in <code>appsettings.json</code>.</p>
+
+<!-- ================================================================= DATAJSON -->
+<h2 id="datajson">5. DataJson endpoints</h2>
+<p>
+  Route prefix <code>data</code>. Reads and writes one tenant-scoped JSON configuration file in S3
+  (bucket <code>vidyaone-data-lake</code>, key <code>vWebsite/template_database/{inst_saas_code}/{file}</code>).
+  A successful <code>POST</code> also flags the institution's panel as changed so the site gets re-published.
+</p>
+
+<!-- ---------- GET /data ---------- -->
+<div class="endpoint" id="get-data">
+<h3><span class="pill get">GET</span> /data</h3>
+<p><b>Summary.</b> Fetch the parsed contents of one JSON config file for the caller's institution. Call it to load a saved <code>data_*</code> / <code>config_*</code> document before editing.</p>
+
+<h4>Request</h4>
+<table>
+  <tr><th>Env</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/data?product=vweb&amp;file=data_home.json</code></td></tr>
+</table>
+<table>
+  <tr><th>Param</th><th>In</th><th>Type</th><th>Required</th><th>Rules</th></tr>
+  <tr><td><code>product</code></td><td>query</td><td>string</td><td>yes</td><td>See §2.</td></tr>
+  <tr><td><code>file</code></td><td>query</td><td>string</td><td>yes</td><td>Must match <code>^(data_|config_)[A-Za-z0-9_\-]+\.json$</code>; &le; 255 chars; no <code>..</code> / path-separators / shell metacharacters.</td></tr>
+</table>
+<p class="small">Headers: <code>Cookie: vacc-{product}-auth=…</code>. No request body.</p>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<p><code>data</code> is the file's JSON content verbatim (object or array).</p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "data": { "hero": { "title": "Welcome" }, "sections": [ ... ] },
+  "errors": null
+}</code></pre>
+
+<h4>Error responses</h4>
+<table>
+  <tr><th>HTTP</th><th>code</th><th>Cause</th></tr>
+  <tr><td>400</td><td><code>VALIDATION_FAILED</code></td><td><code>file</code> empty, or institution not resolved from cookie.</td></tr>
+  <tr><td>400</td><td><code>INVALID_INPUT</code></td><td>File name fails the pattern, path-traversal detected, stored file is empty, stored file &gt; 10&nbsp;MB, or stored content is not valid JSON.</td></tr>
+  <tr><td>400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+  <tr><td>401</td><td><code>UNAUTHORIZED</code></td><td>Cookie missing / invalid / expired.</td></tr>
+  <tr><td>404</td><td><code>RECORD_NOT_FOUND</code></td><td>No such file in S3 for this institution.</td></tr>
+  <tr><td>500</td><td><code>INTERNAL_ERROR</code></td><td>S3 access denied / metadata or read error.</td></tr>
+</table>
+<p class="small">Retry guidance: 500 is safe to retry (idempotent read) with backoff. 4xx will not change on retry.</p>
+</div>
+
+<!-- ---------- POST /data ---------- -->
+<div class="endpoint" id="post-data">
+<h3><span class="pill post">POST</span> /data</h3>
+<p><b>Summary.</b> Create or overwrite one JSON config file for the caller's institution, and (optionally) get presigned S3 <code>POST</code> URLs for uploading binary assets referenced by that file. Call it whenever the customer saves site data.</p>
+
+<h4>Request</h4>
+<table>
+  <tr><th>Env</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/admin/data?product=vweb</code></td></tr>
+</table>
+<h4>Headers</h4>
+<table>
+  <tr><th>Header</th><th>Required</th><th>Notes</th></tr>
+  <tr><td><code>Content-Type: application/json</code></td><td>yes</td><td>—</td></tr>
+  <tr><td><code>Cookie: vacc-{product}-auth=…</code></td><td>yes</td><td>See §2.</td></tr>
+  <tr><td><code>Idempotency-Key: &lt;uuid&gt;</code></td><td>sent by client</td><td>Platform convention; <b>ignored by this service</b>. Dedupe key is <code>(inst_saas_code, file)</code> — see §2.1.</td></tr>
+</table>
+<h4>Body fields</h4>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Required</th><th>Constraints</th></tr>
+  <tr><td><code>file</code></td><td>string</td><td>yes</td><td>Ends with <code>.json</code>; matches <code>^[A-Za-z0-9_][A-Za-z0-9_\-]*\.json$</code>; &le; 255 chars; no <code>..</code> / separators / shell metacharacters.</td></tr>
+  <tr><td><code>data</code></td><td>object&nbsp;\|&nbsp;array</td><td>yes</td><td>Must be a JSON object or array. Max nesting depth 20; max 1000 keys per object; max 10&nbsp;000 elements per array; serialized payload &le; 5&nbsp;MB.</td></tr>
+  <tr><td><code>upload_files</code></td><td>array&nbsp;of&nbsp;object</td><td>no</td><td>Each item <code>{ "file_name": "&lt;name.ext&gt;" }</code>. <code>file_name</code>: &le; 255 chars; extension in <code>jpg,jpeg,png,gif,webp,bmp,pdf,txt,csv,xlsx,xls,docx,doc</code>; not hidden (no leading <code>.</code>); no dangerous characters.</td></tr>
+</table>
+<p class="small"><code>inst_id</code>, <code>inst_saas_code</code>, <code>test_mode</code> are taken from the cookie and ignored if present in the body.</p>
+
+<h4>Example request</h4>
+<pre><code>POST https://api-vweb.vidyaone.com/test/admin/data?product=vweb
+Content-Type: application/json
+Cookie: vacc-vweb-auth=eyJ...9c.7f...ab
+
+{
+  "file": "data_home.json",
+  "data": {
+    "hero": { "title": "Welcome", "image": "hero.png" },
+    "sections": [ { "type": "text", "body": "About us" } ]
+  },
+  "upload_files": [
+    { "file_name": "hero.png" }
+  ]
+}</code></pre>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "message": "File uploaded successfully",
+    "file_key": "vWebsite/template_database/&lt;inst_saas_code&gt;/data_home.json",
+    "size": 412,
+    "upload_presign": {                       // present only when upload_files was sent
+      "uploads": [
+        {
+          "fileName": "hero.png",
+          "key": "vWebsite/template_cdn/cdn_&lt;inst_saas_code&gt;/images/hero.png",
+          "post": { "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/", "fields": { "key": "...", "policy": "...", "x-amz-signature": "..." } },
+          "expiresIn": 120,
+          "maxFileSize": 10485760,
+          "contentTypePrefix": "image/"
+        }
+      ],
+      "rejected": [
+        { "file_name": "notes.exe", "reason": "unsupported_file_type" }
+      ]
+    }
+  }
+}</code></pre>
+<p class="small">
+  Per-file presign problems go into <code>rejected[]</code> (reasons: <code>missing_file_name</code>, <code>unsupported_file_type</code>, <code>presign_generation_failed</code>, or a validation message) — they do <em>not</em> fail the request.
+  Presigned <code>POST</code> URLs expire after <b>120&nbsp;s</b> and cap the upload at <b>10&nbsp;MB</b>; images land under <code>images/</code>, other types under <code>files/</code>.
+</p>
+
+<h4>Error responses</h4>
+<table>
+  <tr><th>HTTP</th><th>code</th><th>Cause</th></tr>
+  <tr><td>400</td><td><code>VALIDATION_FAILED</code></td><td><code>file</code> empty, <code>data</code> not an object/array, or institution not resolved.</td></tr>
+  <tr><td>400</td><td><code>INVALID_INPUT</code></td><td>Bad file name, JSON exceeds depth/key/array limits, payload &gt; 5&nbsp;MB, data not serializable, or a malformed request body.</td></tr>
+  <tr><td>400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+  <tr><td>401</td><td><code>UNAUTHORIZED</code></td><td>Cookie missing / invalid / expired.</td></tr>
+  <tr><td>500</td><td><code>INTERNAL_ERROR</code></td><td>S3 <code>PutObject</code> failed.</td></tr>
+</table>
+<p class="note">
+  <b>Idempotency.</b> <code>Idempotency-Key</code> is ignored. The effective key is <code>(inst_saas_code, file)</code> —
+  the S3 object path. A repeated identical call overwrites the same object with identical bytes and returns
+  <span class="status-ok">200</span> with the same <code>file_key</code>; there is no create-vs-update distinction.
+  Caveat: when <code>upload_files</code> is present, each call generates <em>new</em> presigned upload URLs (the
+  previous ones simply expire after 120&nbsp;s).
+</p>
+<p class="note">
+  <b>Side effect.</b> After the file is written, the service sets <code>tbl_panel_status.is_data_change = true</code> for the institution
+  (upsert — a panel row is created if none exists). If <em>that</em> write fails, the request still returns
+  <span class="status-ok">200</span> (the file is saved); the failure is logged at <code>Error</code> for reconciliation.
+  A 500 from this endpoint means the S3 write itself failed — safe to retry, but retrying re-writes the file.
+</p>
+</div>
+
+<!-- ================================================================= MODULE -->
+<h2 id="module">6. Module endpoints</h2>
+<p>
+  Route prefix <code>module</code>. Manages per-institution feature-module toggles in <code>tbl_modules</code>
+  (<code>module_name</code> + <code>module_status</code> boolean). Names are trimmed server-side, so
+  <code>" data_home "</code> and <code>"data_home"</code> are the same module.
+</p>
+
+<!-- ---------- GET /module ---------- -->
+<div class="endpoint" id="get-module">
+<h3><span class="pill get">GET</span> /module</h3>
+<p><b>Summary.</b> List every active module and its on/off status for the caller's institution. Call it to render the module-settings screen.</p>
+
+<h4>Request</h4>
+<table>
+  <tr><th>Env</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/module?product=vweb</code></td></tr>
+</table>
+<table>
+  <tr><th>Param</th><th>In</th><th>Required</th><th>Rules</th></tr>
+  <tr><td><code>product</code></td><td>query</td><td>yes</td><td>See §2.</td></tr>
+</table>
+<p class="small">Headers: <code>Cookie: vacc-{product}-auth=…</code>. No body. Returns <b>all</b> rows (no pagination); ordered by <code>module_name</code>. Soft-deleted and inactive rows are excluded.</p>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": [
+    { "moduleId": 41, "moduleName": "data_about", "status": true },
+    { "moduleId": 39, "moduleName": "data_home",  "status": false }
+  ]
+}</code></pre>
+<p class="small"><code>data</code> is <code>[]</code> when the institution has no modules yet.</p>
+
+<h4>Error responses</h4>
+<table>
+  <tr><th>HTTP</th><th>code</th><th>Cause</th></tr>
+  <tr><td>400</td><td><code>VALIDATION_FAILED</code></td><td>Institution not resolved (<code>InstId &le; 0</code>).</td></tr>
+  <tr><td>400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+  <tr><td>401</td><td><code>UNAUTHORIZED</code></td><td>Cookie missing / invalid / expired.</td></tr>
+  <tr><td>500</td><td><code>INTERNAL_ERROR</code></td><td>Database error.</td></tr>
+</table>
+</div>
+
+<!-- ---------- GET /module/status ---------- -->
+<div class="endpoint" id="get-module-status">
+<h3><span class="pill get">GET</span> /module/status</h3>
+<p><b>Summary.</b> Get the status of a single module by name for the caller's institution. Call it to check one toggle without fetching the whole list.</p>
+
+<h4>Request</h4>
+<table>
+  <tr><th>Env</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/module/status?product=vweb&amp;moduleName=data_home</code></td></tr>
+</table>
+<table>
+  <tr><th>Param</th><th>In</th><th>Required</th><th>Rules</th></tr>
+  <tr><td><code>product</code></td><td>query</td><td>yes</td><td>See §2.</td></tr>
+  <tr><td><code>moduleName</code></td><td>query</td><td>yes</td><td>Non-empty. Trimmed before lookup. Case- and (after trim) exact-match.</td></tr>
+</table>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": { "moduleName": "data_home", "status": true }
+}</code></pre>
+
+<h4>Error responses</h4>
+<table>
+  <tr><th>HTTP</th><th>code</th><th>Cause</th></tr>
+  <tr><td>400</td><td><code>VALIDATION_FAILED</code></td><td><code>moduleName</code> empty, or institution not resolved.</td></tr>
+  <tr><td>400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+  <tr><td>401</td><td><code>UNAUTHORIZED</code></td><td>Cookie missing / invalid / expired.</td></tr>
+  <tr><td>404</td><td><code>RECORD_NOT_FOUND</code></td><td>No active module with that name for this institution (message: <code>"Module not found."</code>).</td></tr>
+  <tr><td>500</td><td><code>INTERNAL_ERROR</code></td><td>Database error.</td></tr>
+</table>
+</div>
+
+<!-- ---------- POST /module ---------- -->
+<div class="endpoint" id="post-module">
+<h3><span class="pill post">POST</span> /module</h3>
+<p><b>Summary.</b> Bulk create-or-update module statuses for the caller's institution in one call. Call it when the customer saves the module-settings screen.</p>
+
+<h4>Request</h4>
+<table>
+  <tr><th>Env</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/admin/module?product=vweb</code></td></tr>
+</table>
+<h4>Headers</h4>
+<table>
+  <tr><th>Header</th><th>Required</th><th>Notes</th></tr>
+  <tr><td><code>Content-Type: application/json</code></td><td>yes</td><td>—</td></tr>
+  <tr><td><code>Cookie: vacc-{product}-auth=…</code></td><td>yes</td><td>See §2.</td></tr>
+  <tr><td><code>Idempotency-Key: &lt;uuid&gt;</code></td><td>sent by client</td><td>Platform convention; <b>ignored by this service</b>. Dedupe key is <code>(inst_id, module_name)</code> per item — see §2.1.</td></tr>
+</table>
+<h4>Body — JSON array</h4>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Required</th><th>Constraints</th></tr>
+  <tr><td>(root)</td><td>array</td><td>yes</td><td>At least one item.</td></tr>
+  <tr><td><code>moduleName</code></td><td>string</td><td>yes</td><td>Non-empty (whitespace-only rejected). Trimmed server-side.</td></tr>
+  <tr><td><code>status</code></td><td>boolean</td><td>no</td><td>Defaults to <code>true</code> when omitted.</td></tr>
+</table>
+
+<h4>Example request</h4>
+<pre><code>POST https://api-vweb.vidyaone.com/test/admin/module?product=vweb
+Content-Type: application/json
+Cookie: vacc-vweb-auth=eyJ...9c.7f...ab
+
+[
+  { "moduleName": "data_home",  "status": true },
+  { "moduleName": "data_about", "status": false },
+  { "moduleName": "data_blog" }
+]</code></pre>
+
+<h4>Behaviour</h4>
+<ul>
+  <li>Per item: an existing non-deleted row for <code>(inst_id, module_name)</code> has its <code>module_status</code> updated; otherwise a new row is inserted with <code>creator_user_id</code> = the caller's user id.</li>
+  <li>The whole batch is one database transaction.</li>
+  <li>Duplicate names within the same payload &rarr; the last occurrence wins.</li>
+  <li>A concurrent insert of the same name is reconciled with one automatic retry (relies on a unique index on <code>(inst_id, module_name) WHERE is_deleted = false</code>).</li>
+</ul>
+<p class="note">
+  <b>Idempotency.</b> <code>Idempotency-Key</code> is ignored. The effective key is <code>(inst_id, module_name)</code>
+  per array item. Re-sending the same payload leaves exactly one row per name in the same final
+  <code>module_status</code> and returns <span class="status-ok">200</span> <code>data: true</code>. The response
+  does not distinguish rows that were created from rows that were updated.
+</p>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{ "success": true, "message": null, "data": true, "errors": null }</code></pre>
+
+<h4>Error responses</h4>
+<table>
+  <tr><th>HTTP</th><th>code</th><th>Cause</th></tr>
+  <tr><td>400</td><td><code>VALIDATION_FAILED</code></td><td>Empty array, an item with empty <code>moduleName</code>, or institution / user not resolved.</td></tr>
+  <tr><td>400</td><td><code>INVALID_INPUT</code></td><td>Body is not a JSON array / is malformed.</td></tr>
+  <tr><td>400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+  <tr><td>401</td><td><code>UNAUTHORIZED</code></td><td>Cookie missing / invalid / expired.</td></tr>
+  <tr><td>409</td><td><code>DUPLICATE_RECORD</code></td><td>Unique conflict that survived the reconcile retry (only if the unique index exists).</td></tr>
+  <tr><td>500</td><td><code>INTERNAL_ERROR</code></td><td>Database error.</td></tr>
+</table>
+<p class="note">
+  <b>Planned side effect (not yet implemented).</b> After a successful save the handler carries a
+  <code>TODO</code> to email the customer notifying them of the module changes.
+</p>
+</div>
+
+<!-- ================================================================= PAGE -->
+<h2 id="page">7. Page endpoints</h2>
+<p>
+  Route prefix <code>page</code>. Identical contract to <a href="#module">Module</a>, against <code>tbl_pages</code>
+  (<code>page_name</code> + <code>page_status</code> boolean). Substitute <code>page</code> / <code>pageName</code> / <code>pageId</code>
+  for <code>module</code> / <code>moduleName</code> / <code>moduleId</code> throughout.
+</p>
+
+<!-- ---------- GET /page ---------- -->
+<div class="endpoint" id="get-page">
+<h3><span class="pill get">GET</span> /page</h3>
+<p><b>Summary.</b> List every active page and its on/off status for the caller's institution.</p>
+<h4>Request</h4>
+<table>
+  <tr><th>Env</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/page?product=vweb</code></td></tr>
+</table>
+<p class="small"><code>product</code> (query, required). No body. Returns all active, non-deleted rows ordered by <code>page_name</code>.</p>
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{
+  "success": true, "message": null, "errors": null,
+  "data": [
+    { "pageId": 12, "pageName": "about",   "status": true },
+    { "pageId": 10, "pageName": "contact", "status": false }
+  ]
+}</code></pre>
+<h4>Error responses</h4>
+<p class="small">Same as <a href="#get-module">GET /module</a> (400 <code>VALIDATION_FAILED</code> / <code>REQUIRED_FIELD</code>, 401 <code>UNAUTHORIZED</code>, 500 <code>INTERNAL_ERROR</code>).</p>
+</div>
+
+<!-- ---------- GET /page/status ---------- -->
+<div class="endpoint" id="get-page-status">
+<h3><span class="pill get">GET</span> /page/status</h3>
+<p><b>Summary.</b> Get the status of a single page by name for the caller's institution.</p>
+<h4>Request</h4>
+<table>
+  <tr><th>Env</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/page/status?product=vweb&amp;pageName=about</code></td></tr>
+</table>
+<table>
+  <tr><th>Param</th><th>In</th><th>Required</th><th>Rules</th></tr>
+  <tr><td><code>product</code></td><td>query</td><td>yes</td><td>See §2.</td></tr>
+  <tr><td><code>pageName</code></td><td>query</td><td>yes</td><td>Non-empty. Trimmed before lookup.</td></tr>
+</table>
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{ "success": true, "message": null, "errors": null, "data": { "pageName": "about", "status": true } }</code></pre>
+<h4>Error responses</h4>
+<p class="small">Same as <a href="#get-module-status">GET /module/status</a>; 404 message is <code>"Page not found."</code></p>
+</div>
+
+<!-- ---------- POST /page ---------- -->
+<div class="endpoint" id="post-page">
+<h3><span class="pill post">POST</span> /page</h3>
+<p><b>Summary.</b> Bulk create-or-update page statuses for the caller's institution in one call.</p>
+<h4>Request</h4>
+<table>
+  <tr><th>Env</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/admin/page?product=vweb</code></td></tr>
+</table>
+<h4>Headers</h4>
+<table>
+  <tr><th>Header</th><th>Required</th><th>Notes</th></tr>
+  <tr><td><code>Content-Type: application/json</code></td><td>yes</td><td>—</td></tr>
+  <tr><td><code>Cookie: vacc-{product}-auth=…</code></td><td>yes</td><td>See §2.</td></tr>
+  <tr><td><code>Idempotency-Key: &lt;uuid&gt;</code></td><td>sent by client</td><td>Platform convention; <b>ignored by this service</b>. Dedupe key is <code>(inst_id, page_name)</code> per item — see §2.1.</td></tr>
+</table>
+<h4>Body — JSON array</h4>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Required</th><th>Constraints</th></tr>
+  <tr><td>(root)</td><td>array</td><td>yes</td><td>At least one item.</td></tr>
+  <tr><td><code>pageName</code></td><td>string</td><td>yes</td><td>Non-empty (whitespace-only rejected). Trimmed server-side.</td></tr>
+  <tr><td><code>status</code></td><td>boolean</td><td>no</td><td>Defaults to <code>true</code> when omitted.</td></tr>
+</table>
+<h4>Example request</h4>
+<pre><code>POST https://api-vweb.vidyaone.com/test/admin/page?product=vweb
+Content-Type: application/json
+Cookie: vacc-vweb-auth=eyJ...9c.7f...ab
+
+[
+  { "pageName": "about",   "status": true },
+  { "pageName": "contact", "status": false }
+]</code></pre>
+<h4>Behaviour</h4>
+<p class="small">Match by <code>(inst_id, page_name)</code> &rarr; update <code>page_status</code>; else insert with <code>creator_user_id</code> = caller. One transaction; last duplicate wins; one automatic reconcile retry on concurrent insert.</p>
+<p class="note">
+  <b>Idempotency.</b> <code>Idempotency-Key</code> is ignored. The effective key is <code>(inst_id, page_name)</code>
+  per array item. Re-sending the same payload leaves exactly one row per name in the same final
+  <code>page_status</code> and returns <span class="status-ok">200</span> <code>data: true</code>. Created vs
+  updated rows are not distinguished in the response.
+</p>
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{ "success": true, "message": null, "data": true, "errors": null }</code></pre>
+<h4>Error responses</h4>
+<p class="small">Same set as <a href="#post-module">POST /module</a> (400 <code>VALIDATION_FAILED</code> / <code>INVALID_INPUT</code> / <code>REQUIRED_FIELD</code>, 401, 409 <code>DUPLICATE_RECORD</code>, 500).</p>
+<p class="note"><b>Planned side effect (not yet implemented).</b> <code>TODO</code> to email the customer notifying them of the page changes.</p>
+</div>
+
+<hr>
+<p class="small">
+  Generated from the vWebsite-AdminAPI source (controllers, MediatR commands/queries + validators, repositories,
+  <code>DataJsonService</code>, and <code>vShared-Utilities</code> auth/exception middleware).
+  Regenerate whenever a request/response contract, limit, allowed value, or behaviour changes.
+</p>
+
+</div>
+</body>
+</html>
