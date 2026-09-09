@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vOne-FormAPI — API Reference</title>
+<style>
+  :root {
+    --bg:        #ffffff;
+    --panel:     #f6f8fa;
+    --panel-2:   #f0f3f6;
+    --border:    #d0d7de;
+    --text:      #1f2328;
+    --text-dim:  #636c76;
+    --accent:    #0969da;
+    --ok:        #1a7f37;
+    --warn:      #9a6700;
+    --err:       #cf222e;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  header {
+    padding: 40px clamp(16px, 5vw, 64px) 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 { margin: 0 0 8px; font-size: 1.7rem; font-weight: 650; }
+  header p { margin: 0; color: var(--text-dim); font-size: 0.95rem; max-width: 74ch; }
+  .badges { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    background: var(--panel);
+  }
+  nav {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; gap: 2px; flex-wrap: wrap;
+    padding: 10px clamp(16px, 5vw, 64px);
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.83rem;
+    padding: 5px 9px;
+    border-radius: 6px;
+  }
+  nav a:hover { color: var(--accent); background: var(--panel); }
+  main { padding: 8px clamp(16px, 5vw, 64px) 96px; max-width: 1024px; margin: 0 auto; }
+  section { padding: 40px 0; border-bottom: 1px solid var(--border); }
+  section:last-child { border-bottom: none; }
+  h2 {
+    font-size: 1.2rem;
+    margin: 0 0 6px;
+    font-weight: 640;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  h2 .idx {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-weight: 500;
+  }
+  h3 { font-size: 0.98rem; margin: 26px 0 8px; }
+  h4 { font-size: 0.86rem; margin: 20px 0 6px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; }
+  p.summary {
+    margin: 8px 0 0;
+    font-size: 0.95rem;
+    padding: 12px 16px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+  }
+  p.lead { color: var(--text-dim); margin-top: 6px; }
+  code {
+    font-family: var(--mono);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.85em;
+  }
+  pre {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    margin: 10px 0 0;
+    line-height: 1.55;
+    color: var(--text);
+  }
+  pre code { background: none; border: none; padding: 0; font-size: 1em; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 0.86rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  thead th { border-bottom: 2px solid var(--border); }
+  th {
+    color: var(--text-dim);
+    font-weight: 600;
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  tbody tr:hover td { background: var(--panel); }
+  td code { white-space: nowrap; }
+  .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    padding: 1px 7px;
+    border-radius: 5px;
+    font-weight: 600;
+    border: 1px solid transparent;
+  }
+  .tag.req  { background: #ffebe9; color: var(--err); border-color: #ffc9c2; }
+  .tag.opt  { background: #dafbe1; color: var(--ok);  border-color: #aceebb; }
+  .tag.post { background: #ddf4ff; color: var(--accent); border-color: #b6e3ff; }
+  .callout {
+    margin-top: 12px; padding: 12px 16px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--panel-2);
+    font-size: 0.87rem; color: var(--text-dim);
+  }
+  .callout strong { color: var(--text); }
+  ul.notes { margin: 10px 0 0; padding-left: 20px; font-size: 0.89rem; color: var(--text-dim); }
+  ul.notes li { margin-bottom: 8px; }
+  ul.notes code { color: var(--text); }
+  .status {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-weight: 700; font-size: 0.85rem;
+    padding: 3px 9px; border-radius: 7px; margin: 14px 0 0;
+    border: 1px solid var(--border);
+  }
+  .status.s200 { background: #dafbe1; color: var(--ok); border-color: #aceebb; }
+  .status.s400,
+  .status.s401,
+  .status.s409,
+  .status.s415 { background: #fff8c5; color: var(--warn); border-color: #f5e08a; }
+  .status.s500 { background: #ffebe9; color: var(--err); border-color: #ffc9c2; }
+  footer {
+    padding: 28px clamp(16px, 5vw, 64px) 48px;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>vOne-FormAPI</h1>
+  <p>Records the mapping between a website / product form submission and the support tickets raised for it
+     in vOne and VKS. ASP.NET Core on AWS Lambda, persisting to PostgreSQL. One developer-facing route:
+     <code>POST /ticket</code>. The service emits no queue / topic / event messages — it only writes to its database.</p>
+  <div class="badges">
+    <span class="badge">.NET 10 · AWS Lambda · API Gateway (HTTP API v2)</span>
+    <span class="badge">ap-south-1</span>
+    <span class="badge">Content-Type: application/json</span>
+    <span class="badge">Auth: vAccount SaaS cookie</span>
+  </div>
+</header>
+
+<nav>
+  <a href="#overview">Overview</a>
+  <a href="#transport">Transport</a>
+  <a href="#auth">Auth</a>
+  <a href="#envelope">Envelope</a>
+  <a href="#ticket">POST /ticket</a>
+  <a href="#status">Status codes</a>
+  <a href="#notes">Data model &amp; limits</a>
+</nav>
+
+<main>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <section id="overview">
+    <h2><span class="idx">01</span> Overview</h2>
+    <p class="lead">vOne-FormAPI is a small write-only microservice in the VIDYAOne SaaS platform.</p>
+    <ul class="notes">
+      <li><strong><code>POST /ticket</code></strong> — create or update ("upsert") the row in
+          <code>public.tbl_form_ticket</code> that links one form submission (<code>requestId</code>) to its
+          vOne ticket and its VKS ticket. Behind the vAccount SaaS cookie.</li>
+    </ul>
+    <div class="callout">
+      There is also a bare <code>GET {base}</code> route that returns a one-line
+      <code>text/plain</code> "application / environment" string. It sits behind the same SaaS cookie as
+      <code>/ticket</code> and is only useful as a reachability check — it is not part of the API contract.
+    </div>
+  </section>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <section id="transport">
+    <h2><span class="idx">02</span> Transport</h2>
+    <table>
+      <thead><tr><th>Property</th><th>Value</th></tr></thead>
+      <tbody>
+      <tr><td>Base URL</td><td>Per environment — see the two rows below. The value comes from <code>App:BaseUrl</code> in that environment's <code>appsettings.&lt;Environment&gt;.json</code>. Full URL = base + controller route.</td></tr>
+      <tr><td>Testing base URL</td><td><code>https://api-sa.vidyaone.com/test/form/</code> &nbsp;<span class="badge">appsettings.Testing.json → App:BaseUrl</span></td></tr>
+      <tr><td>Production base URL</td><td><code>https://api-sa.vidyaone.com/form/</code> &nbsp;<span class="badge">appsettings.json → App:BaseUrl</span></td></tr>
+      <tr><td>Development</td><td>No <code>App:BaseUrl</code> configured. Runs locally on Kestrel at <code>http://localhost:65084</code> (<code>Properties/launchSettings.json</code>); DB from <code>appsettings.Development.json</code>.</td></tr>
+      <tr><td>Region</td><td><code>ap-south-1</code></td></tr>
+      <tr><td>Runtime</td><td>ASP.NET Core 10 on AWS Lambda, fronted by API Gateway <strong>HTTP API v2</strong>.</td></tr>
+      <tr><td>Method</td><td><code>POST</code> (+ <code>OPTIONS</code> preflight, short-circuited to <code>200</code>).</td></tr>
+      <tr><td>Request content type</td><td><code>application/json</code> — required. A non-JSON <code>Content-Type</code> returns <code>415</code>.</td></tr>
+      <tr><td>Response content type</td><td><code>application/json</code>.</td></tr>
+      <tr><td><code>Accept</code></td><td>Not enforced — the service disables HTTP 406, so a missing / odd <code>Accept</code> still returns JSON.</td></tr>
+      <tr><td>Numeric fields</td><td>None — every request field is a string. (Lenient number-from-string parsing is configured only for Minimal-API endpoints, not this controller.)</td></tr>
+      <tr><td>Unknown JSON properties</td><td>Ignored.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <section id="auth">
+    <h2><span class="idx">03</span> Authentication</h2>
+    <p class="lead">
+      <code>POST /ticket</code> (and <code>GET {base}</code>) are behind the <strong>vAccount SaaS common-auth
+      cookie</strong>. There is no API key, bearer token or query-string auth.
+    </p>
+    <ul class="notes">
+      <li>Cookie name <code>vacc-common-auth</code> — an <code>HttpOnly</code>, signed session cookie issued by
+          the vAccount login flow. Its signing key is resolved at runtime from DynamoDB
+          (<code>DynamoDb:CookieConfigKey</code>).</li>
+      <li>The SaaS-cookie middleware validates it before the action runs. Missing / expired / invalid →
+          <code>401</code>.</li>
+      <li><strong>Browser callers:</strong> send credentialed requests
+          (<code>fetch(url, { credentials: 'include' })</code>). The cookie rides along automatically.</li>
+      <li><strong>Server-to-server callers:</strong> forward the end user's
+          <code>Cookie: vacc-common-auth=…</code> header verbatim.</li>
+      <li><strong>Development:</strong> the middleware substitutes a fixed dev identity — no cookie needed when
+          running locally.</li>
+      <li><strong>CORS / preflight:</strong> <code>OPTIONS</code> is answered with <code>200</code> before auth
+          runs; the actual <code>Access-Control-Allow-*</code> headers are emitted by <strong>AWS API Gateway</strong>,
+          not by application code. Confirm the allowed-origin list with the platform team; cross-origin browser
+          calls must be credentialed.</li>
+    </ul>
+  </section>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <section id="envelope">
+    <h2><span class="idx">04</span> Response envelope</h2>
+    <p class="lead">Every response — success or failure — is the shared <code>ApiResponse</code> shape.</p>
+    <table>
+      <thead><tr><th>Member</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+      <tr><td><code>success</code></td><td>boolean</td><td><code>true</code> only on 2xx.</td></tr>
+      <tr><td><code>message</code></td><td>string · nullable</td><td>Human-readable summary. On success this is <code>"Success."</code>.</td></tr>
+      <tr><td><code>data</code></td><td>object · nullable</td><td>Always <code>null</code> for this service — the route returns no payload.</td></tr>
+      <tr><td><code>errors</code></td><td>array · nullable</td><td>Present on failures that carry per-field / typed detail. Each entry: <code>{ "code": "&lt;MACHINE_CODE&gt;", "message": "&lt;text&gt;", "field": "&lt;path or null&gt;" }</code>. Switch on <code>code</code>, never on <code>message</code>.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      Error bodies produced by the exception middleware omit <code>null</code> members (so <code>data</code>, and
+      sometimes <code>errors</code>, are simply absent). Success bodies from the controller include all four
+      members explicitly.
+    </div>
+    <h4>Error codes you can receive</h4>
+    <table>
+      <thead><tr><th>code</th><th>HTTP</th><th>Meaning</th></tr></thead>
+      <tbody>
+      <tr><td><code>VALIDATION_FAILED</code></td><td>400</td><td>Request body failed field validation / model binding.</td></tr>
+      <tr><td><code>INVALID_INPUT</code></td><td>400 / 415</td><td>Malformed body, or unsupported <code>Content-Type</code>.</td></tr>
+      <tr><td><code>UNAUTHORIZED</code></td><td>401</td><td>SaaS cookie missing / expired / invalid.</td></tr>
+      <tr><td><code>CONCURRENCY_CONFLICT</code></td><td>409</td><td>A concurrent writer removed the row mid-upsert. Retryable.</td></tr>
+      <tr><td><code>RECORD_NOT_FOUND</code></td><td>404</td><td>Unknown route / path.</td></tr>
+      <tr><td><code>INTERNAL_ERROR</code></td><td>500</td><td>Unexpected server / database error. Detail is hidden outside Development.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <section id="ticket">
+    <h2><span class="idx">05</span> <span class="tag post">POST</span> /ticket</h2>
+    <p class="summary">
+      Upsert the link between a form submission and its downstream tickets. Call this once the vOne and VKS
+      tickets for a submitted form have been created, to persist which ticket IDs / numbers belong to that
+      <code>requestId</code>. Keyed on <code>requestId</code> — calling it again for the same
+      <code>requestId</code> overwrites the four ticket fields in place. Safe to retry.
+    </p>
+
+    <h3>Request</h3>
+    <table>
+      <thead><tr><th>Property</th><th>Value</th></tr></thead>
+      <tbody>
+      <tr><td>Method</td><td><code>POST</code></td></tr>
+      <tr><td>Testing URL</td><td><code>https://api-sa.vidyaone.com/test/form/ticket</code></td></tr>
+      <tr><td>Production URL</td><td><code>https://api-sa.vidyaone.com/form/ticket</code></td></tr>
+      <tr><td>Path / query params</td><td>None.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Headers</h4>
+    <table>
+      <thead><tr><th>Header</th><th>Req?</th><th>Rule</th></tr></thead>
+      <tbody>
+      <tr><td><code>Content-Type</code></td><td><span class="tag req">required</span></td><td>Must be <code>application/json</code>; otherwise <code>415</code>.</td></tr>
+      <tr><td><code>Cookie</code></td><td><span class="tag req">required</span></td><td>Must contain a valid <code>vacc-common-auth=…</code>. Omitted in Development. Missing/invalid → <code>401</code>.</td></tr>
+      <tr><td><code>Accept</code></td><td><span class="tag opt">optional</span></td><td>Ignored — response is always JSON.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Body — JSON object (flat, not wrapped)</h4>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Req?</th><th>Constraints</th></tr></thead>
+      <tbody>
+      <tr><td><code>requestId</code></td><td>string</td><td><span class="tag req">required</span></td><td>Non-empty; max <strong>200</strong> chars. The form submission's business key; the unique key of this mapping. Never modified by an update.</td></tr>
+      <tr><td><code>vOneTicketId</code></td><td>string</td><td><span class="tag req">required</span></td><td>Non-empty; max <strong>100</strong> chars. Opaque ticket identifier.</td></tr>
+      <tr><td><code>vOneTicketNumber</code></td><td>string</td><td><span class="tag req">required</span></td><td>Non-empty; max <strong>50</strong> chars. Human-facing ticket number.</td></tr>
+      <tr><td><code>vksTicketId</code></td><td>string</td><td><span class="tag req">required</span></td><td>Non-empty; max <strong>100</strong> chars. Opaque ticket identifier.</td></tr>
+      <tr><td><code>vksTicketNumber</code></td><td>string</td><td><span class="tag req">required</span></td><td>Non-empty; max <strong>50</strong> chars. Human-facing ticket number.</td></tr>
+      </tbody>
+    </table>
+    <p class="lead">No enums — all five values are stored verbatim. Whitespace is not trimmed.</p>
+
+    <h4>Example request — Testing</h4>
+<pre><code>POST https://api-sa.vidyaone.com/test/form/ticket
+Content-Type: application/json
+Cookie: vacc-common-auth=eyJhbGciOiJ...&lt;signed session cookie&gt;
+
+{
+  "requestId": "798930e2-58de-4ab4-8aa3-906e76faaa1d",
+  "vOneTicketId": "484691000053243521",
+  "vOneTicketNumber": "1785",
+  "vksTicketId": "324596000072328335",
+  "vksTicketNumber": "48268"
+}</code></pre>
+
+    <h3>Response</h3>
+    <div class="status s200">200 OK</div>
+    <p class="lead">Returned whether the row was inserted or updated — the response does not distinguish the two.</p>
+<pre><code>{
+  "success": true,
+  "message": "Success.",
+  "data": null,
+  "errors": null
+}</code></pre>
+
+    <h4>Behaviour — upsert &amp; revive (worked example)</h4>
+    <ul class="notes">
+      <li><strong>First call</strong> for <code>requestId = R</code> → a new <code>tbl_form_ticket</code> row is
+          inserted (<code>is_active = true</code>, <code>is_deleted = false</code>).</li>
+      <li><strong>Second call</strong> for the same <code>R</code> with different ticket numbers → the existing
+          row's <code>v_one_ticket_id/number</code>, <code>vks_ticket_id/number</code> and <code>updated_at</code>
+          are overwritten. <code>request_id</code> and <code>created_at</code> are untouched.</li>
+      <li><strong>If that row had been soft-deleted</strong> (<code>is_deleted = true</code>), the same update
+          also revives it: <code>is_active = true</code>, <code>is_deleted = false</code>,
+          <code>inactive_at = null</code>, <code>deleted_at = null</code>.</li>
+      <li><strong>Idempotent:</strong> sending the same body twice leaves exactly one row in the same final
+          state. There is no create-vs-update signal in the response and none is needed.</li>
+    </ul>
+
+    <h4>Error responses</h4>
+    <div class="status s400">400 · VALIDATION_FAILED</div>
+    <p class="lead">Any required field missing, empty, or over its length limit; or an empty / unparseable JSON body.</p>
+<pre><code>{
+  "success": false,
+  "message": "Validation failed.",
+  "errors": [
+    { "code": "VALIDATION_FAILED", "message": "RequestId is required.", "field": "PostDTO.RequestId" },
+    { "code": "VALIDATION_FAILED", "message": "VksTicketNumber must not exceed 50 characters.", "field": "PostDTO.VksTicketNumber" }
+  ]
+}</code></pre>
+    <p class="lead"><strong>Do not retry</strong> without correcting the body.</p>
+
+    <div class="status s401">401 · UNAUTHORIZED</div>
+    <p class="lead"><code>vacc-common-auth</code> cookie missing, expired or invalid.</p>
+<pre><code>{
+  "success": false,
+  "message": "Authentication cookie missing or invalid."
+}</code></pre>
+    <p class="lead">Re-authenticate (refresh the cookie), then retry.</p>
+
+    <div class="status s409">409 · CONCURRENCY_CONFLICT</div>
+    <p class="lead">
+      Rare. A concurrent request inserted and then deleted the same <code>requestId</code> row in the small
+      window between this request's update-probe and its insert-retry.
+    </p>
+<pre><code>{
+  "success": false,
+  "message": "Tbl_Form_Ticket was modified by another process. Key=798930e2-58de-4ab4-8aa3-906e76faaa1d. Please reload and retry."
+}</code></pre>
+    <p class="lead"><strong>Retry</strong> after a short backoff — it is transient.</p>
+
+    <div class="status s415">415 · INVALID_INPUT</div>
+    <p class="lead"><code>Content-Type</code> is not <code>application/json</code>.</p>
+<pre><code>{
+  "success": false,
+  "message": "Unsupported media type.",
+  "errors": [ { "code": "INVALID_INPUT", "message": "Unsupported media type." } ]
+}</code></pre>
+
+    <div class="status s500">500 · INTERNAL_ERROR</div>
+    <p class="lead">Unexpected database / server error (connectivity, an unforeseen constraint violation, …). Detail is hidden outside Development.</p>
+<pre><code>{
+  "success": false,
+  "message": "An unexpected error occurred."
+}</code></pre>
+    <p class="lead"><strong>Retry</strong> with exponential backoff; escalate if it persists.</p>
+  </section>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <section id="status">
+    <h2><span class="idx">06</span> Status codes</h2>
+    <table>
+      <thead><tr><th>Status</th><th>Meaning &amp; retry</th></tr></thead>
+      <tbody>
+      <tr><td><code>200</code></td><td>Upsert succeeded. Body <code>{ success: true, message: "Success." }</code>.</td></tr>
+      <tr><td><code>400</code></td><td>Body failed validation / model binding. Fix and resend — do not retry unchanged.</td></tr>
+      <tr><td><code>401</code></td><td>SaaS cookie missing / expired / invalid. Re-authenticate and retry.</td></tr>
+      <tr><td><code>404</code></td><td>Unknown path. Wrapped as <code>{ success:false, errors:[{code:"RECORD_NOT_FOUND"}] }</code>.</td></tr>
+      <tr><td><code>405</code></td><td>Wrong method on a known path (only <code>POST</code> is handled). Wrapped in the envelope.</td></tr>
+      <tr><td><code>409</code></td><td><code>CONCURRENCY_CONFLICT</code> — a concurrent writer removed the row mid-upsert. Transient; retry after backoff.</td></tr>
+      <tr><td><code>415</code></td><td><code>Content-Type</code> not <code>application/json</code>. Set the header.</td></tr>
+      <tr><td><code>499</code></td><td>Client disconnected before the response. No body.</td></tr>
+      <tr><td><code>500</code></td><td>Unexpected server / DB error; detail hidden outside Development. Retry with exponential backoff; escalate if persistent.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ─────────────────────────────────────────────────────────────── -->
+  <section id="notes">
+    <h2><span class="idx">07</span> Data model &amp; limits</h2>
+    <h4>Table written</h4>
+    <table>
+      <thead><tr><th>Route</th><th>Table</th><th>Key</th></tr></thead>
+      <tbody>
+      <tr><td><code>POST /ticket</code></td><td><code>public.tbl_form_ticket</code></td><td>Upsert on <code>request_id</code> (unique). PK <code>mapping_id</code> (bigserial).</td></tr>
+      </tbody>
+    </table>
+
+    <h4><code>tbl_form_ticket</code> column limits</h4>
+    <table>
+      <thead><tr><th>Column</th><th>DB type</th><th>API field</th></tr></thead>
+      <tbody>
+      <tr><td><code>request_id</code></td><td><code>varchar(200)</code> · unique · not null</td><td><code>requestId</code></td></tr>
+      <tr><td><code>v_one_ticket_id</code></td><td><code>varchar(100)</code> · not null</td><td><code>vOneTicketId</code></td></tr>
+      <tr><td><code>v_one_ticket_number</code></td><td><code>varchar(50)</code> · not null · indexed</td><td><code>vOneTicketNumber</code></td></tr>
+      <tr><td><code>vks_ticket_id</code></td><td><code>varchar(100)</code> · not null</td><td><code>vksTicketId</code></td></tr>
+      <tr><td><code>vks_ticket_number</code></td><td><code>varchar(50)</code> · not null · indexed</td><td><code>vksTicketNumber</code></td></tr>
+      <tr><td><code>is_active, is_deleted, created_at, updated_at, inactive_at, deleted_at</code></td><td>audit columns</td><td>server-managed — see the revive behaviour in §<a href="#ticket">05</a></td></tr>
+      </tbody>
+    </table>
+
+    <h4>General limits</h4>
+    <ul class="notes">
+      <li><strong>Rate limits:</strong> none in application code. Any throttling is at API Gateway — check with the platform team.</li>
+      <li><strong>Request body size:</strong> bounded by the API Gateway payload limit (~10&nbsp;MB for HTTP APIs); an unreadable / oversized body returns <code>400</code> "Malformed or unreadable request."</li>
+      <li><strong>Timestamps:</strong> stored as <code>timestamptz</code>, always UTC.</li>
+      <li><strong>No pagination / async / events:</strong> the route is a synchronous single write; nothing is queued and no message is published downstream.</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>
+  vOne-FormAPI — generated from source (<code>FormController</code>, <code>CreateFormTicketCommand</code>,
+  <code>FormTicketRepository</code>, <code>Startup</code>, <code>appsettings*.json</code>).
+  Keep this file in sync with the request/response contract.
+</footer>
+
+</body>
+</html>

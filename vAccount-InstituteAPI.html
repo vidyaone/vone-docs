@@ -1027,14 +1027,15 @@
   <code>vacc-account-auth</code> yields <span class="status-err">401</span>.
 </div>
 <ul class="tight">
-  <li>The <code>tbl_onboard</code> row is created when the institute is created (a different service). All three
-    endpoints assume it already exists and return <span class="status-err">404</span> if it does not.</li>
+  <li>The <code>tbl_onboard</code> row is created when the institute is created (a different service). The two
+    <code>PUT</code> endpoints assume it already exists and return <span class="status-err">404</span> if it does not;
+    <code>GET /onboard/status</code> treats a missing row as <code>false</code>.</li>
   <li>The <code>test-</code> prefix on <code>product</code> works the same as everywhere else (§9.1).</li>
 </ul>
 
 <!-- 8.1 -->
 <h3 id="onboard-status" class="sec"><span class="method m-get">GET</span><span class="endpoint-path">/onboard/status</span></h3>
-<p><strong>Summary.</strong> Reports whether onboarding is <em>still pending</em> for the authenticated institute. Call it on app load to decide whether to show the onboarding flow. Returns <code>true</code> while onboarding is outstanding, <code>false</code> once it is complete (or if the institute has no onboard row).</p>
+<p><strong>Summary.</strong> Reports whether onboarding is <em>complete</em> for the authenticated institute. Call it on app load to decide whether to show the onboarding flow. Returns <code>true</code> only once onboarding is finished (<code>isOnboarded = true</code>, by the user or the support team); returns <code>false</code> while onboarding is still outstanding <em>or</em> if the institute has no onboard row.</p>
 
 <h4>Request</h4>
 <table>
@@ -1058,7 +1059,7 @@
 <table>
   <thead><tr><th>Field</th><th>Type</th><th>Meaning</th></tr></thead>
   <tbody>
-    <tr><td><code>data</code></td><td>boolean</td><td><code>true</code> — the institute has a non-deleted <code>tbl_onboard</code> row with <code>isOnboarded = false</code> <em>and</em> <code>bySupportTeam = false</code>: onboarding is still pending, show the flow. <code>false</code> — already onboarded, <em>or</em> no onboard row exists (the two cases are not distinguished).</td></tr>
+    <tr><td><code>data</code></td><td>boolean</td><td><code>true</code> — the institute has a non-deleted <code>tbl_onboard</code> row with <code>isOnboarded = true</code>: onboarding is complete, don't show the flow. <code>false</code> — the row still has <code>isOnboarded = false</code> (onboarding pending, show the flow), <em>or</em> no onboard row exists (the two cases are not distinguished). <code>bySupportTeam</code> does not affect this value.</td></tr>
   </tbody>
 </table>
 
