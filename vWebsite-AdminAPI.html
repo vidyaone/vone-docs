@@ -69,7 +69,7 @@
     Runtime: AWS Lambda (APIGatewayHttpApiV2ProxyFunction) &nbsp;·&nbsp; Region: <code>ap-south-1</code> &nbsp;·&nbsp;
     Lambda: <code>vweb-admin-lambda</code> &nbsp;·&nbsp; Content type: <code>application/json</code>
   </p>
-  <p class="meta">Last updated: 2026-09-10 &nbsp;·&nbsp; Covers the <b>DataJson</b>, <b>Module</b>, and <b>Page</b> endpoints only &nbsp;·&nbsp; includes <code>Idempotency-Key</code> / repeat-call behaviour per §2.1.</p>
+  <p class="meta">Last updated: 2026-09-11 &nbsp;·&nbsp; Covers the <b>DataJson</b>, <b>Module</b>, <b>Page</b>, and <b>Onboard</b> endpoints only &nbsp;·&nbsp; includes <code>Idempotency-Key</code> / repeat-call behaviour per §2.1.</p>
 </header>
 
 <div class="nav">
@@ -99,6 +99,16 @@
         <li><a href="#get-page">GET /page</a></li>
         <li><a href="#get-page-status">GET /page/status</a></li>
         <li><a href="#post-page">POST /page</a></li>
+      </ol>
+    </li>
+    <li><a href="#onboard">Onboard endpoints</a>
+      <ol>
+        <li><a href="#get-onboard-domain">GET /onboard/domain</a></li>
+        <li><a href="#post-onboard-domain">POST /onboard/domain</a></li>
+        <li><a href="#get-onboard-module">GET /onboard/module</a></li>
+        <li><a href="#post-onboard-module">POST /onboard/module</a></li>
+        <li><a href="#get-onboard-template">GET /onboard/template</a></li>
+        <li><a href="#post-onboard-template">POST /onboard/template</a></li>
       </ol>
     </li>
   </ol>
@@ -159,6 +169,9 @@
   <tr><td><code>POST /data</code></td><td><code>(inst_saas_code, file)</code> — the S3 object key</td><td>Overwrites the same object with the same bytes; returns <span class="status-ok">200</span> with the same <code>file_key</code>. Not distinguished as create vs update. <span class="small">(Each call mints <em>fresh</em> presigned upload URLs when <code>upload_files</code> is sent.)</span></td></tr>
   <tr><td><code>POST /module</code></td><td><code>(inst_id, module_name)</code> per array item</td><td>Leaves exactly one row per name in the same final <code>module_status</code>; returns <span class="status-ok">200</span> <code>data: true</code>. Response does not distinguish created vs updated rows.</td></tr>
   <tr><td><code>POST /page</code></td><td><code>(inst_id, page_name)</code> per array item</td><td>Leaves exactly one row per name in the same final <code>page_status</code>; returns <span class="status-ok">200</span> <code>data: true</code>. Response does not distinguish created vs updated rows.</td></tr>
+  <tr><td><code>POST /onboard/domain</code></td><td><code>inst_id</code> — the institution's single <code>tbl_panel_status</code> row</td><td>Leaves <code>is_setup_domain</code> at the same final value; returns <span class="status-ok">200</span> <code>data: true</code>. No create-vs-update distinction.</td></tr>
+  <tr><td><code>POST /onboard/module</code></td><td><code>inst_id</code> — same row</td><td>Leaves <code>is_setup_module</code> at the same final value; returns <span class="status-ok">200</span> <code>data: true</code>. No create-vs-update distinction.</td></tr>
+  <tr><td><code>POST /onboard/template</code></td><td><code>inst_id</code> — same row</td><td>Leaves <code>is_setup_template</code> at the same final value; returns <span class="status-ok">200</span> <code>data: true</code>. No create-vs-update distinction.</td></tr>
 </table>
 <p class="small">
   <code>GET</code> endpoints are safe/read-only and naturally idempotent.
@@ -190,7 +203,7 @@
   <tr><td>400</td><td><code>INVALID_INPUT</code></td><td>Service-layer rejection (bad file name, JSON too deep/large, malformed request body).</td></tr>
   <tr><td>400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> query parameter missing.</td></tr>
   <tr><td>401</td><td><code>UNAUTHORIZED</code></td><td>Auth cookie missing / invalid / expired.</td></tr>
-  <tr><td>404</td><td><code>RECORD_NOT_FOUND</code></td><td>Requested file / module / page does not exist for this institution.</td></tr>
+  <tr><td>404</td><td><code>RECORD_NOT_FOUND</code></td><td>Requested file / module / page does not exist for this institution. <span class="small">(Not used by <a href="#onboard">Onboard</a> — its GETs default to <code>false</code> instead.)</span></td></tr>
   <tr><td>409</td><td><code>DUPLICATE_RECORD</code></td><td>Unique-constraint conflict (only reachable once the DB unique index is in place).</td></tr>
   <tr><td>499</td><td>—</td><td>Client disconnected mid-request. No body.</td></tr>
   <tr><td>500</td><td><code>INTERNAL_ERROR</code></td><td>Unhandled failure (e.g. S3 outage). Message is generic in Production.</td></tr>
@@ -596,6 +609,219 @@ Cookie: vacc-vweb-auth=eyJ...9c.7f...ab
 <h4>Error responses</h4>
 <p class="small">Same set as <a href="#post-module">POST /module</a> (400 <code>VALIDATION_FAILED</code> / <code>INVALID_INPUT</code> / <code>REQUIRED_FIELD</code>, 401, 409 <code>DUPLICATE_RECORD</code>, 500).</p>
 <p class="note"><b>Planned side effect (not yet implemented).</b> <code>TODO</code> to email the customer notifying them of the page changes.</p>
+</div>
+
+<!-- ================================================================= ONBOARD -->
+<h2 id="onboard">8. Onboard endpoints</h2>
+<p>
+  Route prefix <code>onboard</code>. Tracks per-institution onboarding-progress flags in <code>tbl_panel_status</code>
+  — one row per institution, upserted lazily on the first write (unique constraint <code>tbl_panel_status_inst_id_key</code>
+  on <code>inst_id</code>). Each step (domain, module, template) has an independent <code>GET</code> (current flag) /
+  <code>POST</code> (set flag) pair; a step's flag is unrelated to the others and does not cascade.
+</p>
+
+<!-- ---------- GET /onboard/domain ---------- -->
+<div class="endpoint" id="get-onboard-domain">
+<h3><span class="pill get">GET</span> /onboard/domain</h3>
+<p><b>Summary.</b> Get whether the caller's institution has completed the domain-setup onboarding step (<code>tbl_panel_status.is_setup_domain</code>). Call it to render onboarding progress.</p>
+
+<h4>Request</h4>
+<table>
+  <tr><th>Env</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/onboard/domain?product=vweb</code></td></tr>
+</table>
+<table>
+  <tr><th>Param</th><th>In</th><th>Required</th><th>Rules</th></tr>
+  <tr><td><code>product</code></td><td>query</td><td>yes</td><td>See §2.</td></tr>
+</table>
+<p class="small">Headers: <code>Cookie: vacc-{product}-auth=…</code>. No request body.</p>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": { "isSetupDomain": true }
+}</code></pre>
+<p class="small">Returns <code>isSetupDomain: false</code> — not a <span class="status-err">404</span> — when the institution has no <code>tbl_panel_status</code> row yet (i.e. no onboarding step has been completed).</p>
+
+<h4>Error responses</h4>
+<table>
+  <tr><th>HTTP</th><th>code</th><th>Cause</th></tr>
+  <tr><td>400</td><td><code>VALIDATION_FAILED</code></td><td>Institution not resolved (<code>InstId &le; 0</code>).</td></tr>
+  <tr><td>400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+  <tr><td>401</td><td><code>UNAUTHORIZED</code></td><td>Cookie missing / invalid / expired.</td></tr>
+  <tr><td>500</td><td><code>INTERNAL_ERROR</code></td><td>Database error.</td></tr>
+</table>
+</div>
+
+<!-- ---------- POST /onboard/domain ---------- -->
+<div class="endpoint" id="post-onboard-domain">
+<h3><span class="pill post">POST</span> /onboard/domain</h3>
+<p><b>Summary.</b> Set whether the caller's institution has completed the domain-setup onboarding step. Call it once the customer finishes that step.</p>
+
+<h4>Request</h4>
+<table>
+  <tr><th>Env</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/admin/onboard/domain?product=vweb</code></td></tr>
+</table>
+<h4>Headers</h4>
+<table>
+  <tr><th>Header</th><th>Required</th><th>Notes</th></tr>
+  <tr><td><code>Content-Type: application/json</code></td><td>yes</td><td>—</td></tr>
+  <tr><td><code>Cookie: vacc-{product}-auth=…</code></td><td>yes</td><td>See §2.</td></tr>
+  <tr><td><code>Idempotency-Key: &lt;uuid&gt;</code></td><td>sent by client</td><td>Platform convention; <b>ignored by this service</b>. Dedupe key is <code>inst_id</code> — see §2.1.</td></tr>
+</table>
+<h4>Body fields</h4>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Required</th><th>Constraints</th></tr>
+  <tr><td><code>isSetupDomain</code></td><td>boolean</td><td>yes</td><td><code>true</code> or <code>false</code>.</td></tr>
+</table>
+
+<h4>Example request</h4>
+<pre><code>POST https://api-vweb.vidyaone.com/test/admin/onboard/domain?product=vweb
+Content-Type: application/json
+Cookie: vacc-vweb-auth=eyJ...9c.7f...ab
+
+{ "isSetupDomain": true }</code></pre>
+
+<h4>Behaviour</h4>
+<p class="small">
+  Updates only the <code>is_setup_domain</code> column (+ <code>updated_at</code>) on the institution's
+  <code>tbl_panel_status</code> row; inserts a fresh default row carrying the flag if none exists yet.
+  A concurrent first-time insert for the same institution is reconciled with one automatic retry.
+</p>
+<p class="note">
+  <b>Idempotency.</b> <code>Idempotency-Key</code> is ignored. The effective key is <code>inst_id</code>.
+  Re-sending the same payload leaves <code>is_setup_domain</code> at the same final value and returns
+  <span class="status-ok">200</span> <code>data: true</code>; create vs update is not distinguished.
+</p>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{ "success": true, "message": null, "data": true, "errors": null }</code></pre>
+
+<h4>Error responses</h4>
+<table>
+  <tr><th>HTTP</th><th>code</th><th>Cause</th></tr>
+  <tr><td>400</td><td><code>VALIDATION_FAILED</code></td><td>Institution not resolved (<code>InstId &le; 0</code>).</td></tr>
+  <tr><td>400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+  <tr><td>401</td><td><code>UNAUTHORIZED</code></td><td>Cookie missing / invalid / expired.</td></tr>
+  <tr><td>500</td><td><code>INTERNAL_ERROR</code></td><td>Database error.</td></tr>
+</table>
+</div>
+
+<!-- ---------- GET /onboard/module ---------- -->
+<div class="endpoint" id="get-onboard-module">
+<h3><span class="pill get">GET</span> /onboard/module</h3>
+<p><b>Summary.</b> Get whether the caller's institution has completed the module-setup onboarding step (<code>tbl_panel_status.is_setup_module</code>).</p>
+<h4>Request</h4>
+<table>
+  <tr><th>Env</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/onboard/module?product=vweb</code></td></tr>
+</table>
+<p class="small"><code>product</code> (query, required, see §2). No request body.</p>
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{ "success": true, "message": null, "errors": null, "data": { "isSetupModule": true } }</code></pre>
+<p class="small">Returns <code>isSetupModule: false</code> — not a <span class="status-err">404</span> — when no <code>tbl_panel_status</code> row exists yet.</p>
+<h4>Error responses</h4>
+<p class="small">Same as <a href="#get-onboard-domain">GET /onboard/domain</a>.</p>
+</div>
+
+<!-- ---------- POST /onboard/module ---------- -->
+<div class="endpoint" id="post-onboard-module">
+<h3><span class="pill post">POST</span> /onboard/module</h3>
+<p><b>Summary.</b> Set whether the caller's institution has completed the module-setup onboarding step.</p>
+<h4>Request</h4>
+<table>
+  <tr><th>Env</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/admin/onboard/module?product=vweb</code></td></tr>
+</table>
+<h4>Headers</h4>
+<table>
+  <tr><th>Header</th><th>Required</th><th>Notes</th></tr>
+  <tr><td><code>Content-Type: application/json</code></td><td>yes</td><td>—</td></tr>
+  <tr><td><code>Cookie: vacc-{product}-auth=…</code></td><td>yes</td><td>See §2.</td></tr>
+  <tr><td><code>Idempotency-Key: &lt;uuid&gt;</code></td><td>sent by client</td><td>Platform convention; <b>ignored by this service</b>. Dedupe key is <code>inst_id</code> — see §2.1.</td></tr>
+</table>
+<h4>Body fields</h4>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Required</th><th>Constraints</th></tr>
+  <tr><td><code>isSetupModule</code></td><td>boolean</td><td>yes</td><td><code>true</code> or <code>false</code>.</td></tr>
+</table>
+<h4>Example request</h4>
+<pre><code>POST https://api-vweb.vidyaone.com/test/admin/onboard/module?product=vweb
+Content-Type: application/json
+Cookie: vacc-vweb-auth=eyJ...9c.7f...ab
+
+{ "isSetupModule": true }</code></pre>
+<h4>Behaviour</h4>
+<p class="small">Same upsert-by-<code>inst_id</code> mechanics as <a href="#post-onboard-domain">POST /onboard/domain</a>, against the <code>is_setup_module</code> column.</p>
+<p class="note">
+  <b>Idempotency.</b> Effective key is <code>inst_id</code>; <code>Idempotency-Key</code> is ignored. Re-sending the
+  same payload leaves <code>is_setup_module</code> at the same final value and returns <span class="status-ok">200</span>
+  <code>data: true</code>.
+</p>
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{ "success": true, "message": null, "data": true, "errors": null }</code></pre>
+<h4>Error responses</h4>
+<p class="small">Same as <a href="#post-onboard-domain">POST /onboard/domain</a>.</p>
+</div>
+
+<!-- ---------- GET /onboard/template ---------- -->
+<div class="endpoint" id="get-onboard-template">
+<h3><span class="pill get">GET</span> /onboard/template</h3>
+<p><b>Summary.</b> Get whether the caller's institution has completed the template-setup onboarding step (<code>tbl_panel_status.is_setup_template</code>).</p>
+<h4>Request</h4>
+<table>
+  <tr><th>Env</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/onboard/template?product=vweb</code></td></tr>
+</table>
+<p class="small"><code>product</code> (query, required, see §2). No request body.</p>
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{ "success": true, "message": null, "errors": null, "data": { "isSetupTemplate": true } }</code></pre>
+<p class="small">Returns <code>isSetupTemplate: false</code> — not a <span class="status-err">404</span> — when no <code>tbl_panel_status</code> row exists yet.</p>
+<h4>Error responses</h4>
+<p class="small">Same as <a href="#get-onboard-domain">GET /onboard/domain</a>.</p>
+</div>
+
+<!-- ---------- POST /onboard/template ---------- -->
+<div class="endpoint" id="post-onboard-template">
+<h3><span class="pill post">POST</span> /onboard/template</h3>
+<p><b>Summary.</b> Set whether the caller's institution has completed the template-setup onboarding step.</p>
+<h4>Request</h4>
+<table>
+  <tr><th>Env</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/admin/onboard/template?product=vweb</code></td></tr>
+</table>
+<h4>Headers</h4>
+<table>
+  <tr><th>Header</th><th>Required</th><th>Notes</th></tr>
+  <tr><td><code>Content-Type: application/json</code></td><td>yes</td><td>—</td></tr>
+  <tr><td><code>Cookie: vacc-{product}-auth=…</code></td><td>yes</td><td>See §2.</td></tr>
+  <tr><td><code>Idempotency-Key: &lt;uuid&gt;</code></td><td>sent by client</td><td>Platform convention; <b>ignored by this service</b>. Dedupe key is <code>inst_id</code> — see §2.1.</td></tr>
+</table>
+<h4>Body fields</h4>
+<table>
+  <tr><th>Field</th><th>Type</th><th>Required</th><th>Constraints</th></tr>
+  <tr><td><code>isSetupTemplate</code></td><td>boolean</td><td>yes</td><td><code>true</code> or <code>false</code>.</td></tr>
+</table>
+<h4>Example request</h4>
+<pre><code>POST https://api-vweb.vidyaone.com/test/admin/onboard/template?product=vweb
+Content-Type: application/json
+Cookie: vacc-vweb-auth=eyJ...9c.7f...ab
+
+{ "isSetupTemplate": true }</code></pre>
+<h4>Behaviour</h4>
+<p class="small">Same upsert-by-<code>inst_id</code> mechanics as <a href="#post-onboard-domain">POST /onboard/domain</a>, against the <code>is_setup_template</code> column.</p>
+<p class="note">
+  <b>Idempotency.</b> Effective key is <code>inst_id</code>; <code>Idempotency-Key</code> is ignored. Re-sending the
+  same payload leaves <code>is_setup_template</code> at the same final value and returns <span class="status-ok">200</span>
+  <code>data: true</code>.
+</p>
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{ "success": true, "message": null, "data": true, "errors": null }</code></pre>
+<h4>Error responses</h4>
+<p class="small">Same as <a href="#post-onboard-domain">POST /onboard/domain</a>.</p>
 </div>
 
 <hr>
