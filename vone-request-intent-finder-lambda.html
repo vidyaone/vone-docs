@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vone-request-intent-finder-lambda — Developer Docs</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --panel: #ffffff;
+    --border: #e5e7eb;
+    --text: #1a1a1a;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --ok: #15803d;
+    --err: #b91c1c;
+    --warn: #b45309;
+    --code-bg: #f4f4f5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  header {
+    padding: 32px 24px 20px;
+    border-bottom: 1px solid var(--border);
+    max-width: 980px;
+    margin: 0 auto;
+  }
+  header h1 { margin: 0 0 6px; font-size: 1.6rem; }
+  header p { margin: 0; color: var(--muted); }
+  nav {
+    max-width: 980px;
+    margin: 16px auto 0;
+    padding: 0 24px;
+    font-size: 0.85rem;
+  }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    margin-right: 16px;
+    display: inline-block;
+    margin-bottom: 6px;
+  }
+  nav a:hover { text-decoration: underline; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px; }
+  section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+  section h2 {
+    margin-top: 0;
+    font-size: 1.15rem;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  section h3 { font-size: 0.95rem; margin: 20px 0 8px; }
+  section h4 { font-size: 0.85rem; margin: 16px 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-size: 0.83rem;
+  }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; }
+  p code, td code, li code {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 0.88em;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; margin: 8px 0; }
+  th, td {
+    text-align: left;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    background: var(--code-bg);
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .required { color: var(--err); font-weight: 600; }
+  .optional { color: var(--muted); }
+  .status-200 { color: var(--ok); font-weight: 700; }
+  .status-400, .status-429 { color: var(--warn); font-weight: 700; }
+  .status-500, .status-502, .status-504 { color: var(--err); font-weight: 700; }
+  .note {
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    margin: 14px 0;
+    background: #eff6ff;
+    color: #1e3a5f;
+    font-size: 0.86rem;
+  }
+  .warn-note {
+    border-left: 3px solid var(--warn);
+    padding: 10px 14px;
+    margin: 14px 0;
+    background: #fffbeb;
+    color: #78350f;
+    font-size: 0.86rem;
+  }
+  footer {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 8px 24px 40px;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>vone-request-intent-finder-lambda</h1>
+  <p>Developer reference for the intent-classification API (region: <code>ap-south-1</code>). Takes a raw inbound
+  request from a VIDYAOne intake channel, asks Claude (via Amazon Bedrock) to work out the requester's intent, and
+  returns a normalized form payload.</p>
+</header>
+
+<nav>
+  <a href="#overview">Overview</a>
+  <a href="#auth-cors">Auth &amp; CORS</a>
+  <a href="#endpoint">Endpoint: Find Intent</a>
+  <a href="#request">— Request</a>
+  <a href="#response">— Response</a>
+  <a href="#behaviors">— Special behaviors</a>
+  <a href="#form-fields">Form field reference</a>
+  <a href="#form-types">Form type catalog</a>
+</nav>
+
+<main>
+
+  <!-- ================================================================ -->
+  <section id="overview">
+    <h2>Overview</h2>
+    <table>
+      <tbody>
+        <tr><td>Entry point</td><td><code>lambda_function.lambda_handler</code>, fronted by API Gateway</td></tr>
+        <tr><td>Region</td><td><code>ap-south-1</code></td></tr>
+        <tr><td>Method</td><td><code>POST</code></td></tr>
+        <tr><td>URL (Production)</td><td><code>https://api.vidyaone.com/automation/ticket/intent</code></td></tr>
+        <tr><td>Content type</td><td><code>application/json</code> (request and response)</td></tr>
+        <tr><td>Side effects</td><td>None — this Lambda writes to no database and emits no SQS/SNS message of its own. It is a stateless request → response transform: send it a raw channel submission, get back a normalized classification. Nothing is persisted or queued by this service itself.</td></tr>
+        <tr><td>Downstream shape</td><td>The response's <code>form_fields</code> / <code>form_type</code> / <code>subject</code> / <code>page</code> match what <code>vone-form-process-lambda</code> already consumes — but forwarding the response there (or anywhere else) is the caller's responsibility, not something this service does automatically.</td></tr>
+      </tbody>
+    </table>
+    <div class="note">
+      There is only one environment URL on record for this service (given directly, not read from an in-repo
+      config file — this project has no <code>App:BaseUrl</code>-style setting or IaC template). If a separate
+      Testing/staging URL exists, it isn't documented here yet.
+    </div>
+  </section>
+
+  <!-- ================================================================ -->
+  <section id="auth-cors">
+    <h2>Authentication &amp; CORS</h2>
+    <p>
+      <strong>No application-level authentication.</strong> <code>lambda_function.lambda_handler</code> does not
+      check an API key, bearer token, or session cookie on any request — every well-formed
+      <code>{"channel": ..., "data": {...}}</code> body is processed regardless of caller identity. If API Gateway
+      enforces an API key, usage plan, or IAM auth in front of this Lambda, that's configured outside this
+      repository — consult the API Gateway console for the current state.
+    </p>
+    <p>
+      <strong>CORS is handled entirely at API Gateway</strong> — this Lambda's code never sets any
+      <code>Access-Control-*</code> header itself.
+    </p>
+  </section>
+
+  <!-- ================================================================ -->
+  <section id="endpoint">
+    <h2>Endpoint: Find Intent</h2>
+
+    <h3>Summary</h3>
+    <p>
+      Call this when a raw submission arrives on one of VIDYAOne's intake channels — a call transcript, an inbound
+      email, a WhatsApp message, a website form submit, or an AI-chat transcript — and you need it classified into
+      a VIDYAOne form category with structured fields extracted (name, contact details, institution, etc.) before
+      routing it onward. One call classifies one submission; there is no batch mode.
+    </p>
+
+    <!-- ============================================================ -->
+    <h3 id="request">Request</h3>
+    <table>
+      <tbody>
+        <tr><td>Method</td><td><code>POST</code></td></tr>
+        <tr><td>URL</td><td><code>https://api.vidyaone.com/automation/ticket/intent</code></td></tr>
+        <tr><td>Path / query params</td><td>None — every input is in the JSON body.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Headers</h4>
+    <table>
+      <thead><tr><th>Header</th><th>Required?</th><th>Rule</th></tr></thead>
+      <tbody>
+        <tr><td><code>Content-Type</code></td><td class="required">Required</td><td>Must be <code>application/json</code>. The body is parsed as JSON regardless of what's sent, but send this for correctness.</td></tr>
+        <tr><td><code>Idempotency-Key</code></td><td class="optional">Sent by convention, ignored here</td><td>VIDYAOne clients send a UUID by platform convention, but this service does not read or enforce it — see <a href="#behaviors">Special behaviors → Idempotency</a> below for what actually happens on a repeat call.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Body — top level</h4>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Required?</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>channel</code></td><td>string</td><td class="required">Required</td><td>One of <code>ivr</code>, <code>email</code>, <code>whatsapp</code>, <code>form</code>, <code>ai_chat</code> — matched case/hyphen-insensitively (e.g. <code>AI-Chat</code> also matches). No aliases beyond that; an unrecognised value is rejected, never guessed.</td></tr>
+        <tr><td><code>data</code></td><td>object</td><td class="required">Required</td><td>Channel-specific — see the table for the <code>channel</code> value you're sending, below.</td></tr>
+      </tbody>
+    </table>
+    <div class="note">
+      There is no <code>formType</code> field on the request — every submission is classified against this
+      service's own fixed category catalog (see <a href="#form-types">Form type catalog</a> below). There's no
+      way to narrow or override the category list per request.
+    </div>
+
+    <h4>Body — <code>data</code> fields per channel</h4>
+
+    <p><strong><code>channel: "ivr"</code></strong> — max <code>subject</code> 500 chars, max combined message 8,000 chars.</p>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Required?</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>transcript</code></td><td>string</td><td class="required">Required*</td><td>The call transcript. *One of <code>transcript</code> / <code>notes</code> / <code>message</code> must be non-blank.</td></tr>
+        <tr><td><code>notes</code></td><td>string</td><td class="optional">Optional</td><td>An agent's typed note, appended after the transcript.</td></tr>
+        <tr><td><code>message</code></td><td>string</td><td class="optional">Optional (legacy)</td><td>Appended last, after transcript and notes.</td></tr>
+        <tr><td><code>subject</code></td><td>string</td><td class="optional">Optional</td><td>Not required for this channel.</td></tr>
+        <tr><td><code>caller_number</code>, <code>agent</code>, <code>agent_name</code>, <code>call_id</code>, <code>duration</code>, <code>language</code>, <code>queue</code>, <code>recording_url</code></td><td>string</td><td class="optional">Optional</td><td>Passed to the model as extra context; each capped at 300 chars.</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong><code>channel: "email"</code></strong> — max <code>subject</code> 500 chars, max combined message 20,000 chars.</p>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Required?</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>body</code></td><td>string</td><td class="required">Required*</td><td>The email body. *One of <code>messages</code> / <code>body</code> / <code>message</code> / <code>text</code> must be non-blank.</td></tr>
+        <tr><td><code>messages</code></td><td>array</td><td class="optional">Optional</td><td>A structured mail chain instead of one flattened body — array of strings or <code>{sender, text}</code> objects, oldest→newest. <strong>Takes priority over <code>body</code></strong> when both are given.</td></tr>
+        <tr><td><code>subject</code></td><td>string</td><td class="optional">Optional</td><td>Not required, but used for topic/urgency context.</td></tr>
+        <tr><td><code>from</code>, <code>from_email</code>, <code>to</code>, <code>cc</code>, <code>reply_to</code>, <code>message_id</code>, <code>received_at</code></td><td>string</td><td class="optional">Optional</td><td>Passed to the model as extra context, each capped at 300 chars. <code>from_email</code>/<code>from</code>/<code>reply_to</code> also feed the <code>website_url</code> fallback — see <a href="#behaviors">Special behaviors</a>.</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong><code>channel: "whatsapp"</code></strong> — max <code>subject</code> 300 chars, max combined message 8,000 chars.</p>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Required?</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>messages</code></td><td>array</td><td class="required">Required*</td><td>Chat history — array of strings or <code>{sender, text}</code> objects. *One of <code>messages</code> / <code>message</code> / <code>text</code> must be non-blank.</td></tr>
+        <tr><td><code>message</code>, <code>text</code></td><td>string</td><td class="optional">Optional</td><td>A single one-off message, if not sending a <code>messages</code> array.</td></tr>
+        <tr><td><code>wa_id</code>, <code>profile_name</code>, <code>from</code>, <code>phone_number</code>, <code>media_type</code></td><td>string</td><td class="optional">Optional</td><td>Extra context, each capped at 300 chars.</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong><code>channel: "form"</code></strong> — max <code>subject</code> 500 chars, max combined message 10,000 chars.</p>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Required?</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>subject</code></td><td>string</td><td class="optional">Optional*</td><td>*At least one of <code>subject</code> / <code>message</code> / <code>fields</code> must be non-blank — an empty submit is rejected.</td></tr>
+        <tr><td><code>message</code>, <code>comments</code>, <code>enquiry</code></td><td>string</td><td class="optional">Optional*</td><td>Free-text body.</td></tr>
+        <tr><td><code>fields</code> (or <code>form_fields</code>)</td><td>object</td><td class="optional">Optional*</td><td>Arbitrary submitted key/value pairs, rendered as labelled lines above the free text. Capped at 50 entries — extra entries beyond that are silently dropped, not rejected.</td></tr>
+        <tr><td><code>form_name</code>, <code>form_id</code>, <code>page_url</code>, <code>source</code>, <code>utm_source</code>, <code>utm_campaign</code></td><td>string</td><td class="optional">Optional</td><td>Extra context, each capped at 300 chars. Note: <code>page_url</code> here is context for the model only — it never populates the response's <code>page.url</code>, which is always blank.</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong><code>channel: "ai_chat"</code></strong> — max <code>subject</code> 300 chars, max combined message 20,000 chars.</p>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Required?</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>messages</code></td><td>array</td><td class="required">Required*</td><td>Chat transcript — array of strings or <code>{sender, text}</code> objects. Only the most recent 60 lines are kept if longer. *One of <code>messages</code> / <code>transcript</code> / <code>message</code> must be non-blank.</td></tr>
+        <tr><td><code>transcript</code></td><td>array</td><td class="optional">Optional</td><td>Same shape as <code>messages</code>, alternate key.</td></tr>
+        <tr><td><code>message</code></td><td>string</td><td class="optional">Optional</td><td>A single one-off message.</td></tr>
+        <tr><td><code>session_id</code>, <code>conversation_id</code>, <code>visitor_id</code>, <code>page_url</code>, <code>locale</code></td><td>string</td><td class="optional">Optional</td><td>Extra context, each capped at 300 chars.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Example request</h4>
+    <pre>POST /automation/ticket/intent HTTP/1.1
+Host: api.vidyaone.com
+Content-Type: application/json
+
+{
+  "channel": "email",
+  "data": {
+    "subject": "Portal login not working for our admin account",
+    "body": "Hi team,\n\nSince this morning none of our staff accounts can log into the VIDYAOne portal — it just shows a blank white screen after entering the password. We have exams starting tomorrow so this is fairly urgent.\n\nCan someone call us back today?\n\nThanks,\nRahul Sharma\nAdministrator, Greenfield Public School\n+91 98765 43210",
+    "from": "Rahul Sharma &lt;rahul.sharma@greenfieldschool.edu&gt;",
+    "from_email": "rahul.sharma@greenfieldschool.edu",
+    "to": "support@vidyaone.com"
+  }
+}</pre>
+
+    <!-- ============================================================ -->
+    <h3 id="response">Response</h3>
+    <p>
+      <strong>Every response — success or failure — returns the exact same five contract keys</strong>, always
+      present: <code>form_fields</code> (23 keys, always all present, <code>""</code> when unknown),
+      <code>subject</code>, <code>ai_summary</code>, <code>form_type</code>, <code>page</code>
+      (<code>{"url": ""}</code>, always blank). Plus one additive <code>ai_result</code> object
+      (<code>ok</code>, <code>channel</code>, <code>model</code>, <code>cached</code>, <code>warnings</code>,
+      <code>errors</code>). A caller that only ever reads the five contract keys never has to special-case a
+      failure path.
+    </p>
+
+    <h4><span class="status-200">200</span> — classified successfully</h4>
+    <pre>{
+  "form_fields": {
+    "name": "Rahul Sharma",
+    "role": "Administrator",
+    "mobile": "919876543210",
+    "email": "rahul.sharma@greenfieldschool.edu",
+    "product": "VIDYAOne",
+    "complaint_module": "",
+    "client_id": "",
+    "institution_name": "Greenfield Public School",
+    "institution_type": "School",
+    "website_url": "https://greenfieldschool.edu",
+    "complaint_type": "technical",
+    "message": "Hi team,\n\nSince this morning none of our staff accounts can log into the VIDYAOne portal...",
+    "address": "",
+    "pincode": "",
+    "expectations": "Portal login restored for all staff accounts today before exams start tomorrow",
+    "customization_type": "",
+    "preferred_time": "today",
+    "call_duration": "",
+    "used_software_before": "",
+    "established_year": "",
+    "training_required": "no",
+    "pre_configuration": "",
+    "noted_by": "email"
+  },
+  "subject": "Portal login not working for our admin account",
+  "ai_summary": "- Intent: Portal login broken for all staff accounts...\n- Action: Call back today...\n- Tone: Urgent but professional.\n- IMPORTANT: Exams start tomorrow.",
+  "form_type": "complaint",
+  "page": { "url": "" },
+  "ai_result": {
+    "ok": true,
+    "channel": "email",
+    "model": "anthropic.claude-haiku-4-5-20251001-v1:0",
+    "cached": false,
+    "warnings": [],
+    "errors": []
+  }
+}</pre>
+
+    <h4>Error &amp; degraded responses</h4>
+    <p>Every one of these keeps the exact same five-key body shape — only <code>ai_result.ok</code>/<code>errors</code>, the HTTP status, and (usually) <code>form_type</code> falling back to <code>"other"</code> change.</p>
+    <table>
+      <thead><tr><th>Status</th><th>When it fires</th><th>Retry?</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="status-400">400</td>
+          <td>Bad envelope — missing <code>channel</code>/<code>data</code>, unknown <code>channel</code>, a missing required field for that channel, or a malformed JSON body.</td>
+          <td>No — fix the request. <code>ai_result.errors</code> names exactly what's wrong.</td>
+        </tr>
+        <tr>
+          <td class="status-200">200</td>
+          <td><em>Degraded</em> — request was valid but the model never ran: too little Lambda time budget remaining, the model refused, returned unparseable output, or didn't call the required tool. <code>form_type</code> is <code>"other"</code>; <code>subject</code>/<code>message</code> are still the real values from your request, so it's still routable by a human.</td>
+          <td>Optional — the response is still usable as-is; retry only if you want an actual AI classification.</td>
+        </tr>
+        <tr>
+          <td class="status-504">504</td>
+          <td>The Bedrock call didn't finish before its deadline-derived timeout (see <a href="#behaviors">Special behaviors</a>).</td>
+          <td>Yes, with backoff — likely transient.</td>
+        </tr>
+        <tr>
+          <td class="status-429">429</td>
+          <td>Bedrock throttled the request.</td>
+          <td>Yes, with backoff.</td>
+        </tr>
+        <tr>
+          <td class="status-502">502</td>
+          <td>Bedrock returned a 5xx, or the connection to it failed outright.</td>
+          <td>Yes, with backoff.</td>
+        </tr>
+        <tr>
+          <td class="status-500">500</td>
+          <td>An unexpected bug in this Lambda, unrelated to the request or Bedrock.</td>
+          <td>Retry cautiously; if it persists, this needs investigation, not a retry loop.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ============================================================ -->
+    <h3 id="behaviors">Special behaviors</h3>
+
+    <h4>Idempotency</h4>
+    <p>
+      <strong>This service does not read or enforce the <code>Idempotency-Key</code> header</strong> — send one by
+      platform convention if you like, but it's ignored. There is also no natural request-id field to de-dupe on
+      instead.
+    </p>
+    <div class="note">
+      This isn't an oversight so much as a scope mismatch: this Lambda has <strong>no persistence of its own</strong>
+      (no database writes, no queue emission) — it's a pure request → response transform. "Idempotency" in the
+      usual create/update-a-record sense doesn't apply here, because there's no record being created.
+    </div>
+    <p>
+      What actually happens on a repeat call: there's a <strong>per-container, in-memory cache</strong> (500s TTL,
+      500-entry LRU bound) keyed on the exact <code>(channel, subject, message, extras)</code> tuple. An identical
+      repeat that lands on the <em>same warm Lambda container</em> within 500 seconds gets served the cached
+      classification (<code>ai_result.cached: true</code>) without a second Bedrock call. A repeat that lands on a
+      <em>different</em> container, or arrives after the TTL, just runs again — normally, possibly with a slightly
+      different <code>ai_summary</code> wording since the model isn't deterministic. This is a cost-saving
+      convenience for a same-container retry, not a durable or cross-container de-dupe guarantee.
+    </p>
+
+    <h4>Deadline-derived timeout</h4>
+    <p>
+      The Bedrock call is bounded by whatever time is <em>actually left</em> on the Lambda invocation, not a fixed
+      constant — this is what lets a slow model response come back as a clean <span class="status-504">504</span>
+      instead of the connection just hanging until API Gateway's own timeout kills it with nothing written back.
+    </p>
+
+    <h4>Deterministic field normalization</h4>
+    <p>These four are never left to model judgment — they're filled or corrected by code, after the model responds:</p>
+    <table>
+      <thead><tr><th>Field</th><th>Rule</th></tr></thead>
+      <tbody>
+        <tr><td><code>message</code></td><td>Always the channel's own cleaned input text, verbatim — never rewritten or summarized by the model.</td></tr>
+        <tr><td><code>noted_by</code></td><td>Always the resolved channel name (e.g. <code>"email"</code>) — never model-authored.</td></tr>
+        <tr><td><code>mobile</code></td><td>If the model's extracted digits-only value is exactly 10 digits (no country code), <code>91</code> is prefixed automatically. Any other length is left as-is.</td></tr>
+        <tr><td><code>website_url</code></td><td>If the model found nothing stated explicitly in the request text, this falls back to the sender's own email domain (from <code>from_email</code>/<code>from</code>/<code>reply_to</code>) — <strong>unless</strong> that domain is a free/consumer email provider (Gmail, Yahoo, Outlook, etc.), in which case it's left blank rather than guessed.</td></tr>
+        <tr><td><code>email</code></td><td>If still blank after everything above, defaults to <code>noreply@vidyaone.com</code> in the final response. This fallback is applied last, after the "no contact info found" warning below is already computed — so that warning still reflects whether a real email/mobile was actually found.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Contact-info warning</h4>
+    <p>
+      If the model finds <em>neither</em> an email nor a mobile number anywhere in the request, <code>ai_result.warnings</code>
+      includes a note that there's no way to contact the requester back. This is non-fatal — the response is still a
+      normal <span class="status-200">200</span>, just flagged for visibility.
+    </p>
+
+    <h4>Bot / spam / prompt-injection content</h4>
+    <p>
+      Not rejected outright — the model is instructed to classify clearly spam, bot-scripted, abusive, or
+      prompt-injection content as <code>form_type: "other"</code> rather than force-fitting it into a real
+      category. Request text is always treated as untrusted data, never as instructions to the model.
+    </p>
+
+    <h4>Pagination / batching / async side effects</h4>
+    <p>None of these apply — one call classifies exactly one submission synchronously, and this service emits no queue message or event of any kind.</p>
+  </section>
+
+  <!-- ================================================================ -->
+  <section id="form-fields">
+    <h2>Form field reference</h2>
+    <p>All 23 keys are present in every <code>form_fields</code> object, always — unknown values come back as <code>""</code>, never omitted. Each string value is capped at 1,000 characters.</p>
+    <table>
+      <thead><tr><th>Field</th><th>Meaning</th><th>Allowed values</th></tr></thead>
+      <tbody>
+        <tr><td><code>name</code></td><td>Requester's name.</td><td>Free text</td></tr>
+        <tr><td><code>role</code></td><td>Requester's role, position, or designation.</td><td>Free text</td></tr>
+        <tr><td><code>mobile</code></td><td>Requester's mobile/WhatsApp number, digits only.</td><td>Free text (digits); auto-prefixed with <code>91</code> if 10 digits</td></tr>
+        <tr><td><code>email</code></td><td>Requester's email address.</td><td>Free text; defaults to <code>noreply@vidyaone.com</code> if not found</td></tr>
+        <tr><td><code>product</code></td><td>The VIDYAOne product involved.</td><td>Free text</td></tr>
+        <tr><td><code>complaint_module</code></td><td>The VIDYAOne product module involved.</td><td>Free text</td></tr>
+        <tr><td><code>client_id</code></td><td>Institution's VIDYAOne customer identifier (sender_id, instsaascode, or other assigned code) — only if literally stated.</td><td>Free text</td></tr>
+        <tr><td><code>institution_name</code></td><td>The school/institute name.</td><td>Free text</td></tr>
+        <tr><td><code>institution_type</code></td><td>Kind of institution.</td><td><code>School</code>, <code>Pre-School</code>, <code>College</code>, <code>Coaching</code>, <code>Other</code>, or <code>""</code></td></tr>
+        <tr><td><code>website_url</code></td><td>The institute's website URL.</td><td>Free text; see email-domain fallback above</td></tr>
+        <tr><td><code>complaint_type</code></td><td>Kind of complaint.</td><td><code>technical</code>, <code>training</code>, <code>billing</code>, <code>other</code>, or <code>""</code></td></tr>
+        <tr><td><code>message</code></td><td>The original request body, verbatim.</td><td>Deterministic — always the raw input</td></tr>
+        <tr><td><code>address</code></td><td>Institute's address.</td><td>Free text</td></tr>
+        <tr><td><code>pincode</code></td><td>Institute's pincode.</td><td>Free text</td></tr>
+        <tr><td><code>expectations</code></td><td>What the requester wants as the outcome, in the model's own short phrase.</td><td>Free text</td></tr>
+        <tr><td><code>customization_type</code></td><td>Kind of customization requested.</td><td><code>marksheet</code>, <code>report</code>, <code>module</code>, <code>feature</code>, or <code>""</code></td></tr>
+        <tr><td><code>preferred_time</code></td><td>Requester's preferred meeting/callback time, as stated.</td><td>Free text</td></tr>
+        <tr><td><code>call_duration</code></td><td>How long the call/meeting should be, as stated.</td><td>Free text</td></tr>
+        <tr><td><code>used_software_before</code></td><td>Whether the institution has used school-management software before.</td><td><code>yes</code>, <code>no</code>, or <code>""</code></td></tr>
+        <tr><td><code>established_year</code></td><td>Year the institution was established, as stated.</td><td>Free text</td></tr>
+        <tr><td><code>training_required</code></td><td>Whether training is needed.</td><td><code>yes</code>, <code>no</code>, or <code>""</code></td></tr>
+        <tr><td><code>pre_configuration</code></td><td>Whether pre-configuration/setup is needed.</td><td><code>yes</code>, <code>no</code>, or <code>""</code></td></tr>
+        <tr><td><code>noted_by</code></td><td>The intake channel this request arrived on.</td><td>Deterministic — always the resolved channel name</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ================================================================ -->
+  <section id="form-types">
+    <h2>Form type catalog</h2>
+    <p><code>form_type</code> is always exactly one of these 21 values — the model is structurally constrained to this list, it cannot return anything else.</p>
+    <table>
+      <thead><tr><th>Value</th><th>Label</th><th>When it applies</th></tr></thead>
+      <tbody>
+        <tr><td><code>complaint</code></td><td>Complaint</td><td>A bug, error, or anything going wrong while using the product — wins even if a callback is also requested.</td></tr>
+        <tr><td><code>contact</code></td><td>General contact / enquiry</td><td>General discussion not covered by a more specific category.</td></tr>
+        <tr><td><code>lead</code></td><td>Sales lead</td><td>Buying interest — pricing, plans, purchase.</td></tr>
+        <tr><td><code>callback</code></td><td>Callback request</td><td>Wants a call, for a reason not already covered elsewhere — defers to <code>complaint</code> if the underlying reason is a reported bug.</td></tr>
+        <tr><td><code>demo</code></td><td>Demo request</td><td>Wants to see the product in action.</td></tr>
+        <tr><td><code>trial</code></td><td>Trial request</td><td>Wants to try the software before buying.</td></tr>
+        <tr><td><code>trial_vss</code></td><td>Trial — VSS</td><td>Trial request specifically for VIDYAOne School Software.</td></tr>
+        <tr><td><code>talk_to_an_expert</code></td><td>Talk to an expert</td><td>Consultative conversation about fit/process/approach.</td></tr>
+        <tr><td><code>feedback</code></td><td>Feedback</td><td>Opinion/suggestion/praise, no support action requested.</td></tr>
+        <tr><td><code>success_story</code></td><td>Success story</td><td>Positive outcome / case study offered.</td></tr>
+        <tr><td><code>onboarding</code></td><td>Onboarding</td><td>Newly signed customer asking about setup/getting started.</td></tr>
+        <tr><td><code>setup_implementation</code></td><td>Setup &amp; implementation</td><td>Paid implementation help requested.</td></tr>
+        <tr><td><code>customization_callback</code></td><td>Customization request</td><td>A change the standard product doesn't do.</td></tr>
+        <tr><td><code>advance_technical_callback</code></td><td>Advanced technical callback</td><td>Technical question/consultation — defers to <code>complaint</code> if something is actually broken.</td></tr>
+        <tr><td><code>branding_consultation</code></td><td>Branding consultation</td><td>Branding, identity, marketing, or design services.</td></tr>
+        <tr><td><code>domain_booking_scl_website</code></td><td>Domain booking — school</td><td>Domain registration for a school website.</td></tr>
+        <tr><td><code>domain_booking_pre_website</code></td><td>Domain booking — pre-school</td><td>Domain registration for a pre-school website.</td></tr>
+        <tr><td><code>activate_ssl_scl_website</code></td><td>SSL activation — school</td><td>Enable HTTPS/SSL on a school website.</td></tr>
+        <tr><td><code>activate_ssl_pre_website</code></td><td>SSL activation — pre-school</td><td>Enable HTTPS/SSL on a pre-school website.</td></tr>
+        <tr><td><code>payment_reminder</code></td><td>Payment / billing</td><td>Invoice, renewal, outstanding payment, billing dispute.</td></tr>
+        <tr><td><code>other</code></td><td>Other / unclear</td><td>Not enough information to tell, too garbled/off-topic to confidently match, or spam/bot/abusive content. Also this service's own fallback whenever it answers without ever running the model at all (validation failure, timeout, throttle, low time budget).</td></tr>
+      </tbody>
+    </table>
+    <div class="warn-note">
+      This catalog must stay in sync with <code>ALLOWED_FORM_TYPES</code> in <code>vone-form-post-lambda/config.py</code>
+      (also mirrored by <code>FORM_TYPE_EMAILS</code> in <code>vone-form-process-lambda</code>) — that file is the
+      source of truth for every value except <code>other</code>, which is deliberately not mirrored there.
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  vone-request-intent-finder-lambda &middot; ap-south-1 &middot; generated from source — regenerate rather than hand-edit when the contract changes.
+</footer>
+
+</body>
+</html>
