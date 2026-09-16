@@ -121,7 +121,7 @@
         <li><a href="#org-deactive">PUT /org/deactive</a></li>
         <li><a href="#org-delete">DELETE /org</a></li>
         <li><a href="#org-options">GET /org/options</a></li>
-        <li><a href="#org-list">GET /org/list</a></li>
+        <li><a href="#org-list">GET /org/list/owner</a></li>
         <li><a href="#org-view">GET /org/view</a></li>
       </ol>
     </li>
@@ -1064,19 +1064,21 @@ Environment : Production</code></pre>
 <!-- ============================================================================= -->
 <h2 id="org" class="sec">9. Organization controller</h2>
 <p>
-  Every endpoint is scoped to the authenticated caller — you only ever see and act on your own organizations.
-  A user may own at most <strong>3 non-deleted organizations</strong> (§12.2). Deleted organizations are excluded
-  from the cap and from every read endpoint. See §12 for the <code>isDefault</code>, KYC, and delete/deactivate
-  behaviours.
+  Most endpoints are scoped to the authenticated caller — you only ever act on organizations you created or own.
+  The one exception is <a href="#org-view">GET /org/view</a>, which any authenticated caller can read (the response
+  shape differs by role — see §9.9). A user may create-or-own at most <strong>3 non-deleted organizations</strong>
+  (§12.2; the limit is server-configurable but is currently 3 in every environment). Deleted organizations are
+  excluded from the cap and from every read endpoint. See §12 for the <code>isDefault</code>, KYC, and
+  delete/deactivate behaviours.
 </p>
 
 <!-- 9.1 -->
 <h3 id="org-post" class="sec"><span class="method m-post">POST</span><span class="endpoint-path">/org</span></h3>
 <p><strong>Summary.</strong> Creates one organization for the caller, always with KYC data attached (defaulted when
-  <code>kyc</code> isn't sent — see the KYC table below). Call this from the "add organization" form. Rejected with
-  <span class="status-err">409</span> if the caller already has an org with the same <code>orgName</code>
-  (case-insensitive match) or <code>regNo</code>, and with <span class="status-err">400</span> if the caller already
-  owns 3 organizations.</p>
+  no document fields are sent — see below). Call this from the "add organization" form. Rejected with
+  <span class="status-err">409</span> if an organization <em>anywhere</em> (not just the caller's) already has the
+  same <code>orgName</code> (case-insensitive match) or <code>regNo</code>, and with <span class="status-err">400</span>
+  if the caller already created-or-owns 3 non-deleted organizations.</p>
 
 <h4>Request</h4>
 <table>
@@ -1088,7 +1090,8 @@ Environment : Production</code></pre>
 </table>
 <p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code>, <code>Content-Type: application/json</code>.
   &nbsp; <strong>Query:</strong> <code>product</code> (required).</p>
-<p><strong>Body</strong> — the organization payload is nested under <code>postDTO</code>:</p>
+<p><strong>Body</strong> — the organization payload is nested under <code>postDTO</code>. KYC fields are flat on
+  <code>postDTO</code> itself, not a nested object:</p>
 <pre><code>{ "postDTO": { ...fields below... } }</code></pre>
 <table>
   <thead><tr><th>postDTO field</th><th>Type</th><th>Required</th><th>Constraints</th><th>Default if omitted</th></tr></thead>
@@ -1099,40 +1102,32 @@ Environment : Production</code></pre>
     <tr><td><code>districtId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0; must exist</td><td>—</td></tr>
     <tr><td><code>stateId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0; must exist</td><td>—</td></tr>
     <tr><td><code>countryId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0; must exist</td><td>—</td></tr>
-    <tr><td><code>regNo</code></td><td>string</td><td class="opt">no</td><td>max 50 chars; part of the duplicate check</td><td><code>""</code> → stored as <code>null</code></td></tr>
+    <tr><td><code>regNo</code></td><td>string</td><td class="opt">no</td><td>max 50 chars; part of the duplicate check (global, not per-caller)</td><td><code>""</code> → stored as <code>null</code></td></tr>
     <tr><td><code>regDate</code></td><td>string (date-time)</td><td class="opt">no</td><td>ISO-8601</td><td>server timestamp "now"</td></tr>
     <tr><td><code>email</code></td><td>string</td><td class="req">yes</td><td>non-empty, valid email format, max 50 chars</td><td>—</td></tr>
     <tr><td><code>address</code></td><td>string</td><td class="req">yes</td><td>non-empty, max 500 chars</td><td>—</td></tr>
     <tr><td><code>pincode</code></td><td>string</td><td class="req">yes</td><td>non-empty, max 10 chars</td><td>—</td></tr>
     <tr><td><code>logo</code></td><td>string</td><td class="opt">no</td><td>path/URL to the stored logo asset, max 100 chars</td><td><code>""</code> → stored as <code>null</code></td></tr>
     <tr><td><code>isOwner</code></td><td>boolean</td><td class="opt">no</td><td>—</td><td><code>false</code></td></tr>
-    <tr><td><code>ownerName</code></td><td>string</td><td class="opt">no</td><td>max 150 chars when non-empty</td><td><code>""</code> → stored as <code>null</code></td></tr>
-    <tr><td><code>ownerEmail</code></td><td>string</td><td class="opt">no</td><td>valid email + max 150 chars when non-empty</td><td><code>""</code> → stored as <code>null</code></td></tr>
+    <tr><td><code>ownerName</code></td><td>string</td><td class="opt">no</td><td>required (max 150 chars) when the organization has a separate owner (<code>isOwner=false</code>)</td><td><code>""</code> → stored as <code>null</code></td></tr>
+    <tr><td><code>ownerEmail</code></td><td>string</td><td class="opt">no</td><td>required (valid email, max 150 chars) when <code>isOwner=false</code></td><td><code>""</code> → stored as <code>null</code></td></tr>
     <tr><td><code>isWhatsappNumber</code></td><td>boolean</td><td class="opt">no</td><td>flags <code>mobile</code> as WhatsApp-capable</td><td><code>false</code></td></tr>
     <tr><td><code>isDefault</code></td><td>boolean</td><td class="opt">no</td><td>Honored as sent — <strong>except</strong> the caller's very first organization, which is always forced default regardless of this value (a user can never be left with zero defaults). When honored <code>true</code>, the flag is cleared on the caller's other orgs automatically (§12.3).</td><td><code>false</code>, unless this is the caller's first org (forced <code>true</code>)</td></tr>
-    <tr><td><code>creatorUserId</code></td><td>integer</td><td class="opt">ignored</td><td>The organization's owner is always the authenticated caller. Do not send.</td><td>from the caller's session</td></tr>
-    <tr><td><code>kyc</code></td><td>object</td><td class="opt">no</td><td>Optional KYC block — see the table below. KYC data is created <strong>even when this is omitted</strong>, defaulted to <code>proceedWithKyc=false</code> / <code>kycStatus="KYC Pending"</code></td><td>defaulted KYC data (see below)</td></tr>
+    <tr><td><code>legalDocumentPath</code></td><td>string</td><td class="opt">no</td><td>max 255 chars</td><td><code>null</code></td></tr>
+    <tr><td><code>legalDocumentType</code></td><td>string</td><td class="opt">no</td><td>max 50 chars</td><td><code>null</code></td></tr>
+    <tr><td><code>identityProofPath</code></td><td>string</td><td class="opt">no</td><td>max 255 chars</td><td><code>null</code></td></tr>
+    <tr><td><code>identityProofType</code></td><td>string</td><td class="opt">no</td><td>max 50 chars</td><td><code>null</code></td></tr>
+    <tr><td><code>remarks</code></td><td>string</td><td class="opt">no</td><td>max 500 chars</td><td><code>null</code></td></tr>
+    <tr><td><code>submittedAt</code></td><td>string (date-time)</td><td class="opt">no</td><td>ISO-8601</td><td><code>null</code></td></tr>
   </tbody>
 </table>
-<p><strong><code>postDTO.kyc</code> object</strong> (always persisted — defaulted when <code>kyc</code> itself is omitted):</p>
-<table>
-  <thead><tr><th>kyc field</th><th>Type</th><th>Required</th><th>Constraints</th><th>Default if omitted</th></tr></thead>
-  <tbody>
-    <tr><td><code>proceedWithKyc</code></td><td>boolean</td><td class="opt">no</td><td>—</td><td><code>false</code></td></tr>
-    <tr><td><code>legalDocumentPath</code></td><td>string</td><td class="opt">no</td><td>max 255</td><td><code>null</code></td></tr>
-    <tr><td><code>legalDocumentType</code></td><td>string</td><td class="opt">no</td><td>max 50</td><td><code>null</code></td></tr>
-    <tr><td><code>identityProofPath</code></td><td>string</td><td class="opt">no</td><td>max 255</td><td><code>null</code></td></tr>
-    <tr><td><code>identityProofType</code></td><td>string</td><td class="opt">no</td><td>max 50</td><td><code>null</code></td></tr>
-    <tr><td><code>kycStatus</code></td><td>string</td><td class="opt">ignored</td><td>Always derived server-side from <code>proceedWithKyc</code> — <code>"Under Review"</code> when <code>true</code>, <code>"KYC Pending"</code> when <code>false</code>. Whatever is sent here is discarded.</td><td>server-derived</td></tr>
-    <tr><td><code>remarks</code></td><td>string</td><td class="opt">no</td><td>max 500</td><td><code>null</code></td></tr>
-    <tr><td><code>submittedAt</code></td><td>string (date-time)</td><td class="opt">no</td><td>—</td><td><code>null</code></td></tr>
-  </tbody>
-</table>
-<p><strong>KYC lifecycle (§12.4).</strong> <code>kycStatus</code> only ever starts at <code>"KYC Pending"</code>
-  (<code>proceedWithKyc=false</code>) or <code>"Under Review"</code> (<code>proceedWithKyc=true</code>) from this
-  endpoint. <code>"Approved"</code>/<code>"Rejected"</code> are set by a separate process, not exposed via this
-  controller. Once a KYC record reaches <code>"Under Review"</code> or <code>"Approved"</code> it is locked — see
-  <a href="#org-put">PUT /org</a> for how resubmission on update is blocked/unlocked.</p>
+<div class="note">
+  There is no <code>proceedWithKyc</code> or <code>kycStatus</code> field to send — both are always derived
+  server-side. <code>proceedWithKyc</code> is <code>true</code> only when <strong>both</strong>
+  <code>legalDocumentPath</code> and <code>identityProofPath</code> are non-empty; <code>kycStatus</code> follows
+  from that: <code>"Under Review"</code> when <code>true</code>, <code>"KYC Pending"</code> when <code>false</code>.
+  KYC data is always persisted — even when every document field above is omitted. See §12.4 for the full lifecycle.
+</div>
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
 <pre><code>{ "success": true, "message": "Success." }</code></pre>
@@ -1142,10 +1137,10 @@ Environment : Production</code></pre>
   <thead><tr><th>Status</th><th>code</th><th>Fires when</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Any field constraint above fails, or the body is missing / not valid JSON.</td></tr>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Caller already owns 3 non-deleted organizations — message <code>"You can create a maximum of 3 organizations."</code></td></tr>
+    <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>Caller already created-or-owns 3 non-deleted organizations — message <code>"You can create or own a maximum of 3 organizations."</code></td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or a required field ended up empty.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Missing / invalid cookie.</td></tr>
-    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>Caller already has an org with this <code>orgName</code> (case-insensitive) or this <code>regNo</code> (non-deleted).</td></tr>
+    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>An organization anywhere already has this <code>orgName</code> (case-insensitive) or this <code>regNo</code> (non-deleted) — not scoped to the caller.</td></tr>
     <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td><code>orgTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> does not reference an existing row.</td></tr>
   </tbody>
 </table>
@@ -1170,24 +1165,24 @@ Environment : Production</code></pre>
           "ownerEmail": "asha@acme.example",
           "isWhatsappNumber": true,
           "isDefault": true,
-          "kyc": {
-            "proceedWithKyc": true,
-            "legalDocumentType": "GST",
-            "legalDocumentPath": "org/acme/gst.pdf",
-            "submittedAt": "2026-09-09T10:15:00Z"
-          }
+          "legalDocumentType": "GST",
+          "legalDocumentPath": "org/acme/gst.pdf",
+          "submittedAt": "2026-09-09T10:15:00Z"
         }
       }'
 # prod: https://api-vacc.vidyaone.com/inst/org?product=lms
-# kycStatus is not sent above -- the server sets it to "Under Review" because proceedWithKyc=true.</code></pre>
+# identityProofPath is not sent above, so proceedWithKyc stays false and kycStatus is "KYC Pending"
+# even though legalDocumentPath is present -- BOTH documents are required to enter "Under Review".</code></pre>
 
 <!-- 9.2 -->
 <h3 id="org-put" class="sec"><span class="method m-put">PUT</span><span class="endpoint-path">/org</span></h3>
-<p><strong>Summary.</strong> Updates one organization the caller owns, including its KYC data.
-  Call this to save the edit form returned by <code>GET /org/edit</code>. Only an organization matching <code>orgId</code>,
-  owned by the caller, not deleted, and active can be updated — a deactivated org must be reactivated
-  (<a href="#org-activate">PUT /org/activate</a>) before it can be updated; anything else →
-  <span class="status-err">404</span> with a reason-specific message.</p>
+<p><strong>Summary.</strong> Updates one organization the caller created or owns, including its KYC data.
+  Call this to save the edit form returned by <code>GET /org/edit</code>. Only an organization matching
+  <code>orgId</code>, created-or-owned by the caller, not deleted, active, and <strong>not currently
+  <code>"Under Review"</code></strong> can be updated — a deactivated org must be reactivated
+  (<a href="#org-activate">PUT /org/activate</a>) first, and an org under KYC review must wait for that review to
+  resolve (Approved or Rejected); anything else → <span class="status-err">404</span> with a reason-specific
+  message.</p>
 
 <h4>Request</h4>
 <table>
@@ -1199,31 +1194,30 @@ Environment : Production</code></pre>
 </table>
 <p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code>, <code>Content-Type: application/json</code>.
   &nbsp; <strong>Query:</strong> <code>product</code> (required).</p>
-<p><strong>Body</strong> — payload nested under <code>putDTO</code>:</p>
+<p><strong>Body</strong> — payload nested under <code>putDTO</code>, same flat KYC fields as <code>postDTO</code>:</p>
 <pre><code>{ "putDTO": { "orgId": 123, ...same fields as POST postDTO... } }</code></pre>
 <table>
   <thead><tr><th>putDTO field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
   <tbody>
-    <tr><td><code>orgId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0. The organization to update; must be owned by the caller, not deleted, and active.</td></tr>
-    <tr><td><code>creatorUserId</code></td><td>integer</td><td class="opt">ignored</td><td>The organization's owner is always the authenticated caller and cannot be reassigned via this endpoint. Do not send (any value is accepted but discarded).</td></tr>
+    <tr><td><code>orgId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0. The organization to update; must be created-or-owned by the caller, not deleted, active, and not currently under KYC review.</td></tr>
+    <tr><td><code>isOwner</code>, <code>ownerName</code>, <code>ownerEmail</code></td><td>—</td><td class="opt">conditionally ignored</td><td><strong>Locked once an invited owner has accepted.</strong> If the organization's <code>ownerUserId</code> is already set (check <code>GET /org/edit</code>), any values you send for these three fields are silently ignored and the existing owner is kept — the organization's owner can no longer be reassigned via this endpoint. While <code>ownerUserId</code> is still <code>0</code> (no invitation accepted yet), these fields behave exactly as on <a href="#org-post">POST /org</a>.</td></tr>
     <tr><td><code>isDefault</code></td><td>boolean</td><td class="opt">no</td><td><code>true</code> → this org is promoted to default and the flag is cleared on the caller's other orgs, automatically. <code>false</code> leaves the current default untouched. (Unlike <a href="#org-post">POST /org</a>, there is no "first org" override here — the value is always honored as sent.)</td></tr>
-    <tr><td colspan="4"><em>All other fields — <code>orgName</code>, <code>orgTypeId</code>, <code>mobile</code>, <code>regNo</code>, <code>regDate</code>, <code>email</code>, <code>address</code>, <code>districtId</code>, <code>stateId</code>, <code>countryId</code>, <code>pincode</code>, <code>logo</code>, <code>isOwner</code>, <code>ownerName</code>, <code>ownerEmail</code>, <code>isWhatsappNumber</code>, <code>kyc</code> — carry the same types, requiredness, and constraints as <a href="#org-post">POST /org</a> (§9.1).</em></td></tr>
+    <tr><td colspan="4"><em>All other fields — <code>orgName</code>, <code>orgTypeId</code>, <code>mobile</code>, <code>regNo</code>, <code>regDate</code>, <code>email</code>, <code>address</code>, <code>districtId</code>, <code>stateId</code>, <code>countryId</code>, <code>pincode</code>, <code>logo</code>, <code>isWhatsappNumber</code>, <code>legalDocumentPath</code>, <code>legalDocumentType</code>, <code>identityProofPath</code>, <code>identityProofType</code>, <code>remarks</code>, <code>submittedAt</code> — carry the same types, requiredness, and constraints as <a href="#org-post">POST /org</a> (§9.1).</em></td></tr>
   </tbody>
 </table>
 <div class="note">
   Every writable field is overwritten with the value you send. There is no partial/patch merge — omitting <code>email</code>
   sends <code>""</code> and clears it. Read the current values with <code>GET /org/edit</code> first and send them back whole.
 </div>
+<p><strong>KYC on update (§12.4).</strong> Whatever you send in <code>legalDocumentPath</code> / <code>identityProofPath</code> /
+  <code>legalDocumentType</code> / <code>identityProofType</code> / <code>remarks</code> / <code>submittedAt</code> is
+  evaluated against the organization's <em>current</em> KYC status:</p>
 <ul class="tight">
-  <li><strong>KYC data:</strong> when <code>kyc</code> is present and the org's current <code>kycStatus</code> is
-    not <code>"Under Review"</code>/<code>"Approved"</code>, your KYC data is saved (whether or not you'd sent it
-    before). <code>kycStatus</code> is always re-derived server-side from <code>proceedWithKyc</code> — whatever
-    is sent in <code>kyc.kycStatus</code> is discarded, same as <a href="#org-post">POST /org</a>.</li>
-  <li><strong>KYC lock (§12.4):</strong> when the org's current <code>kycStatus</code> is <code>"Under Review"</code> or
-    <code>"Approved"</code>, any <code>kyc</code> block in the request is <em>silently dropped</em> — no error, the rest
-    of the org update still applies. <code>"Rejected"</code> unlocks it again for resubmission. <code>"KYC Pending"</code>
-    (or no KYC data yet) is always open to submission.</li>
+  <li><strong><code>"Under Review"</code>:</strong> the whole <code>PUT</code> is rejected outright (see error table) — nothing is updated, not even the non-KYC fields.</li>
+  <li><strong><code>"Approved"</code> / <code>"Rejected"</code>:</strong> if you remove both documents, KYC resets to <code>"KYC Pending"</code>. If you change either document, or change <code>orgName</code>/<code>regNo</code>/<code>address</code> (the identity the prior decision was based on), KYC re-enters <code>"Under Review"</code>. If none of that changed, the KYC row is left exactly as it was — your <code>remarks</code>/<code>submittedAt</code> values are <em>not</em> saved in that case.</li>
+  <li><strong><code>"KYC Pending"</code> or no KYC row yet:</strong> simple rule — both documents present → <code>"Under Review"</code>, otherwise → <code>"KYC Pending"</code>.</li>
 </ul>
+<p><code>kycStatus</code> itself is never accepted from the client — always server-derived, same as <a href="#org-post">POST /org</a>.</p>
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
 <pre><code>{ "success": true, "message": "Organisation updated successfully." }</code></pre>
@@ -1235,8 +1229,8 @@ Environment : Production</code></pre>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Field constraint fails, <code>orgId &le; 0</code>, or body missing / invalid JSON.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or a required field ended up empty.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Missing / invalid cookie.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No row matches — reason-specific message, one of: <code>"Organization not found."</code> / <code>"Organization has been deleted and cannot be updated."</code> / <code>"Organization is deactivated and cannot be updated."</code> / <code>"Organization is not owned by the current user."</code> (never includes the id).</td></tr>
-    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>The new <code>orgName</code>/<code>regNo</code> collides with another of the caller's orgs.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No row matches, or KYC blocks the update — reason-specific message, one of: <code>"Organization not found."</code> / <code>"Organization has been deleted and cannot be updated."</code> / <code>"Organization is deactivated and cannot be updated."</code> / <code>"Organization is not owned or managed by the current user."</code> / <code>"Organization cannot be updated while KYC is under review."</code> (never includes the id).</td></tr>
+    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>The new <code>orgName</code>/<code>regNo</code> collides with another organization anywhere (not scoped to the caller).</td></tr>
     <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td><code>orgTypeId</code>/<code>districtId</code>/<code>stateId</code>/<code>countryId</code> does not reference a valid record.</td></tr>
   </tbody>
 </table>
@@ -1262,19 +1256,23 @@ Environment : Production</code></pre>
           "ownerEmail": "asha@acme.example",
           "isWhatsappNumber": true,
           "isDefault": false,
-          "kyc": { "proceedWithKyc": true, "remarks": "docs ok" }
+          "legalDocumentPath": "org/acme/gst.pdf",
+          "identityProofPath": "org/acme/pan.pdf",
+          "remarks": "docs ok"
         }
       }'
-# kycStatus is not sent -- ignored even if included; server derives it from proceedWithKyc.
-# This submission is dropped entirely (org fields still update) if the org's KYC is currently
-# "Under Review" or "Approved".</code></pre>
+# kycStatus is not sent -- ignored even if included; server derives it from the documents/identity
+# fields above, evaluated against the org's current KYC status (see the KYC-on-update rules above).
+# The whole request 404s instead if the org's KYC is currently "Under Review".
+# isOwner/ownerName/ownerEmail above are silently ignored if this org's ownerUserId is already set.</code></pre>
 
 <!-- 9.3 -->
 <h3 id="org-edit" class="sec"><span class="method m-get">GET</span><span class="endpoint-path">/org/edit</span></h3>
-<p><strong>Summary.</strong> Returns one organization in an <em>edit-ready</em> shape (all fields + a KYC block including
-  <code>remarks</code>) so the result round-trips straight back into <code>PUT /org</code>. Scoped to the caller,
-  non-deleted, and <strong>active</strong> organizations only — a deactivated org 404s here even though it 200s on
-  <a href="#org-view">GET /org/view</a>.</p>
+<p><strong>Summary.</strong> Returns one organization in an <em>edit-ready</em> shape (all fields, flat, including KYC
+  and <code>remarks</code>) so the result round-trips straight back into <code>PUT /org</code>. Scoped to the
+  caller (created-or-owned), non-deleted, <strong>active</strong>, and <strong>not currently under KYC
+  review</strong> — a deactivated org, or one whose KYC is <code>"Under Review"</code>, 404s here even though a
+  deactivated org still 200s on <a href="#org-view">GET /org/view</a>.</p>
 
 <h4>Request</h4>
 <table>
@@ -1311,33 +1309,40 @@ Environment : Production</code></pre>
     "countryId": 91,
     "pincode": "560001",
     "logo": "org/acme/logo.png",
-    "creatorUserId": 10432,
     "isOwner": true,
     "ownerName": "Asha Rao",
     "ownerEmail": "asha@acme.example",
     "isWhatsappNumber": true,
+    "ownerUserId": 10501,
     "isDefault": true,
-    "kyc": {
-      "proceedWithKyc": true,
-      "legalDocumentPath": "org/acme/gst.pdf",
-      "legalDocumentType": "GST",
-      "identityProofPath": null,
-      "identityProofType": null,
-      "kycStatus": "Approved",
-      "remarks": "docs ok",
-      "submittedAt": "2026-09-09T10:15:00+00:00"
-    }
+    "proceedWithKyc": true,
+    "kycStatus": "Approved",
+    "legalDocumentPath": "org/acme/gst.pdf",
+    "legalDocumentType": "GST",
+    "identityProofPath": null,
+    "identityProofType": null,
+    "remarks": "docs ok",
+    "submittedAt": "2026-09-09T10:15:00+00:00"
   }
 }</code></pre>
-<p><code>data.kyc</code> is <code>null</code> only for a legacy org created before KYC data was always attached at
-  creation time — every org created via the current <a href="#org-post">POST /org</a> has KYC data. Empty string
-  fields come back as <code>""</code>; nullable KYC fields come back as <code>null</code>.</p>
+<ul class="tight">
+  <li><code>ownerUserId</code> is server-derived and read-only — it's <code>0</code> until an invited owner accepts.
+    <strong>When it's &gt; 0, render the owner section (<code>isOwner</code>/<code>ownerName</code>/<code>ownerEmail</code>)
+    read-only in your edit form</strong> — the invitation has already been accepted, and <a href="#org-put">PUT /org</a>
+    silently ignores any edits to those three fields once <code>ownerUserId</code> is set. Only when it's <code>0</code>
+    are they actually editable.</li>
+  <li><code>proceedWithKyc</code> and <code>kycStatus</code> are read-only, server-derived summaries of the document
+    fields — they're not accepted back on <code>PUT /org</code>.</li>
+  <li>The organization's internal creator/owner ids are never exposed except <code>ownerUserId</code> above (needed
+    to drive the owner-lock rule); there is no <code>creatorUserId</code> in this response.</li>
+  <li>Empty string fields come back as <code>""</code>; nullable KYC fields come back as <code>null</code>.</li>
+</ul>
 
 <h4>Error responses</h4>
 <ul class="tight">
   <li><span class="status-err">400</span> <code>VALIDATION_FAILED</code> — <code>orgId</code> missing, <code>&le; 0</code>, or not an integer.</li>
   <li><span class="status-err">401</span> <code>UNAUTHORIZED</code>; <span class="status-err">400</span> <code>REQUIRED_FIELD</code> — <code>product</code> missing.</li>
-  <li><span class="status-err">404</span> <code>RECORD_NOT_FOUND</code> — reason-specific message, one of: <code>"Organization not found."</code> / <code>"Organization has been deleted and cannot be viewed."</code> / <code>"Organization is deactivated and cannot be viewed."</code> / <code>"Organization is not owned by the current user."</code> (never includes the id).</li>
+  <li><span class="status-err">404</span> <code>RECORD_NOT_FOUND</code> — reason-specific message, one of: <code>"Organization not found."</code> / <code>"Organization has been deleted and cannot be viewed."</code> / <code>"Organization is deactivated and cannot be viewed."</code> / <code>"Organization cannot be edited while KYC is under review."</code> / <code>"Organization is not owned or managed by the current user."</code> (never includes the id).</li>
 </ul>
 
 <h4>Example</h4>
@@ -1376,7 +1381,7 @@ Environment : Production</code></pre>
 <ul class="tight">
   <li><span class="status-err">400</span> <code>VALIDATION_FAILED</code> — <code>orgId &le; 0</code> or body missing / invalid.</li>
   <li><span class="status-err">401</span> <code>UNAUTHORIZED</code>; <span class="status-err">400</span> <code>REQUIRED_FIELD</code> — <code>product</code> missing.</li>
-  <li><span class="status-err">404</span> <code>RECORD_NOT_FOUND</code> — reason-specific message, one of: <code>"Organization not found."</code> / <code>"Organization has been deleted and cannot be set as default."</code> / <code>"Organization is deactivated and cannot be set as default."</code> / <code>"Organization is not owned by the current user."</code> (never includes the id). No other row is touched in this case.</li>
+  <li><span class="status-err">404</span> <code>RECORD_NOT_FOUND</code> — reason-specific message, one of: <code>"Organization not found."</code> / <code>"Organization has been deleted and cannot be set as default."</code> / <code>"Organization is deactivated and cannot be set as default."</code> / <code>"Organization is not owned or managed by the current user."</code> (never includes the id). No other row is touched in this case.</li>
 </ul>
 
 <h4>Example</h4>
@@ -1461,6 +1466,12 @@ Environment : Production</code></pre>
   as long as <em>at least one</em> row is affected; it returns <span class="status-err">404</span> only when <em>none</em>
   of the ids match an eligible row.
 </div>
+<div class="note">
+  <strong>Default is cleared automatically.</strong> If a deactivated organization was anyone's current default —
+  the creator's or the owner's, not just the caller's — that user's default is cleared (falls back to "no default")
+  rather than left pointing at an inactive org. It is not restored automatically by
+  <a href="#org-activate">PUT /org/activate</a>; the affected user must set a new default explicitly.
+</div>
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
 <pre><code>{ "success": true, "message": "Organisation deactivated successfully." }</code></pre>
@@ -1505,6 +1516,11 @@ Environment : Production</code></pre>
   This <code>DELETE</code> carries a request body. Some HTTP clients strip <code>DELETE</code> bodies by default — use one
   that sends it (curl does). Partial-match semantics are the same as <code>deactive</code>: already-deleted / not-owned ids
   are skipped, and <span class="status-err">404</span> fires only when nothing is affected.
+</div>
+<div class="note">
+  <strong>Default is cleared automatically.</strong> Same as <a href="#org-deactive">PUT /org/deactive</a> — if a
+  deleted organization was anyone's current default, that user's default is cleared. Since delete is permanent,
+  there is no way to point the default back at it; the affected user must pick a different default.
 </div>
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
@@ -1559,18 +1575,21 @@ Environment : Production</code></pre>
   --cookie "vacc-account-auth=$AUTH"</code></pre>
 
 <!-- 9.8 -->
-<h3 id="org-list" class="sec"><span class="method m-get">GET</span><span class="endpoint-path">/org/list</span></h3>
-<p><strong>Summary.</strong> Returns a paged list of the caller's organizations (active <em>and</em> deactivated; never
-  deleted), with lookup names resolved, ordered by name. Use for the "my organizations" table. Unlike
-  <code>/listbyuser</code> for institutes, the page params here are optional.</p>
-<div class="note">Renamed from <code>GET /org/listbyuser</code> — the old path no longer exists.</div>
+<h3 id="org-list" class="sec"><span class="method m-get">GET</span><span class="endpoint-path">/org/list/owner</span></h3>
+<p><strong>Summary.</strong> Returns a paged list of organizations the caller <strong>owns</strong>
+  (<code>ownerUserId == caller</code> — not organizations they merely created for someone else), active
+  <em>and</em> deactivated, never deleted, with lookup names resolved, ordered by name. Use for the "my
+  organizations" table. Page params are optional here (unlike <code>/listbyuser</code> for institutes).</p>
+<div class="note">Renamed from <code>GET /org/list</code>; the route is now <code>GET /org/list/owner</code>. Also
+  narrowed to <code>ownerUserId</code> — an organization the caller created but does not own no longer appears here.
+  Use <a href="#org-options">GET /org/options</a> if you need created-or-owned instead.</div>
 
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>Method &amp; URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/org/list</code></td></tr>
-    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/org/list</code></td></tr>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/org/list/owner</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/org/list/owner</code></td></tr>
   </tbody>
 </table>
 <p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code> (required).</p>
@@ -1596,6 +1615,8 @@ Environment : Production</code></pre>
         "orgName": "Acme Institute",
         "regNo": "REG-2024-0007",
         "email": "info@acme.example",
+        "mobile": "9876543210",
+        "isWhatsappNumber": true,
         "districtName": "Bengaluru Urban",
         "stateName": "Karnataka",
         "countryName": "India",
@@ -1604,7 +1625,10 @@ Environment : Production</code></pre>
         "isDefault": true,
         "isActive": true,
         "isOwner": true,
-        "ownerName": "Asha Rao"
+        "ownerName": "Asha Rao",
+        "ownerEmail": "asha@acme.example",
+        "totalInst": 0,
+        "totalUser": 0
       }
     ],
     "metaData": {
@@ -1618,8 +1642,9 @@ Environment : Production</code></pre>
   <tbody>
     <tr><td><code>orgId</code>, <code>orgTypeId</code></td><td>number</td><td>—</td></tr>
     <tr><td><code>orgTypeName</code>, <code>districtName</code>, <code>stateName</code>, <code>countryName</code>, <code>creatorName</code></td><td>string</td><td>Resolved lookup names; <code>""</code> if null.</td></tr>
-    <tr><td><code>orgName</code>, <code>regNo</code>, <code>email</code>, <code>logo</code>, <code>ownerName</code></td><td>string</td><td><code>""</code> if null.</td></tr>
-    <tr><td><code>isDefault</code>, <code>isActive</code>, <code>isOwner</code></td><td>boolean</td><td>—</td></tr>
+    <tr><td><code>orgName</code>, <code>regNo</code>, <code>email</code>, <code>mobile</code>, <code>logo</code>, <code>ownerName</code>, <code>ownerEmail</code></td><td>string</td><td><code>""</code> if null.</td></tr>
+    <tr><td><code>isDefault</code>, <code>isActive</code>, <code>isOwner</code>, <code>isWhatsappNumber</code></td><td>boolean</td><td>—</td></tr>
+    <tr><td><code>totalInst</code>, <code>totalUser</code></td><td>integer</td><td>Currently always <code>0</code> — not yet wired up.</td></tr>
   </tbody>
 </table>
 
@@ -1630,17 +1655,26 @@ Environment : Production</code></pre>
 </ul>
 
 <h4>Example</h4>
-<pre><code>curl -sS "https://api-vacc.vidyaone.com/test/inst/org/list?product=lms&amp;pageNumber=1&amp;pageSize=20" \
+<pre><code>curl -sS "https://api-vacc.vidyaone.com/test/inst/org/list/owner?product=lms&amp;pageNumber=1&amp;pageSize=20" \
   --cookie "vacc-account-auth=$AUTH"</code></pre>
 
 <!-- 9.9 -->
 <h3 id="org-view" class="sec"><span class="method m-get">GET</span><span class="endpoint-path">/org/view</span></h3>
-<p><strong>Summary.</strong> Returns one organization for read-only display — all fields plus resolved lookup names, a
-  KYC block (without <code>remarks</code>), and an audit block. Scoped to the caller; deleted organizations 404.
-  <strong>Deliberately not blocked for a deactivated org</strong> — it still returns <span class="status-ok">200</span>
-  (check <code>data.audit.isActive</code> to see its state); this is the one org endpoint that works regardless of
-  active/deactivated. Contrast with <a href="#org-put">PUT /org</a>, <a href="#org-edit">GET /org/edit</a>, and
-  <a href="#org-default">PUT /org/default</a>, which all 404 on a deactivated org.</p>
+<p><strong>Summary.</strong> Returns one organization for read-only display. <strong>Not restricted to the
+  caller</strong> — any authenticated caller can look up any <code>orgId</code> — but the response shape differs by
+  the caller's relationship to it:</p>
+<ul class="tight">
+  <li><strong>Caller is the creator or the owner:</strong> full detail — every field plus <code>ownerEmail</code>,
+    <code>creatorName</code>, <code>isDefault</code>, the KYC document fields, and <code>totalInst</code>/<code>totalUser</code>.
+    <strong>Not gated on active status</strong> — a deactivated organization is still fully viewable to its own
+    creator/owner (contrast with <a href="#org-put">PUT /org</a>, <a href="#org-edit">GET /org/edit</a>, and
+    <a href="#org-default">PUT /org/default</a>, which all 404 on a deactivated org).</li>
+  <li><strong>Anyone else:</strong> a reduced public shape — no <code>ownerEmail</code>, no <code>creatorName</code>,
+    no <code>isDefault</code>, no KYC document fields (only <code>kycStatus</code>), no <code>totalInst</code>/<code>totalUser</code>.
+    <strong>Gated on active status</strong> — a deactivated organization reports <span class="status-err">404</span>
+    to a non-creator/owner instead of revealing that it's deactivated.</li>
+</ul>
+<p>Neither shape ever exposes the organization's internal creator/owner user ids — only <code>orgId</code>.</p>
 
 <h4>Request</h4>
 <table>
@@ -1660,44 +1694,69 @@ Environment : Production</code></pre>
 </table>
 <p><strong>Body:</strong> none.</p>
 
-<h4>Response — <span class="status-ok">200 OK</span></h4>
+<h4>Response — <span class="status-ok">200 OK</span> (creator/owner — full shape)</h4>
 <pre><code>{
   "success": true,
   "data": {
     "orgId": 123,
     "orgTypeId": 1,
+    "orgTypeName": "Private Limited",
     "orgName": "Acme Institute",
     "regNo": "REG-2024-0007",
     "regDate": "2024-04-01T00:00:00+00:00",
     "email": "info@acme.example",
     "mobile": "9876543210",
-    "address": "12 MG Road",
-    "districtId": 501,
-    "stateId": 27,
-    "countryId": 91,
-    "pincode": "560001",
-    "logo": "org/acme/logo.png",
-    "creatorUserId": 10432,
-    "isOwner": true,
-    "ownerName": "Asha Rao",
-    "ownerEmail": "asha@acme.example",
     "isWhatsappNumber": true,
-    "isDefault": true,
-    "orgTypeName": "Private Limited",
+    "address": "12 MG Road",
     "districtName": "Bengaluru Urban",
     "stateName": "Karnataka",
     "countryName": "India",
+    "pincode": "560001",
+    "logo": "org/acme/logo.png",
+    "isOwner": true,
+    "ownerName": "Asha Rao",
+    "ownerEmail": "asha@acme.example",
     "creatorName": "Asha Rao",
-    "kyc": {
-      "proceedWithKyc": true,
-      "legalDocumentPath": "org/acme/gst.pdf",
-      "legalDocumentType": "GST",
-      "identityProofPath": null,
-      "identityProofType": null,
-      "kycStatus": "Approved",
-      "remarks": null,
-      "submittedAt": "2026-09-09T10:15:00+00:00"
-    },
+    "isDefault": true,
+    "kycStatus": "Approved",
+    "proceedWithKyc": true,
+    "legalDocumentPath": "org/acme/gst.pdf",
+    "legalDocumentType": "GST",
+    "identityProofPath": null,
+    "identityProofType": null,
+    "submittedAt": "2026-09-09T10:15:00+00:00",
+    "totalInst": 0,
+    "totalUser": 0,
+    "audit": {
+      "isActive": true,
+      "createdAt": "2026-09-01T08:00:00+00:00",
+      "updatedAt": "2026-09-09T10:20:00+00:00"
+    }
+  }
+}</code></pre>
+
+<h4>Response — <span class="status-ok">200 OK</span> (anyone else — reduced shape)</h4>
+<pre><code>{
+  "success": true,
+  "data": {
+    "orgId": 123,
+    "orgTypeId": 1,
+    "orgTypeName": "Private Limited",
+    "orgName": "Acme Institute",
+    "regNo": "REG-2024-0007",
+    "regDate": "2024-04-01T00:00:00+00:00",
+    "email": "info@acme.example",
+    "mobile": "9876543210",
+    "isWhatsappNumber": true,
+    "address": "12 MG Road",
+    "districtName": "Bengaluru Urban",
+    "stateName": "Karnataka",
+    "countryName": "India",
+    "pincode": "560001",
+    "logo": "org/acme/logo.png",
+    "isOwner": true,
+    "ownerName": "Asha Rao",
+    "kycStatus": "Approved",
     "audit": {
       "isActive": true,
       "createdAt": "2026-09-01T08:00:00+00:00",
@@ -1706,15 +1765,18 @@ Environment : Production</code></pre>
   }
 }</code></pre>
 <ul class="tight">
-  <li><code>kyc</code> is <code>null</code> when the org has no KYC data. <code>kyc.remarks</code> is always <code>null</code> here — this endpoint doesn't return it; use <code>GET /org/edit</code> if you need <code>remarks</code>.</li>
-  <li><code>audit</code> carries <code>isActive</code>, <code>createdAt</code>, <code>updatedAt</code> only.</li>
+  <li>KYC fields (<code>proceedWithKyc</code>/document paths/types/<code>submittedAt</code>) come back <code>null</code>
+    or <code>false</code> when the organization has no KYC row (only possible for organizations created before KYC
+    data was always attached at creation time). Neither shape returns <code>remarks</code> — use
+    <a href="#org-edit">GET /org/edit</a> if you need it (creator/owner only).</li>
+  <li><code>audit</code> carries <code>isActive</code>, <code>createdAt</code>, <code>updatedAt</code> only, in both shapes.</li>
 </ul>
 
 <h4>Error responses</h4>
 <ul class="tight">
   <li><span class="status-err">400</span> <code>VALIDATION_FAILED</code> — <code>orgId</code> missing, <code>&le; 0</code>, or not an integer.</li>
   <li><span class="status-err">401</span> <code>UNAUTHORIZED</code>; <span class="status-err">400</span> <code>REQUIRED_FIELD</code> — <code>product</code> missing.</li>
-  <li><span class="status-err">404</span> <code>RECORD_NOT_FOUND</code> — reason-specific message, one of: <code>"Organization not found."</code> / <code>"Organization is not owned by the current user."</code> (never includes the id; not fired for deactivated — see above).</li>
+  <li><span class="status-err">404</span> <code>RECORD_NOT_FOUND</code> — message <code>"Organization not found."</code>, fired when the org doesn't exist, is deleted, or (for a non-creator/owner caller only) is deactivated. This endpoint never reports a reason more specific than that.</li>
 </ul>
 
 <h4>Example</h4>
@@ -1921,11 +1983,14 @@ Environment : Production</code></pre>
 
 <h3>12.2 Per-user organization cap</h3>
 <p>
-  <code>POST /org</code> rejects creation with <span class="status-err">400</span>
-  (<code>"You can create a maximum of 3 organizations."</code>) once the caller owns <strong>3 non-deleted</strong>
-  organizations. Deactivated orgs still count; deleted orgs do not.
-  <span class="small">This check is not atomic — a burst of near-simultaneous <code>POST</code> calls from the same
-  user can occasionally result in more than 3 organizations.</span> There is no equivalent cap on institutes.
+  <code>POST /org</code> rejects creation with <span class="status-err">400</span> <code>LIMIT_EXCEEDED</code>
+  (<code>"You can create or own a maximum of 3 organizations."</code>) once the caller has created-or-owns
+  <strong>3 non-deleted</strong> organizations — the cap counts organizations the caller created <em>or</em> owns,
+  not just ones they personally created. Deactivated orgs still count; deleted orgs do not. The limit is
+  server-configurable (<code>Organization:MaxOrgsPerUser</code>) but is currently <strong>3</strong> in every
+  environment. <span class="small">This check is not atomic — a burst of near-simultaneous <code>POST</code> calls
+  from the same user can occasionally result in more than 3 organizations.</span> There is no equivalent cap on
+  institutes.
 </p>
 
 <h3>12.3 Exactly one default per user (organizations)</h3>
@@ -1948,44 +2013,73 @@ Environment : Production</code></pre>
 <h3>12.4 KYC lifecycle (organizations)</h3>
 <p>
   Every organization has KYC data from the moment it's created — <code>POST /org</code> always attaches it, even
-  when the request sends no <code>kyc</code> block at all (defaults: <code>proceedWithKyc=false</code>,
-  <code>kycStatus="KYC Pending"</code>).
+  when the request sends no document fields at all (defaults: <code>proceedWithKyc=false</code>,
+  <code>kycStatus="KYC Pending"</code>). KYC fields are flat directly on <code>postDTO</code>/<code>putDTO</code> —
+  <code>legalDocumentPath</code>, <code>legalDocumentType</code>, <code>identityProofPath</code>,
+  <code>identityProofType</code>, <code>remarks</code>, <code>submittedAt</code> — there is no nested <code>kyc</code>
+  object.
 </p>
 <p><code>kycStatus</code> is <strong>never</strong> taken from the client on either <code>POST /org</code> or
-  <code>PUT /org</code> — the server always derives it from <code>proceedWithKyc</code>:</p>
+  <code>PUT /org</code> — the server always derives it. On <code>POST /org</code> the rule is simple:</p>
 <table>
-  <thead><tr><th><code>proceedWithKyc</code> sent</th><th>Resulting <code>kycStatus</code></th></tr></thead>
+  <thead><tr><th>Both documents present?</th><th>Resulting <code>kycStatus</code></th></tr></thead>
   <tbody>
-    <tr><td><code>false</code> (default)</td><td><code>"KYC Pending"</code></td></tr>
-    <tr><td><code>true</code></td><td><code>"Under Review"</code></td></tr>
+    <tr><td>No (default)</td><td><code>"KYC Pending"</code></td></tr>
+    <tr><td>Yes — both <code>legalDocumentPath</code> and <code>identityProofPath</code></td><td><code>"Under Review"</code></td></tr>
   </tbody>
 </table>
-<p>The full lifecycle — only the first two states are ever written through this API; the other two are set by a
-  separate review process:</p>
-<pre><code>KYC Pending --(submit, proceedWithKyc=true)--> Under Review --> Approved  [locked]
-                                                      |
-                                                      +--> Rejected --(resubmit)--> Under Review</code></pre>
+<p>The full status machine — only <code>"KYC Pending"</code> and <code>"Under Review"</code> are ever entered
+  directly from a document submission through this API; <code>"Approved"</code>/<code>"Rejected"</code> are set by
+  a separate review process, not exposed via this controller:</p>
+<pre><code>KYC Pending --(submit both docs)--> Under Review --> Approved  [locked, see below]
+                                           ^                |
+                                           |                +--> Rejected
+                                           |                         |
+                                           +----(new docs, or--------+
+                                                identity changed)
+                                     (docs removed after a decision --> resets to KYC Pending)</code></pre>
+<p><strong><code>PUT /org</code> behaviour depends on the organization's <em>current</em> <code>kycStatus</code>
+  when the request arrives</strong> (see <a href="#org-put">PUT /org</a>, §9.2, for the full field table):</p>
 <ul class="tight">
-  <li><strong>Locked states — <code>"Under Review"</code> and <code>"Approved"</code>:</strong> a <code>PUT /org</code>
-    request that includes a <code>kyc</code> block while the org is in either state has that <code>kyc</code> block
-    <em>silently dropped</em> — no error, and the rest of the org update (name, address, etc.) still applies normally.</li>
-  <li><strong>Open states — <code>"KYC Pending"</code>, <code>"Rejected"</code>, or no KYC data yet:</strong> the
-    <code>kyc</code> block is accepted normally and saved.</li>
+  <li><strong><code>"Under Review"</code> — fully locked.</strong> The entire <code>PUT /org</code> request is
+    rejected with <span class="status-err">404</span> <code>"Organization cannot be updated while KYC is under
+    review."</code> — no field on the organization changes, not just KYC. <a href="#org-edit">GET /org/edit</a>
+    also 404s in this state (<code>"Organization cannot be edited while KYC is under review."</code>), so there is
+    no edit form to submit in the first place.</li>
+  <li><strong><code>"Approved"</code> / <code>"Rejected"</code> — a decision is on file.</strong> The rest of the
+    organization update always applies; what happens to KYC depends on what you send:
+    <ul class="tight">
+      <li>Both document fields now empty (removed) → resets to <code>"KYC Pending"</code>.</li>
+      <li>A document changed, or <code>orgName</code>/<code>regNo</code>/<code>address</code> changed (the identity
+        the decision was based on) → re-enters <code>"Under Review"</code>.</li>
+      <li>Neither — same documents, same identity → the KYC row is left exactly as it was; <code>remarks</code> and
+        <code>submittedAt</code> in the request are <em>not</em> saved in this case.</li>
+    </ul>
+  </li>
+  <li><strong><code>"KYC Pending"</code>, or no KYC row yet — open.</strong> Same simple rule as <code>POST /org</code>:
+    both documents present → <code>"Under Review"</code>, otherwise → <code>"KYC Pending"</code>.</li>
 </ul>
+<p><code>kycStatus</code> is still never accepted from the client on <code>PUT /org</code> — always re-derived per
+  the rules above.</p>
 
 <h3>12.5 Deleted / deactivated visibility</h3>
-<p>Applies to both institutes and organizations (the org-only "cap" column is noted).</p>
+<p>Applies to both institutes and organizations (the org-only "cap" column is noted). For organizations,
+  <code>view</code> additionally behaves differently for a non-creator/owner caller — see the note below the table.</p>
 <table>
   <thead><tr><th>State</th><th>Counts toward org cap</th><th><code>options</code></th><th><code>list</code></th><th><code>view</code></th><th><code>edit</code></th><th>Updatable (<code>PUT</code> / <code>default</code>)</th></tr></thead>
   <tbody>
-    <tr><td>Active</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td></tr>
-    <tr><td>Deactivated (<code>isActive: false</code>)</td><td>yes</td><td>no</td><td>yes</td><td>yes</td><td>no (<span class="status-err">404</span>)</td><td>no (<span class="status-err">404</span>)</td></tr>
+    <tr><td>Active</td><td>yes</td><td>yes</td><td>yes</td><td>yes</td><td>yes<sup>*</sup></td><td>yes<sup>*</sup></td></tr>
+    <tr><td>Deactivated (<code>isActive: false</code>)</td><td>yes</td><td>no</td><td>yes</td><td>yes (creator/owner) / no, <span class="status-err">404</span> (anyone else)</td><td>no (<span class="status-err">404</span>)</td><td>no (<span class="status-err">404</span>)</td></tr>
     <tr><td>Deleted</td><td>no</td><td>no</td><td>no</td><td>no (<span class="status-err">404</span>)</td><td>no (<span class="status-err">404</span>)</td><td>no (<span class="status-err">404</span>)</td></tr>
   </tbody>
 </table>
-<p><code>view</code> is the one org read endpoint that is <em>not</em> gated on <code>isActive</code> — it's the only
-  way to inspect a deactivated org's details before deciding to reactivate it (<a href="#org-activate">PUT /org/activate</a>).
-  <code>edit</code>, <code>PUT /org</code>, and <code>PUT /org/default</code> all require the org to be active.</p>
+<p class="small"><sup>*</sup> For organizations only: also requires <code>kycStatus</code> to not be
+  <code>"Under Review"</code> — see §12.4.</p>
+<p><code>view</code> is the one org read endpoint that is <em>not</em> gated on <code>isActive</code> for the
+  organization's own creator/owner — it's the only way for them to inspect a deactivated org's details before
+  deciding to reactivate it (<a href="#org-activate">PUT /org/activate</a>). For any other caller, a deactivated
+  org 404s on <code>view</code> just like a deleted one (§9.9). <code>edit</code>, <code>PUT /org</code>, and
+  <code>PUT /org/default</code> all require the org to be active regardless of caller.</p>
 
 <h3>12.6 Full write / no partial merge</h3>
 <p>
@@ -2023,7 +2117,7 @@ Environment : Production</code></pre>
 
 <hr>
 <p class="small">
-  Generated from source on 2026-09-09:
+  Generated from source on 2026-09-16 (Organization controller section refreshed against current code):
   <code>InstituteAPI.Web/src/InstituteAPI.Web/Controllers/{Institute,InstituteType,OrganizationType,Organization,Onboard,Temp}Controller.cs</code>
   and <code>Startup.cs</code>; the matching <code>InstituteAPI.Application</code> commands / queries / validators / handlers;
   <code>InstituteAPI.Infrastructure/Repositories/{Institute,Organization,InstituteType,OrganizationType,Onboard}Repository.cs</code>
