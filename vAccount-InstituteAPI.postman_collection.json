@@ -1,15 +1,15 @@
 {
   "info": {
-    "_postman_id": "8229e10d-5644-46c4-bdae-d7eef8c4faae",
-    "name": "vAccount-InstituteAPI — Organization controller",
-    "description": "Organization controller (route /org) of the vAccount-InstituteAPI service. See vAccount-InstituteAPI.html §9 for the full field reference, error codes, and business rules.\n\nAuth: every request needs TWO cookies — vacc-common-auth (site-wide session) and vacc-<product>-auth (per-product account cookie). There is no bearer token. Use Postman for web with the Postman Interceptor Chrome extension so these are synced automatically from your browser session; see the collection variables below and the HTML guide's \"Testing with Postman\" note for setup steps.\n\nSet the `baseUrl` variable to the Testing or Production value before sending (Testing is the default).",
+    "_postman_id": "498db9d3-637c-4546-93b8-4d07592ede84",
+    "name": "vAccount-InstituteAPI",
+    "description": "Currently covers the Organization resource only. See vAccount-InstituteAPI.html for the full field reference, error codes, and status behavior. Authentication is handled automatically by the Postman Interceptor Chrome extension once you're logged into the product in Chrome — see the HTML guide's Postman setup section. Set the `baseUrl` variable to the Testing or Production value before sending (Testing is the default).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "baseUrl",
       "value": "https://api-vacc.vidyaone.com/test/inst/",
-      "description": "Testing (default). Production: https://api-vacc.vidyaone.com/inst/ — from appsettings.json → App:BaseUrl."
+      "description": "Testing (default). Production: https://api-vacc.vidyaone.com/inst/"
     },
     {
       "key": "product",
@@ -19,7 +19,7 @@
     {
       "key": "orgId",
       "value": "123",
-      "description": "Sample organization id — replace with one you created via 'Create Organization'."
+      "description": "Sample organization id — replace with one you created via 'Create organization'."
     },
     {
       "key": "pageNumber",
@@ -35,150 +35,140 @@
       "name": "Organization",
       "item": [
         {
-          "name": "Create Organization",
+          "name": "Create organization",
           "request": {
             "method": "POST",
             "header": [
               { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}", "description": "Sent by VIDYAOne client convention; NOT read or enforced by this endpoint (see HTML guide §9.1 Idempotency note)." }
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
             ],
             "url": "{{baseUrl}}org?product={{product}}",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"postDTO\": {\n    \"orgName\": \"Acme Institute\",\n    \"orgTypeId\": 1,\n    \"mobile\": \"9876543210\",\n    \"email\": \"info@acme.example\",\n    \"regNo\": \"REG-2024-0007\",\n    \"address\": \"12 MG Road\",\n    \"districtId\": 501,\n    \"stateId\": 27,\n    \"countryId\": 91,\n    \"pincode\": \"560001\",\n    \"logo\": \"org/acme/logo.png\",\n    \"isOwner\": true,\n    \"ownerName\": \"Asha Rao\",\n    \"ownerEmail\": \"asha@acme.example\",\n    \"isWhatsappNumber\": true,\n    \"isDefault\": true,\n    \"legalDocumentType\": \"GST\",\n    \"legalDocumentPath\": \"org/acme/gst.pdf\",\n    \"submittedAt\": \"2026-09-09T10:15:00Z\"\n  }\n}",
               "options": { "raw": { "language": "json" } }
-            },
-            "description": "Creates one organization for the caller. 409 DUPLICATE_RECORD if orgName/regNo already exists anywhere; 400 LIMIT_EXCEEDED once the caller already created-or-owns 3 non-deleted organizations. See §9.1."
+            }
           },
           "response": []
         },
         {
-          "name": "Update Organization",
+          "name": "Update organization",
           "request": {
             "method": "PUT",
             "header": [
               { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}", "description": "Not read or enforced. Effective de-dupe key is orgId (full overwrite) — see §9.2 Idempotency note." }
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
             ],
             "url": "{{baseUrl}}org?product={{product}}",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"putDTO\": {\n    \"orgId\": {{orgId}},\n    \"orgName\": \"Acme Institute (Renamed)\",\n    \"orgTypeId\": 1,\n    \"mobile\": \"9876543210\",\n    \"email\": \"info@acme.example\",\n    \"regNo\": \"REG-2024-0007\",\n    \"address\": \"12 MG Road\",\n    \"districtId\": 501,\n    \"stateId\": 27,\n    \"countryId\": 91,\n    \"pincode\": \"560001\",\n    \"logo\": \"org/acme/logo-v2.png\",\n    \"isOwner\": true,\n    \"ownerName\": \"Asha Rao\",\n    \"ownerEmail\": \"asha@acme.example\",\n    \"isWhatsappNumber\": true,\n    \"isDefault\": false,\n    \"legalDocumentPath\": \"org/acme/gst.pdf\",\n    \"identityProofPath\": \"org/acme/pan.pdf\",\n    \"remarks\": \"docs ok\"\n  }\n}",
               "options": { "raw": { "language": "json" } }
-            },
-            "description": "Updates one organization the caller created or owns, including KYC. 404 if not found/owned/deleted/deactivated, or if KYC is currently Under Review. Every writable field is overwritten — read GET /org/edit first. See §9.2."
+            }
           },
           "response": []
         },
         {
-          "name": "Get Organization (Edit)",
+          "name": "Get organization (edit)",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}org/edit?product={{product}}&orgId={{orgId}}",
-            "description": "Returns one organization in an edit-ready flat shape (rounds-trips into PUT /org). 404 if not found/owned/deleted/deactivated, or KYC is Under Review. See §9.3."
+            "url": "{{baseUrl}}org/edit?product={{product}}&orgId={{orgId}}"
           },
           "response": []
         },
         {
-          "name": "Set Default Organization",
+          "name": "Set default organization",
           "request": {
             "method": "PUT",
             "header": [
               { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}", "description": "Not read or enforced. Effective de-dupe key is orgId — repeat call on an already-default org is a no-op. See §9.4." }
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
             ],
             "url": "{{baseUrl}}org/default?product={{product}}",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"orgId\": {{orgId}}\n}",
               "options": { "raw": { "language": "json" } }
-            },
-            "description": "Makes one organization the caller's default and clears the flag on their other organizations. Target must be active and not deleted. See §9.4."
+            }
           },
           "response": []
         },
         {
-          "name": "Activate Organizations",
+          "name": "Activate organizations",
           "request": {
             "method": "PUT",
             "header": [
               { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}", "description": "Not read or enforced. NOT safe to retry blindly — a repeat call 404s once the ids are already active. See §9.5a." }
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
             ],
             "url": "{{baseUrl}}org/activate?product={{product}}",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"orgIds\": [{{orgId}}]\n}",
               "options": { "raw": { "language": "json" } }
-            },
-            "description": "Bulk re-activates one or more previously deactivated organizations owned by the caller. Partial match allowed; 404 only when none of the ids match an eligible (owned, deactivated, non-deleted) organization. See §9.5a."
+            }
           },
           "response": []
         },
         {
-          "name": "Deactivate Organizations",
+          "name": "Deactivate organizations",
           "request": {
             "method": "PUT",
             "header": [
               { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}", "description": "Not read or enforced. NOT safe to retry blindly — a repeat call 404s once the ids are already deactivated. See §9.5." }
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
             ],
             "url": "{{baseUrl}}org/deactive?product={{product}}",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"orgIds\": [{{orgId}}]\n}",
               "options": { "raw": { "language": "json" } }
-            },
-            "description": "Bulk-deactivates one or more of the caller's organizations. Clears anyone's default that pointed at a deactivated org. See §9.5."
+            }
           },
           "response": []
         },
         {
-          "name": "Delete Organizations",
+          "name": "Delete organizations",
           "request": {
             "method": "DELETE",
             "header": [
               { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}", "description": "Not read or enforced. NOT safe to retry blindly — a repeat call 404s once the ids are already deleted. See §9.6." }
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
             ],
             "url": "{{baseUrl}}org?product={{product}}",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"orgIds\": [{{orgId}}]\n}",
               "options": { "raw": { "language": "json" } }
-            },
-            "description": "Permanently soft-deletes one or more of the caller's organizations — no undo endpoint. See §9.6."
+            }
           },
           "response": []
         },
         {
-          "name": "Organization Options (Dropdown)",
+          "name": "Organization options",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}org/options?product={{product}}",
-            "description": "Returns the caller's active, non-deleted organizations as { id, name } pairs, ordered by name. See §9.7."
+            "url": "{{baseUrl}}org/options?product={{product}}"
           },
           "response": []
         },
         {
-          "name": "List My Organizations (Owner)",
+          "name": "List my organizations",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}org/list/owner?product={{product}}&pageNumber={{pageNumber}}&pageSize={{pageSize}}",
-            "description": "Paged list of organizations the caller OWNS (ownerUserId — not merely created), active and deactivated, never deleted. pageNumber/pageSize optional (default 1/50, max pageSize 200). See §9.8."
+            "url": "{{baseUrl}}org/list/owner?product={{product}}&pageNumber={{pageNumber}}&pageSize={{pageSize}}"
           },
           "response": []
         },
         {
-          "name": "View Organization",
+          "name": "Get organization",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}org/view?product={{product}}&orgId={{orgId}}",
-            "description": "Read-only display. Not restricted to the caller — any authenticated caller can view any orgId, but gets the full shape only if creator/owner, otherwise a reduced public shape gated on IsActive. See §9.9."
+            "url": "{{baseUrl}}org/view?product={{product}}&orgId={{orgId}}"
           },
           "response": []
         }
