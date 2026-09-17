@@ -47,40 +47,64 @@
   .small{font-size:13px;color:var(--muted)}
   nav.top{
     position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);
-    padding:10px 24px;display:flex;flex-wrap:wrap;gap:4px 18px;align-items:baseline;overflow-x:auto;
+    padding:10px 24px;display:flex;flex-wrap:wrap;gap:4px 18px;align-items:baseline;
   }
   nav.top strong{color:var(--ink);white-space:nowrap;margin-right:6px}
   nav.top a{white-space:nowrap;font-size:14px}
   nav.top a.download{font-weight:700;margin-left:auto}
+  nav.top .menu{position:relative;padding-bottom:8px;margin-bottom:-8px}
+  nav.top .submenu{
+    display:none;position:absolute;top:100%;left:0;margin:0;padding:6px 0;
+    list-style:none;min-width:210px;background:#fff;border:1px solid var(--line);z-index:20;
+  }
+  nav.top .menu:hover .submenu,
+  nav.top .menu:focus-within .submenu{display:block}
+  nav.top .submenu li{margin:0}
+  nav.top .submenu a{display:block;padding:5px 14px;font-size:13px;white-space:nowrap}
   hr{border:none;border-top:1px solid var(--line);margin:36px 0}
   ul.tight{margin:6px 0;padding-left:20px}
   ul.tight li{margin:3px 0}
 </style>
 </head>
-<body>
+<body id="top">
 
 <nav class="top">
   <strong>vAccount-InstituteAPI</strong>
+  <a href="#top">Home</a>
+  <a href="#postman-setup">Postman setup</a>
   <a href="#base-urls">Base URLs</a>
   <a href="#common-rules">Common rules</a>
-  <a href="#postman-setup">Postman setup</a>
-  <a href="#organization">Organization</a>
-  <a href="#org-post"><code>POST /org</code></a>
-  <a href="#org-put"><code>PUT /org</code></a>
-  <a href="#org-edit"><code>GET /org/edit</code></a>
-  <a href="#org-default"><code>PUT /org/default</code></a>
-  <a href="#org-activate"><code>PUT /org/activate</code></a>
-  <a href="#org-deactive"><code>PUT /org/deactive</code></a>
-  <a href="#org-delete"><code>DELETE /org</code></a>
-  <a href="#org-options"><code>GET /org/options</code></a>
-  <a href="#org-list"><code>GET /org/list/owner</code></a>
-  <a href="#org-view"><code>GET /org/view</code></a>
+  <div class="menu">
+    <a href="#organization">Organization</a>
+    <ul class="submenu">
+      <li><a href="#org-post"><code>POST /org</code></a></li>
+      <li><a href="#org-put"><code>PUT /org</code></a></li>
+      <li><a href="#org-edit"><code>GET /org/edit</code></a></li>
+      <li><a href="#org-default"><code>PUT /org/default</code></a></li>
+      <li><a href="#org-activate"><code>PUT /org/activate</code></a></li>
+      <li><a href="#org-deactive"><code>PUT /org/deactive</code></a></li>
+      <li><a href="#org-delete"><code>DELETE /org</code></a></li>
+      <li><a href="#org-options"><code>GET /org/options</code></a></li>
+      <li><a href="#org-list"><code>GET /org/list/owner</code></a></li>
+      <li><a href="#org-view"><code>GET /org/view</code></a></li>
+    </ul>
+  </div>
   <a class="download" href="vAccount-InstituteAPI.postman_collection.json" download>&#8595; Postman collection</a>
 </nav>
 
 <main>
 <h1>vAccount-InstituteAPI — Developer Guide</h1>
 <p class="small">Currently documents the <strong>Organization</strong> resource only. Other resources will be added in later updates.</p>
+
+<section id="postman-setup">
+<h2>Postman setup guide</h2>
+<ol class="tight">
+  <li>Use Postman for web (<a href="https://web.postman.co">web.postman.co</a>), not the desktop app.</li>
+  <li>Install the <a href="https://chromewebstore.google.com/detail/postman-interceptor/aicmkgpgakddgnaphhhpliifpcfhicfo">Postman Interceptor</a> Chrome extension — it lets Postman's web app read cookies from your Chrome session.</li>
+  <li>Enable Interceptor, then log into the product normally in Chrome. Once logged in, your session is available to Postman automatically — you don't need to set any auth header or cookie by hand.</li>
+  <li>Download the collection from the link in the navbar above and import it into Postman, then send requests — it's pre-configured for Testing.</li>
+</ol>
+</section>
 
 <section id="base-urls">
 <h2>Base URLs</h2>
@@ -152,16 +176,6 @@
     <tr><td class="status-err">500</td><td><code>INTERNAL_ERROR</code></td><td>Unexpected server error.</td></tr>
   </tbody>
 </table>
-</section>
-
-<section id="postman-setup">
-<h2>Postman setup guide</h2>
-<ol class="tight">
-  <li>Use Postman for web (<a href="https://web.postman.co">web.postman.co</a>), not the desktop app.</li>
-  <li>Install the <a href="https://chromewebstore.google.com/detail/postman-interceptor/aicmkgpgakddgnaphhhpliifpcfhicfo">Postman Interceptor</a> Chrome extension — it lets Postman's web app read cookies from your Chrome session.</li>
-  <li>Enable Interceptor, then log into the product normally in Chrome. Once logged in, your session is available to Postman automatically — you don't need to set any auth header or cookie by hand.</li>
-  <li>Download the collection from the link in the navbar above and import it into Postman, then send requests — it's pre-configured for Testing.</li>
-</ol>
 </section>
 
 <section id="organization">
