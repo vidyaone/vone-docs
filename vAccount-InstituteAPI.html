@@ -148,13 +148,25 @@
   <li>Use Postman for web (<a href="https://web.postman.co">web.postman.co</a>), not the desktop app.</li>
   <li>Install the <a href="https://chromewebstore.google.com/detail/postman-interceptor/aicmkgpgakddgnaphhhpliifpcfhicfo">Postman Interceptor</a> Chrome extension — it lets Postman's web app read cookies from your Chrome session.</li>
   <li>Enable Interceptor, then log into the product normally in Chrome. Once logged in, your session is available to Postman automatically — you don't need to set any auth header or cookie by hand.</li>
-  <li>Import <code>vAccount-InstituteAPI.postman_collection.json</code>, select the matching environment/<code>baseUrl</code> variable, and send requests.</li>
+  <li>Download the <a href="vAccount-InstituteAPI.postman_collection.json" download>Postman collection</a>, import it into Postman, select the matching environment/<code>baseUrl</code> variable, and send requests.</li>
 </ol>
 </section>
 
 <section id="organization">
 <h2>Organization</h2>
 <p>Most routes below act only on organizations the caller created or owns. <a href="#org-view">Get organization</a> is the one exception — any authenticated caller can read any organization, with the response shape depending on their relationship to it. A caller may create-or-own at most 3 non-deleted organizations.</p>
+<ul class="tight">
+  <li><a href="#org-post"><code>POST /org</code></a> — Create organization</li>
+  <li><a href="#org-put"><code>PUT /org</code></a> — Update organization</li>
+  <li><a href="#org-edit"><code>GET /org/edit</code></a> — Get organization (edit)</li>
+  <li><a href="#org-default"><code>PUT /org/default</code></a> — Set default organization</li>
+  <li><a href="#org-activate"><code>PUT /org/activate</code></a> — Activate organizations</li>
+  <li><a href="#org-deactive"><code>PUT /org/deactive</code></a> — Deactivate organizations</li>
+  <li><a href="#org-delete"><code>DELETE /org</code></a> — Delete organizations</li>
+  <li><a href="#org-options"><code>GET /org/options</code></a> — Organization options</li>
+  <li><a href="#org-list"><code>GET /org/list/owner</code></a> — List my organizations</li>
+  <li><a href="#org-view"><code>GET /org/view</code></a> — Get organization</li>
+</ul>
 
 <!-- ========================= Create organization ========================= -->
 <h3 id="org-post"><span class="method">POST</span> <code>/org</code></h3>
@@ -199,32 +211,28 @@
 </table>
 <p><code>proceedWithKyc</code> and <code>kycStatus</code> are not request fields. Sending both <code>legalDocumentPath</code> and <code>identityProofPath</code> results in <code>kycStatus: "Under Review"</code> in later reads; otherwise <code>kycStatus: "Pending"</code>.</p>
 
-<h4>Example request</h4>
-<pre><code>curl -sS -X POST "https://api-vacc.vidyaone.com/test/inst/org?product=lms" \
-  --cookie "$SESSION_COOKIE" \
-  -H "Content-Type: application/json" \
-  -H "Idempotency-Key: $(uuidgen)" \
-  -d '{
-        "postDTO": {
-          "orgName": "Acme Institute",
-          "orgTypeId": 1,
-          "mobile": "9876543210",
-          "email": "info@acme.example",
-          "regNo": "REG-2024-0007",
-          "address": "12 MG Road",
-          "districtId": 501, "stateId": 27, "countryId": 91,
-          "pincode": "560001",
-          "logo": "org/acme/logo.png",
-          "isOwner": true,
-          "ownerName": "Asha Rao",
-          "ownerEmail": "asha@acme.example",
-          "isWhatsappNumber": true,
-          "isDefault": true,
-          "legalDocumentType": "GST",
-          "legalDocumentPath": "org/acme/gst.pdf",
-          "submittedAt": "2026-09-09T10:15:00Z"
-        }
-      }'</code></pre>
+<h4>Example request body</h4>
+<pre><code>{
+  "postDTO": {
+    "orgName": "Acme Institute",
+    "orgTypeId": 1,
+    "mobile": "9876543210",
+    "email": "info@acme.example",
+    "regNo": "REG-2024-0007",
+    "address": "12 MG Road",
+    "districtId": 501, "stateId": 27, "countryId": 91,
+    "pincode": "560001",
+    "logo": "org/acme/logo.png",
+    "isOwner": true,
+    "ownerName": "Asha Rao",
+    "ownerEmail": "asha@acme.example",
+    "isWhatsappNumber": true,
+    "isDefault": true,
+    "legalDocumentType": "GST",
+    "legalDocumentPath": "org/acme/gst.pdf",
+    "submittedAt": "2026-09-09T10:15:00Z"
+  }
+}</code></pre>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -277,33 +285,29 @@
   </tbody>
 </table>
 
-<h4>Example request</h4>
-<pre><code>curl -sS -X PUT "https://api-vacc.vidyaone.com/test/inst/org?product=lms" \
-  --cookie "$SESSION_COOKIE" \
-  -H "Content-Type: application/json" \
-  -H "Idempotency-Key: $(uuidgen)" \
-  -d '{
-        "putDTO": {
-          "orgId": 123,
-          "orgName": "Acme Institute (Renamed)",
-          "orgTypeId": 1,
-          "mobile": "9876543210",
-          "email": "info@acme.example",
-          "regNo": "REG-2024-0007",
-          "address": "12 MG Road",
-          "districtId": 501, "stateId": 27, "countryId": 91,
-          "pincode": "560001",
-          "logo": "org/acme/logo-v2.png",
-          "isOwner": true,
-          "ownerName": "Asha Rao",
-          "ownerEmail": "asha@acme.example",
-          "isWhatsappNumber": true,
-          "isDefault": false,
-          "legalDocumentPath": "org/acme/gst.pdf",
-          "identityProofPath": "org/acme/pan.pdf",
-          "remarks": "docs ok"
-        }
-      }'</code></pre>
+<h4>Example request body</h4>
+<pre><code>{
+  "putDTO": {
+    "orgId": 123,
+    "orgName": "Acme Institute (Renamed)",
+    "orgTypeId": 1,
+    "mobile": "9876543210",
+    "email": "info@acme.example",
+    "regNo": "REG-2024-0007",
+    "address": "12 MG Road",
+    "districtId": 501, "stateId": 27, "countryId": 91,
+    "pincode": "560001",
+    "logo": "org/acme/logo-v2.png",
+    "isOwner": true,
+    "ownerName": "Asha Rao",
+    "ownerEmail": "asha@acme.example",
+    "isWhatsappNumber": true,
+    "isDefault": false,
+    "legalDocumentPath": "org/acme/gst.pdf",
+    "identityProofPath": "org/acme/pan.pdf",
+    "remarks": "docs ok"
+  }
+}</code></pre>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -339,10 +343,6 @@
     <tr><td><code>orgId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0.</td></tr>
   </tbody>
 </table>
-
-<h4>Example request</h4>
-<pre><code>curl -sS "https://api-vacc.vidyaone.com/test/inst/org/edit?product=lms&amp;orgId=123" \
-  --cookie "$SESSION_COOKIE"</code></pre>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -409,13 +409,6 @@
 </table>
 <pre><code>{ "orgId": 123 }</code></pre>
 
-<h4>Example request</h4>
-<pre><code>curl -sS -X PUT "https://api-vacc.vidyaone.com/test/inst/org/default?product=lms" \
-  --cookie "$SESSION_COOKIE" \
-  -H "Content-Type: application/json" \
-  -H "Idempotency-Key: $(uuidgen)" \
-  -d '{ "orgId": 123 }'</code></pre>
-
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{ "success": true, "message": "Organisation set as default successfully." }</code></pre>
@@ -450,13 +443,6 @@
 </table>
 <pre><code>{ "orgIds": [123, 124] }</code></pre>
 <p>Ids not owned by the caller, already active, or deleted are silently skipped. Returns <span class="status-ok">200 OK</span> as long as at least one organization is affected.</p>
-
-<h4>Example request</h4>
-<pre><code>curl -sS -X PUT "https://api-vacc.vidyaone.com/test/inst/org/activate?product=lms" \
-  --cookie "$SESSION_COOKIE" \
-  -H "Content-Type: application/json" \
-  -H "Idempotency-Key: $(uuidgen)" \
-  -d '{ "orgIds": [123, 124] }'</code></pre>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -493,13 +479,6 @@
 <pre><code>{ "orgIds": [123, 124] }</code></pre>
 <p>Ids not owned by the caller are silently skipped. Returns <span class="status-ok">200 OK</span> as long as at least one row is affected. If a deactivated organization was anyone's default, that default is cleared.</p>
 
-<h4>Example request</h4>
-<pre><code>curl -sS -X PUT "https://api-vacc.vidyaone.com/test/inst/org/deactive?product=lms" \
-  --cookie "$SESSION_COOKIE" \
-  -H "Content-Type: application/json" \
-  -H "Idempotency-Key: $(uuidgen)" \
-  -d '{ "orgIds": [123, 124] }'</code></pre>
-
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{ "success": true, "message": "Organisation deactivated successfully." }</code></pre>
@@ -535,13 +514,6 @@
 <pre><code>{ "orgIds": [123] }</code></pre>
 <p>This request carries a body — use an HTTP client that sends a body on <code>DELETE</code> (curl does). Ids not owned by the caller, or already deleted, are silently skipped. If a deleted organization was anyone's default, that default is cleared.</p>
 
-<h4>Example request</h4>
-<pre><code>curl -sS -X DELETE "https://api-vacc.vidyaone.com/test/inst/org?product=lms" \
-  --cookie "$SESSION_COOKIE" \
-  -H "Content-Type: application/json" \
-  -H "Idempotency-Key: $(uuidgen)" \
-  -d '{ "orgIds": [123] }'</code></pre>
-
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{ "success": true, "message": "Organisation deleted successfully." }</code></pre>
@@ -568,10 +540,6 @@
     <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/org/options?product={product}</code></td></tr>
   </tbody>
 </table>
-
-<h4>Example request</h4>
-<pre><code>curl -sS "https://api-vacc.vidyaone.com/test/inst/org/options?product=lms" \
-  --cookie "$SESSION_COOKIE"</code></pre>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -609,10 +577,6 @@
     <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. Must be <code>&gt; 0</code> and <code>&le; 200</code> if sent.</td></tr>
   </tbody>
 </table>
-
-<h4>Example request</h4>
-<pre><code>curl -sS "https://api-vacc.vidyaone.com/test/inst/org/list/owner?product=lms&amp;pageNumber=1&amp;pageSize=20" \
-  --cookie "$SESSION_COOKIE"</code></pre>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -676,10 +640,6 @@
     <tr><td><code>orgId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0.</td></tr>
   </tbody>
 </table>
-
-<h4>Example request</h4>
-<pre><code>curl -sS "https://api-vacc.vidyaone.com/test/inst/org/view?product=lms&amp;orgId=123" \
-  --cookie "$SESSION_COOKIE"</code></pre>
 
 <h4>Response — caller is the creator or owner</h4>
 <p><span class="status-ok">200 OK</span></p>
