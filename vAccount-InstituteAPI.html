@@ -1071,6 +1071,30 @@ Environment : Production</code></pre>
   excluded from the cap and from every read endpoint. See §12 for the <code>isDefault</code>, KYC, and
   delete/deactivate behaviours.
 </p>
+<div class="note warn">
+  <strong>Two cookies are required on every request in this section</strong>, not one: <code>vacc-common-auth</code>
+  (the site-wide session cookie — checked before the request even reaches this controller; missing/invalid →
+  <span class="status-err">401</span> before any org logic runs) <strong>and</strong>
+  <code>vacc-&lt;product&gt;-auth</code> (e.g. <code>vacc-lms-auth</code> — the per-product account cookie this
+  controller's own auth filter reads, resolved from the <code>product</code> query value; missing/invalid →
+  <span class="status-err">401</span>). The per-product cookie carries identity only (<code>userId</code>) here —
+  it is the same cookie <em>name</em> pattern the Onboard controller uses (§10), but decoded into a lighter payload
+  with no institute context.
+</div>
+<div class="note">
+  <strong>Testing with Postman.</strong>
+  <ol class="tight">
+    <li>Use Postman for web (<a href="https://web.postman.co">web.postman.co</a>), not the desktop app — it needs to
+      read cookies from your browser session.</li>
+    <li>Install the <a href="https://chromewebstore.google.com/detail/postman-interceptor/aicmkgpgakddgnaphhhpliifpcfhicfo">Postman
+      Interceptor</a> Chrome extension.</li>
+    <li>Enable Interceptor, then log into the product normally in Chrome so both <code>vacc-common-auth</code> and
+      <code>vacc-&lt;product&gt;-auth</code> get set. In the request builder, cookies for the request's domain are
+      available via the <strong>Cookies</strong> link at the bottom, next to Save/Share/Send.</li>
+    <li>Import <code>vAccount-InstituteAPI.postman_collection.json</code> (Organization folder), pick the matching
+      environment/<code>baseUrl</code> variable, and send — the synced cookies handle auth automatically.</li>
+  </ol>
+</div>
 
 <!-- 9.1 -->
 <h3 id="org-post" class="sec"><span class="method m-post">POST</span><span class="endpoint-path">/org</span></h3>
@@ -1088,7 +1112,10 @@ Environment : Production</code></pre>
     <tr><td>Production</td><td><code>POST https://api-vacc.vidyaone.com/inst/org</code></td></tr>
   </tbody>
 </table>
-<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code>, <code>Content-Type: application/json</code>.
+<p><strong>Headers:</strong> <code>Cookie: vacc-common-auth=&lt;session&gt;; vacc-&lt;product&gt;-auth=&lt;token&gt;</code>
+  (both required — see note above), <code>Content-Type: application/json</code>,
+  <code>Idempotency-Key: &lt;uuid&gt;</code> (sent by VIDYAOne client convention; <strong>not read or enforced by
+  this endpoint</strong> — see Idempotency note below).
   &nbsp; <strong>Query:</strong> <code>product</code> (required).</p>
 <p><strong>Body</strong> — the organization payload is nested under <code>postDTO</code>. KYC fields are flat on
   <code>postDTO</code> itself, not a nested object:</p>
@@ -1144,11 +1171,20 @@ Environment : Production</code></pre>
     <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td><code>orgTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> does not reference an existing row.</td></tr>
   </tbody>
 </table>
+<div class="note warn">
+  <strong>Idempotency.</strong> This endpoint has no idempotency guarantee. There is no natural de-dupe key either —
+  a repeated identical call after a successful create fails with <span class="status-err">409</span>
+  <code>DUPLICATE_RECORD</code> (the <code>orgName</code>/<code>regNo</code> you just created is now "already in
+  use") rather than returning the original success or a no-op. If a create may have already succeeded before you
+  retry, check first with <a href="#org-options">GET /org/options</a> or <a href="#org-list">GET /org/list/owner</a>
+  instead of resending.
+</div>
 
 <h4>Example</h4>
 <pre><code>curl -sS -X POST "https://api-vacc.vidyaone.com/test/inst/org?product=lms" \
-  --cookie "vacc-account-auth=$AUTH" \
+  --cookie "vacc-common-auth=$COMMON_AUTH" --cookie "vacc-lms-auth=$ACCOUNT_AUTH" \
   -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $(uuidgen)" \
   -d '{
         "postDTO": {
           "orgName": "Acme Institute",
@@ -1192,7 +1228,10 @@ Environment : Production</code></pre>
     <tr><td>Production</td><td><code>PUT https://api-vacc.vidyaone.com/inst/org</code></td></tr>
   </tbody>
 </table>
-<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code>, <code>Content-Type: application/json</code>.
+<p><strong>Headers:</strong> <code>Cookie: vacc-common-auth=&lt;session&gt;; vacc-&lt;product&gt;-auth=&lt;token&gt;</code>
+  (both required — see note above), <code>Content-Type: application/json</code>,
+  <code>Idempotency-Key: &lt;uuid&gt;</code> (sent by convention; not read or enforced by this endpoint — see
+  Idempotency note below).
   &nbsp; <strong>Query:</strong> <code>product</code> (required).</p>
 <p><strong>Body</strong> — payload nested under <code>putDTO</code>, same flat KYC fields as <code>postDTO</code>:</p>
 <pre><code>{ "putDTO": { "orgId": 123, ...same fields as POST postDTO... } }</code></pre>
@@ -1234,11 +1273,19 @@ Environment : Production</code></pre>
     <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td><code>orgTypeId</code>/<code>districtId</code>/<code>stateId</code>/<code>countryId</code> does not reference a valid record.</td></tr>
   </tbody>
 </table>
+<div class="note">
+  <strong>Idempotency.</strong> <code>Idempotency-Key</code> is accepted by convention but not read or enforced by
+  this endpoint. The effective de-dupe key is <code>orgId</code>: this is a full overwrite, so sending the exact
+  same body twice leaves the organization in the same final state both times and returns
+  <span class="status-ok">200</span> each time (the second call's KYC evaluation sees no change from the first and
+  skips re-writing the KYC row — see the KYC-on-update rules above).
+</div>
 
 <h4>Example</h4>
 <pre><code>curl -sS -X PUT "https://api-vacc.vidyaone.com/test/inst/org?product=lms" \
-  --cookie "vacc-account-auth=$AUTH" \
+  --cookie "vacc-common-auth=$COMMON_AUTH" --cookie "vacc-lms-auth=$ACCOUNT_AUTH" \
   -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $(uuidgen)" \
   -d '{
         "putDTO": {
           "orgId": 123,
@@ -1282,7 +1329,8 @@ Environment : Production</code></pre>
     <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/org/edit</code></td></tr>
   </tbody>
 </table>
-<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code> (required).</p>
+<p><strong>Headers:</strong> <code>Cookie: vacc-common-auth=&lt;session&gt;; vacc-&lt;product&gt;-auth=&lt;token&gt;</code>
+  (both required — see note above).</p>
 <table>
   <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
   <tbody>
@@ -1347,7 +1395,7 @@ Environment : Production</code></pre>
 
 <h4>Example</h4>
 <pre><code>curl -sS "https://api-vacc.vidyaone.com/test/inst/org/edit?product=lms&amp;orgId=123" \
-  --cookie "vacc-account-auth=$AUTH"</code></pre>
+  --cookie "vacc-common-auth=$COMMON_AUTH" --cookie "vacc-lms-auth=$ACCOUNT_AUTH"</code></pre>
 
 <!-- 9.4 -->
 <h3 id="org-default" class="sec"><span class="method m-put">PUT</span><span class="endpoint-path">/org/default</span></h3>
@@ -1364,7 +1412,10 @@ Environment : Production</code></pre>
     <tr><td>Production</td><td><code>PUT https://api-vacc.vidyaone.com/inst/org/default</code></td></tr>
   </tbody>
 </table>
-<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code>, <code>Content-Type: application/json</code>.
+<p><strong>Headers:</strong> <code>Cookie: vacc-common-auth=&lt;session&gt;; vacc-&lt;product&gt;-auth=&lt;token&gt;</code>
+  (both required — see note above), <code>Content-Type: application/json</code>,
+  <code>Idempotency-Key: &lt;uuid&gt;</code> (sent by convention; not read or enforced by this endpoint — see
+  Idempotency note below).
   &nbsp; <strong>Query:</strong> <code>product</code> (required).</p>
 <table>
   <thead><tr><th>Body field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
@@ -1383,11 +1434,17 @@ Environment : Production</code></pre>
   <li><span class="status-err">401</span> <code>UNAUTHORIZED</code>; <span class="status-err">400</span> <code>REQUIRED_FIELD</code> — <code>product</code> missing.</li>
   <li><span class="status-err">404</span> <code>RECORD_NOT_FOUND</code> — reason-specific message, one of: <code>"Organization not found."</code> / <code>"Organization has been deleted and cannot be set as default."</code> / <code>"Organization is deactivated and cannot be set as default."</code> / <code>"Organization is not owned or managed by the current user."</code> (never includes the id). No other row is touched in this case.</li>
 </ul>
+<div class="note">
+  <strong>Idempotency.</strong> <code>Idempotency-Key</code> is accepted by convention but not read or enforced by
+  this endpoint. The effective de-dupe key is <code>orgId</code>: calling this again with the same <code>orgId</code>
+  is a no-op on an already-default organization — same final state, <span class="status-ok">200</span> each time.
+</div>
 
 <h4>Example</h4>
 <pre><code>curl -sS -X PUT "https://api-vacc.vidyaone.com/test/inst/org/default?product=lms" \
-  --cookie "vacc-account-auth=$AUTH" \
+  --cookie "vacc-common-auth=$COMMON_AUTH" --cookie "vacc-lms-auth=$ACCOUNT_AUTH" \
   -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $(uuidgen)" \
   -d '{ "orgId": 123 }'</code></pre>
 
 <!-- 9.5a -->
@@ -1405,7 +1462,10 @@ Environment : Production</code></pre>
     <tr><td>Production</td><td><code>PUT https://api-vacc.vidyaone.com/inst/org/activate</code></td></tr>
   </tbody>
 </table>
-<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code>, <code>Content-Type: application/json</code>.
+<p><strong>Headers:</strong> <code>Cookie: vacc-common-auth=&lt;session&gt;; vacc-&lt;product&gt;-auth=&lt;token&gt;</code>
+  (both required — see note above), <code>Content-Type: application/json</code>,
+  <code>Idempotency-Key: &lt;uuid&gt;</code> (sent by convention; not read or enforced by this endpoint — see
+  Idempotency note below).
   &nbsp; <strong>Query:</strong> <code>product</code> (required).</p>
 <table>
   <thead><tr><th>Body field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
@@ -1429,11 +1489,20 @@ Environment : Production</code></pre>
   <li><span class="status-err">401</span> <code>UNAUTHORIZED</code>; <span class="status-err">400</span> <code>REQUIRED_FIELD</code> — <code>product</code> missing.</li>
   <li><span class="status-err">404</span> <code>RECORD_NOT_FOUND</code> — message <code>"None of the specified organizations could be activated. They may not exist, may not be owned by you, may already be active, or may be deleted."</code> (never includes the ids).</li>
 </ul>
+<div class="note warn">
+  <strong>Idempotency.</strong> <code>Idempotency-Key</code> is accepted by convention but not read or enforced by
+  this endpoint. The effective key is <code>orgIds</code>, but repeating the exact same call is <strong>not</strong>
+  safe to retry blindly: the eligibility filter only matches organizations that are <em>currently deactivated</em>,
+  so a second call with the same ids right after a successful first call matches nothing and returns
+  <span class="status-err">404</span> — even though the desired end state (active) was already achieved by the
+  first call.
+</div>
 
 <h4>Example</h4>
 <pre><code>curl -sS -X PUT "https://api-vacc.vidyaone.com/test/inst/org/activate?product=lms" \
-  --cookie "vacc-account-auth=$AUTH" \
+  --cookie "vacc-common-auth=$COMMON_AUTH" --cookie "vacc-lms-auth=$ACCOUNT_AUTH" \
   -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $(uuidgen)" \
   -d '{ "orgIds": [123, 124] }'</code></pre>
 
 <!-- 9.5 -->
@@ -1452,7 +1521,10 @@ Environment : Production</code></pre>
     <tr><td>Production</td><td><code>PUT https://api-vacc.vidyaone.com/inst/org/deactive</code></td></tr>
   </tbody>
 </table>
-<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code>, <code>Content-Type: application/json</code>.
+<p><strong>Headers:</strong> <code>Cookie: vacc-common-auth=&lt;session&gt;; vacc-&lt;product&gt;-auth=&lt;token&gt;</code>
+  (both required — see note above), <code>Content-Type: application/json</code>,
+  <code>Idempotency-Key: &lt;uuid&gt;</code> (sent by convention; not read or enforced by this endpoint — see
+  Idempotency note below).
   &nbsp; <strong>Query:</strong> <code>product</code> (required).</p>
 <table>
   <thead><tr><th>Body field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
@@ -1482,11 +1554,19 @@ Environment : Production</code></pre>
   <li><span class="status-err">401</span> <code>UNAUTHORIZED</code>; <span class="status-err">400</span> <code>REQUIRED_FIELD</code> — <code>product</code> missing.</li>
   <li><span class="status-err">404</span> <code>RECORD_NOT_FOUND</code> — message <code>"None of the specified organizations could be deactivated. They may not exist, may not be owned by you, or may already be deactivated or deleted."</code> (never includes the ids).</li>
 </ul>
+<div class="note warn">
+  <strong>Idempotency.</strong> <code>Idempotency-Key</code> is accepted by convention but not read or enforced by
+  this endpoint. The effective key is <code>orgIds</code>, but the same caveat as
+  <a href="#org-activate">PUT /org/activate</a> applies in reverse: the eligibility filter only matches
+  organizations that are <em>currently active</em>, so retrying the same call after a successful first call
+  returns <span class="status-err">404</span> even though the organizations are already deactivated.
+</div>
 
 <h4>Example</h4>
 <pre><code>curl -sS -X PUT "https://api-vacc.vidyaone.com/test/inst/org/deactive?product=lms" \
-  --cookie "vacc-account-auth=$AUTH" \
+  --cookie "vacc-common-auth=$COMMON_AUTH" --cookie "vacc-lms-auth=$ACCOUNT_AUTH" \
   -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $(uuidgen)" \
   -d '{ "orgIds": [123, 124] }'</code></pre>
 
 <!-- 9.6 -->
@@ -1503,7 +1583,10 @@ Environment : Production</code></pre>
     <tr><td>Production</td><td><code>DELETE https://api-vacc.vidyaone.com/inst/org</code></td></tr>
   </tbody>
 </table>
-<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code>, <code>Content-Type: application/json</code>.
+<p><strong>Headers:</strong> <code>Cookie: vacc-common-auth=&lt;session&gt;; vacc-&lt;product&gt;-auth=&lt;token&gt;</code>
+  (both required — see note above), <code>Content-Type: application/json</code>,
+  <code>Idempotency-Key: &lt;uuid&gt;</code> (sent by convention; not read or enforced by this endpoint — see
+  Idempotency note below).
   &nbsp; <strong>Query:</strong> <code>product</code> (required).</p>
 <table>
   <thead><tr><th>Body field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
@@ -1532,11 +1615,19 @@ Environment : Production</code></pre>
   <li><span class="status-err">401</span> <code>UNAUTHORIZED</code>; <span class="status-err">400</span> <code>REQUIRED_FIELD</code> — <code>product</code> missing.</li>
   <li><span class="status-err">404</span> <code>RECORD_NOT_FOUND</code> — message <code>"None of the specified organizations could be deleted. They may not exist, may not be owned by you, or may already be deleted."</code> (never includes the ids).</li>
 </ul>
+<div class="note warn">
+  <strong>Idempotency.</strong> <code>Idempotency-Key</code> is accepted by convention but not read or enforced by
+  this endpoint. The effective key is <code>orgIds</code>; the same caveat as
+  <a href="#org-activate">PUT /org/activate</a> applies — the eligibility filter excludes already-deleted rows, so
+  retrying the same call after a successful delete returns <span class="status-err">404</span> even though the
+  organizations are already gone.
+</div>
 
 <h4>Example</h4>
 <pre><code>curl -sS -X DELETE "https://api-vacc.vidyaone.com/test/inst/org?product=lms" \
-  --cookie "vacc-account-auth=$AUTH" \
+  --cookie "vacc-common-auth=$COMMON_AUTH" --cookie "vacc-lms-auth=$ACCOUNT_AUTH" \
   -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $(uuidgen)" \
   -d '{ "orgIds": [123] }'</code></pre>
 
 <!-- 9.7 -->
@@ -1553,7 +1644,8 @@ Environment : Production</code></pre>
     <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/org/options</code></td></tr>
   </tbody>
 </table>
-<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code> (required). &nbsp;
+<p><strong>Headers:</strong> <code>Cookie: vacc-common-auth=&lt;session&gt;; vacc-&lt;product&gt;-auth=&lt;token&gt;</code>
+  (both required — see note above). &nbsp;
   <strong>Query:</strong> <code>product</code> (required). &nbsp; <strong>Body:</strong> none.</p>
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
@@ -1572,7 +1664,7 @@ Environment : Production</code></pre>
 
 <h4>Example</h4>
 <pre><code>curl -sS "https://api-vacc.vidyaone.com/test/inst/org/options?product=lms" \
-  --cookie "vacc-account-auth=$AUTH"</code></pre>
+  --cookie "vacc-common-auth=$COMMON_AUTH" --cookie "vacc-lms-auth=$ACCOUNT_AUTH"</code></pre>
 
 <!-- 9.8 -->
 <h3 id="org-list" class="sec"><span class="method m-get">GET</span><span class="endpoint-path">/org/list/owner</span></h3>
@@ -1592,7 +1684,8 @@ Environment : Production</code></pre>
     <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/org/list/owner</code></td></tr>
   </tbody>
 </table>
-<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code> (required).</p>
+<p><strong>Headers:</strong> <code>Cookie: vacc-common-auth=&lt;session&gt;; vacc-&lt;product&gt;-auth=&lt;token&gt;</code>
+  (both required — see note above).</p>
 <table>
   <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints / default</th></tr></thead>
   <tbody>
@@ -1656,7 +1749,7 @@ Environment : Production</code></pre>
 
 <h4>Example</h4>
 <pre><code>curl -sS "https://api-vacc.vidyaone.com/test/inst/org/list/owner?product=lms&amp;pageNumber=1&amp;pageSize=20" \
-  --cookie "vacc-account-auth=$AUTH"</code></pre>
+  --cookie "vacc-common-auth=$COMMON_AUTH" --cookie "vacc-lms-auth=$ACCOUNT_AUTH"</code></pre>
 
 <!-- 9.9 -->
 <h3 id="org-view" class="sec"><span class="method m-get">GET</span><span class="endpoint-path">/org/view</span></h3>
@@ -1684,7 +1777,8 @@ Environment : Production</code></pre>
     <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/org/view</code></td></tr>
   </tbody>
 </table>
-<p><strong>Headers:</strong> <code>Cookie: vacc-account-auth=&lt;token&gt;</code> (required).</p>
+<p><strong>Headers:</strong> <code>Cookie: vacc-common-auth=&lt;session&gt;; vacc-&lt;product&gt;-auth=&lt;token&gt;</code>
+  (both required — see note above).</p>
 <table>
   <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
   <tbody>
@@ -1781,7 +1875,7 @@ Environment : Production</code></pre>
 
 <h4>Example</h4>
 <pre><code>curl -sS "https://api-vacc.vidyaone.com/test/inst/org/view?product=lms&amp;orgId=123" \
-  --cookie "vacc-account-auth=$AUTH"</code></pre>
+  --cookie "vacc-common-auth=$COMMON_AUTH" --cookie "vacc-lms-auth=$ACCOUNT_AUTH"</code></pre>
 
 <!-- ============================================================================= -->
 <!-- ONBOARD -->
