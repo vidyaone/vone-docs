@@ -1,33 +1,25 @@
 {
   "info": {
     "_postman_id": "498db9d3-637c-4546-93b8-4d07592ede84",
-    "name": "vAccount-InstituteAPI",
-    "description": "Currently covers the Organization resource only. See vAccount-InstituteAPI.html for the full field reference, error codes, and status behavior. Authentication is handled automatically by the Postman Interceptor Chrome extension once you're logged into the product in Chrome — see the HTML guide's Postman setup section. Set the `baseUrl` variable to the Testing or Production value before sending (Testing is the default).",
+    "name": "vAccount-InstituteAPI (Organization)",
+    "description": "Testing environment only. Currently covers the Organization resource — see vAccount-InstituteAPI.html for the full field reference, error codes, and status behavior. Authentication is handled automatically by the Postman Interceptor Chrome extension once you're logged into the product in Chrome — see the HTML guide's Postman setup section.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "baseUrl",
       "value": "https://api-vacc.vidyaone.com/test/inst/",
-      "description": "Testing (default). Production: https://api-vacc.vidyaone.com/inst/"
+      "description": "Testing environment (appsettings.Testing.json → App:BaseUrl). This collection targets Testing only."
     },
     {
       "key": "product",
-      "value": "lms",
-      "description": "Calling product identifier. Prefix with test- for explicit test mode (e.g. test-lms)."
+      "value": "account",
+      "description": "Calling product identifier, from appsettings.json → App:Product."
     },
     {
       "key": "orgId",
       "value": "123",
       "description": "Sample organization id — replace with one you created via 'Create organization'."
-    },
-    {
-      "key": "pageNumber",
-      "value": "1"
-    },
-    {
-      "key": "pageSize",
-      "value": "20"
     }
   ],
   "item": [
@@ -159,7 +151,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}org/list/owner?product={{product}}&pageNumber={{pageNumber}}&pageSize={{pageSize}}"
+            "url": "{{baseUrl}}org/list/owner?product={{product}}&pageNumber=1&pageSize=20"
           },
           "response": []
         },
