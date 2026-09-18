@@ -89,12 +89,26 @@
       <li><a href="#org-view"><code>GET /org/view</code></a></li>
     </ul>
   </div>
+  <div class="menu">
+    <a href="#organization-type">Organization Type</a>
+    <ul class="submenu">
+      <li><a href="#orgtype-list"><code>GET /orgtype/list</code></a></li>
+      <li><a href="#orgtype-options"><code>GET /orgtype/options</code></a></li>
+    </ul>
+  </div>
+  <div class="menu">
+    <a href="#institute-type">Institute Type</a>
+    <ul class="submenu">
+      <li><a href="#insttype-list"><code>GET /insttype/list</code></a></li>
+      <li><a href="#insttype-options"><code>GET /insttype/options</code></a></li>
+    </ul>
+  </div>
   <a class="download" href="vAccount-InstituteAPI.postman_collection.json" download>&#8595; Postman collection</a>
 </nav>
 
 <main>
 <h1>vAccount-InstituteAPI — Developer Guide</h1>
-<p class="small">Currently documents the <strong>Organization</strong> resource only. Other resources will be added in later updates.</p>
+<p class="small">Documents the <strong>Organization</strong>, <strong>Organization Type</strong>, and <strong>Institute Type</strong> resources. Other resources will be added in later updates.</p>
 
 <section id="postman-setup">
 <h2>Postman setup guide</h2>
@@ -452,7 +466,7 @@
 <table>
   <thead><tr><th>Body field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
   <tbody>
-    <tr><td><code>orgIds</code></td><td>array of integer</td><td class="req">yes</td><td>At least one element; each &gt; 0.</td></tr>
+    <tr><td><code>orgIds</code></td><td>array of integer</td><td class="req">yes</td><td>At least one element, max 10; each &gt; 0.</td></tr>
   </tbody>
 </table>
 <pre><code>{ "orgIds": [123, 124] }</code></pre>
@@ -487,7 +501,7 @@
 <table>
   <thead><tr><th>Body field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
   <tbody>
-    <tr><td><code>orgIds</code></td><td>array of integer</td><td class="req">yes</td><td>At least one element; each &gt; 0.</td></tr>
+    <tr><td><code>orgIds</code></td><td>array of integer</td><td class="req">yes</td><td>At least one element, max 10; each &gt; 0.</td></tr>
   </tbody>
 </table>
 <pre><code>{ "orgIds": [123, 124] }</code></pre>
@@ -522,7 +536,7 @@
 <table>
   <thead><tr><th>Body field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
   <tbody>
-    <tr><td><code>orgIds</code></td><td>array of integer</td><td class="req">yes</td><td>At least one element; each &gt; 0.</td></tr>
+    <tr><td><code>orgIds</code></td><td>array of integer</td><td class="req">yes</td><td>At least one element, max 10; each &gt; 0.</td></tr>
   </tbody>
 </table>
 <pre><code>{ "orgIds": [123] }</code></pre>
@@ -574,7 +588,7 @@
 
 <!-- ========================= List my organizations ========================= -->
 <h3 id="org-list"><span class="method">GET</span> <code>/org/list/owner</code></h3>
-<p>Returns a paged list of organizations the caller owns.</p>
+<p>Returns a paged list of organizations the caller created or owns.</p>
 
 <h4>Request</h4>
 <table>
@@ -607,9 +621,11 @@
         "email": "info@acme.example",
         "mobile": "9876543210",
         "isWhatsappNumber": true,
+        "address": "12 MG Road",
         "districtName": "Bengaluru Urban",
         "stateName": "Karnataka",
         "countryName": "India",
+        "pincode": "560001",
         "logo": "org/acme/logo.png",
         "creatorName": "Asha Rao",
         "isDefault": true,
@@ -617,6 +633,7 @@
         "isOwner": true,
         "ownerName": "Asha Rao",
         "ownerEmail": "asha@acme.example",
+        "kycStatus": "Approved",
         "totalInst": 0,
         "totalUser": 0
       }
@@ -728,6 +745,166 @@
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, is deleted, or (for a non-creator/owner caller) is deactivated.</td></tr>
+  </tbody>
+</table>
+
+</section>
+
+<section id="organization-type">
+<h2>Organization Type</h2>
+<p>Shared reference data, not scoped to the caller. Used to populate <code>orgTypeId</code> on <a href="#org-post">Create organization</a> / <a href="#org-put">Update organization</a>.</p>
+
+<!-- ========================= List organization types ========================= -->
+<h3 id="orgtype-list"><span class="method">GET</span> <code>/orgtype/list</code></h3>
+<p>Returns a paged list of organization types.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/orgtype/list?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/orgtype/list?product={product}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. Must be <code>&gt; 0</code> if sent.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>10</code>. Must be <code>&gt; 0</code> and <code>&le; 200</code> if sent.</td></tr>
+  </tbody>
+</table>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": {
+    "records": [
+      { "orgTypeId": 1, "orgTypeName": "Private Limited" },
+      { "orgTypeId": 2, "orgTypeName": "Trust" }
+    ],
+    "metaData": {
+      "totalCount": 2, "pageSize": 10, "currentPage": 1,
+      "totalPages": 1, "hasNext": false, "hasPrevious": false
+    }
+  }
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Invalid page params.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Organization type options ========================= -->
+<h3 id="orgtype-options"><span class="method">GET</span> <code>/orgtype/options</code></h3>
+<p>Returns all organization types as <code>{ id, name }</code> pairs, for populating a picker.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/orgtype/options?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/orgtype/options?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "Private Limited" },
+    { "id": 2, "name": "Trust" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+</section>
+
+<section id="institute-type">
+<h2>Institute Type</h2>
+<p>Shared reference data, not scoped to the caller.</p>
+
+<!-- ========================= List institute types ========================= -->
+<h3 id="insttype-list"><span class="method">GET</span> <code>/insttype/list</code></h3>
+<p>Returns a paged list of institute types.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/insttype/list?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/insttype/list?product={product}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. Must be <code>&gt; 0</code> if sent.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>10</code>. Must be <code>&gt; 0</code> and <code>&le; 200</code> if sent.</td></tr>
+  </tbody>
+</table>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": {
+    "records": [
+      { "instTypeId": 1, "instTypeName": "Engineering College" },
+      { "instTypeId": 2, "instTypeName": "Arts College" }
+    ],
+    "metaData": {
+      "totalCount": 2, "pageSize": 10, "currentPage": 1,
+      "totalPages": 1, "hasNext": false, "hasPrevious": false
+    }
+  }
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Invalid page params.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Institute type options ========================= -->
+<h3 id="insttype-options"><span class="method">GET</span> <code>/insttype/options</code></h3>
+<p>Returns all institute types as <code>{ id, name }</code> pairs, for populating a picker.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/insttype/options?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/insttype/options?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "Engineering College" },
+    { "id": 2, "name": "Arts College" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
 
