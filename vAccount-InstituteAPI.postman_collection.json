@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "498db9d3-637c-4546-93b8-4d07592ede84",
     "name": "vAccount-InstituteAPI",
-    "description": "Testing environment only. Covers the Organization, Organization Type, and Institute Type resources — see vAccount-InstituteAPI.html for the full field reference, error codes, and status behavior. Authentication is handled automatically by the Postman Interceptor Chrome extension once you're logged into the product in Chrome — see the HTML guide's Postman setup section.",
+    "description": "Testing environment only. Covers the Organization, Institute, Onboard, Organization Type, and Institute Type resources — see vAccount-InstituteAPI.html for the full field reference, error codes, and status behavior. Authentication is handled automatically by the Postman Interceptor Chrome extension once you're logged into the product in Chrome — see the HTML guide's Postman setup section.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -20,6 +20,11 @@
       "key": "orgId",
       "value": "123",
       "description": "Sample organization id — replace with one you created via 'Create organization'."
+    },
+    {
+      "key": "instId",
+      "value": "456",
+      "description": "Sample institute id — replace with one you created via 'Create institute'."
     }
   ],
   "item": [
@@ -37,7 +42,7 @@
             "url": "{{baseUrl}}org?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"postDTO\": {\n    \"orgName\": \"Acme Institute\",\n    \"orgTypeId\": 1,\n    \"mobile\": \"9876543210\",\n    \"email\": \"info@acme.example\",\n    \"regNo\": \"REG-2024-0007\",\n    \"address\": \"12 MG Road\",\n    \"districtId\": 501,\n    \"stateId\": 27,\n    \"countryId\": 91,\n    \"pincode\": \"560001\",\n    \"logo\": \"org/acme/logo.png\",\n    \"isOwner\": true,\n    \"ownerName\": \"Asha Rao\",\n    \"ownerEmail\": \"asha@acme.example\",\n    \"isWhatsappNumber\": true,\n    \"isDefault\": true,\n    \"legalDocumentType\": \"GST\",\n    \"legalDocumentPath\": \"org/acme/gst.pdf\",\n    \"submittedAt\": \"2026-09-09T10:15:00Z\"\n  }\n}",
+              "raw": "{\n  \"postDTO\": {\n    \"orgName\": \"Acme Institute\",\n    \"orgTypeId\": 1,\n    \"regNo\": \"REG-2024-0007\",\n    \"regDate\": \"2024-04-01T00:00:00Z\",\n    \"email\": \"info@acme.example\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"12 MG Road\",\n    \"districtId\": 501,\n    \"stateId\": 27,\n    \"countryId\": 91,\n    \"pincode\": \"560001\",\n    \"logo\": \"org/acme/logo.png\",\n    \"isOwner\": true,\n    \"ownerName\": \"Asha Rao\",\n    \"ownerEmail\": \"asha@acme.example\",\n    \"isDefault\": true,\n    \"legalDocumentPath\": \"org/acme/gst.pdf\",\n    \"legalDocumentType\": \"GST\",\n    \"identityProofPath\": null,\n    \"identityProofType\": null\n  }\n}",
               "options": { "raw": { "language": "json" } }
             }
           },
@@ -54,7 +59,7 @@
             "url": "{{baseUrl}}org?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"putDTO\": {\n    \"orgId\": {{orgId}},\n    \"orgName\": \"Acme Institute (Renamed)\",\n    \"orgTypeId\": 1,\n    \"mobile\": \"9876543210\",\n    \"email\": \"info@acme.example\",\n    \"regNo\": \"REG-2024-0007\",\n    \"address\": \"12 MG Road\",\n    \"districtId\": 501,\n    \"stateId\": 27,\n    \"countryId\": 91,\n    \"pincode\": \"560001\",\n    \"logo\": \"org/acme/logo-v2.png\",\n    \"isOwner\": true,\n    \"ownerName\": \"Asha Rao\",\n    \"ownerEmail\": \"asha@acme.example\",\n    \"isWhatsappNumber\": true,\n    \"isDefault\": false,\n    \"legalDocumentPath\": \"org/acme/gst.pdf\",\n    \"identityProofPath\": \"org/acme/pan.pdf\",\n    \"remarks\": \"docs ok\"\n  }\n}",
+              "raw": "{\n  \"putDTO\": {\n    \"orgId\": {{orgId}},\n    \"orgName\": \"Acme Institute (Renamed)\",\n    \"orgTypeId\": 1,\n    \"regNo\": \"REG-2024-0007\",\n    \"regDate\": \"2024-04-01T00:00:00Z\",\n    \"email\": \"info@acme.example\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"12 MG Road\",\n    \"districtId\": 501,\n    \"stateId\": 27,\n    \"countryId\": 91,\n    \"pincode\": \"560001\",\n    \"logo\": \"org/acme/logo-v2.png\",\n    \"isOwner\": true,\n    \"ownerName\": \"Asha Rao\",\n    \"ownerEmail\": \"asha@acme.example\",\n    \"isDefault\": false,\n    \"legalDocumentPath\": \"org/acme/gst.pdf\",\n    \"legalDocumentType\": \"GST\",\n    \"identityProofPath\": \"org/acme/pan.pdf\",\n    \"identityProofType\": \"PAN\"\n  }\n}",
               "options": { "raw": { "language": "json" } }
             }
           },
@@ -161,6 +166,193 @@
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}org/view?product={{product}}&orgId={{orgId}}"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Institute",
+      "item": [
+        {
+          "name": "Create institute",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": "{{baseUrl}}?product={{product}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"postDTO\": {\n    \"orgId\": {{orgId}},\n    \"productId\": 5,\n    \"instName\": \"Acme Engineering College\",\n    \"instTypeId\": 2,\n    \"contactPerson\": \"Ravi Kumar\",\n    \"contactEmail\": \"ravi@acme.example\",\n    \"contactPhoneCode\": \"+91\",\n    \"contactPhone\": \"9876500000\",\n    \"contactIsWhatsappNumber\": false,\n    \"email\": \"info@acme-engg.example\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"45 College Road\",\n    \"districtId\": 501,\n    \"stateId\": 27,\n    \"countryId\": 91,\n    \"pincode\": \"560001\",\n    \"logo\": \"inst/acme-engg/logo.png\",\n    \"isDefault\": true\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update institute",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": "{{baseUrl}}?product={{product}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"putDTO\": {\n    \"instId\": {{instId}},\n    \"instName\": \"Acme Engineering College\",\n    \"instTypeId\": 2,\n    \"contactPerson\": \"Ravi Kumar\",\n    \"contactEmail\": \"ravi@acme.example\",\n    \"contactPhoneCode\": \"+91\",\n    \"contactPhone\": \"9876500000\",\n    \"contactIsWhatsappNumber\": false,\n    \"email\": \"info@acme-engg.example\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"45 College Road\",\n    \"districtId\": 501,\n    \"stateId\": 27,\n    \"countryId\": 91,\n    \"pincode\": \"560001\",\n    \"logo\": \"inst/acme-engg/logo.png\",\n    \"isDefault\": false\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set default institute",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": "{{baseUrl}}default?product={{product}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"instId\": {{instId}}\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Activate institutes",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": "{{baseUrl}}activate?product={{product}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"instIds\": [{{instId}}]\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate institutes",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": "{{baseUrl}}deactive?product={{product}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"instIds\": [{{instId}}]\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Change institute org",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": "{{baseUrl}}changeorg?product={{product}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"instId\": {{instId}},\n  \"newOrgId\": {{orgId}}\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete institutes",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": "{{baseUrl}}?product={{product}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"instIds\": [{{instId}}]\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Institute options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}options?product={{product}}"
+          },
+          "response": []
+        },
+        {
+          "name": "List my institutes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}list/admin?product={{product}}&pageNumber=1&pageSize=20"
+          },
+          "response": []
+        },
+        {
+          "name": "Get institute (edit)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}edit?product={{product}}&instId={{instId}}"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Onboard",
+      "item": [
+        {
+          "name": "Onboard status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}onboard/status?product={{product}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Onboard by user",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": "{{baseUrl}}onboard/byuser?product={{product}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Onboard by support",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": "{{baseUrl}}onboard/bysupport?product={{product}}"
           },
           "response": []
         }

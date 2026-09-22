@@ -90,6 +90,29 @@
     </ul>
   </div>
   <div class="menu">
+    <a href="#institute">Institute</a>
+    <ul class="submenu">
+      <li><a href="#inst-post"><code>POST /</code></a></li>
+      <li><a href="#inst-put"><code>PUT /</code></a></li>
+      <li><a href="#inst-default"><code>PUT /default</code></a></li>
+      <li><a href="#inst-activate"><code>PUT /activate</code></a></li>
+      <li><a href="#inst-deactive"><code>PUT /deactive</code></a></li>
+      <li><a href="#inst-changeorg"><code>PUT /changeorg</code></a></li>
+      <li><a href="#inst-delete"><code>DELETE /</code></a></li>
+      <li><a href="#inst-options"><code>GET /options</code></a></li>
+      <li><a href="#inst-list"><code>GET /list/admin</code></a></li>
+      <li><a href="#inst-edit"><code>GET /edit</code></a></li>
+    </ul>
+  </div>
+  <div class="menu">
+    <a href="#onboard">Onboard</a>
+    <ul class="submenu">
+      <li><a href="#onboard-status"><code>GET /onboard/status</code></a></li>
+      <li><a href="#onboard-byuser"><code>PUT /onboard/byuser</code></a></li>
+      <li><a href="#onboard-bysupport"><code>PUT /onboard/bysupport</code></a></li>
+    </ul>
+  </div>
+  <div class="menu">
     <a href="#organization-type">Organization Type</a>
     <ul class="submenu">
       <li><a href="#orgtype-list"><code>GET /orgtype/list</code></a></li>
@@ -108,7 +131,7 @@
 
 <main>
 <h1>vAccount-InstituteAPI — Developer Guide</h1>
-<p class="small">Documents the <strong>Organization</strong>, <strong>Organization Type</strong>, and <strong>Institute Type</strong> resources. Other resources will be added in later updates.</p>
+<p class="small">Documents the <strong>Organization</strong>, <strong>Institute</strong>, <strong>Onboard</strong>, <strong>Organization Type</strong>, and <strong>Institute Type</strong> resources.</p>
 
 <section id="postman-setup">
 <h2>Postman setup guide</h2>
@@ -182,11 +205,12 @@
     <tr><td class="status-ok">200</td><td>—</td><td>Success.</td></tr>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A request field fails validation, or the body is missing / not valid JSON.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> is missing from the query string.</td></tr>
-    <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created-or-owns 3 non-deleted organizations (<code>POST /org</code> only).</td></tr>
+    <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created-or-owns 3 non-deleted organizations (<code>POST /org</code>), or already created 10 non-deleted institutes (<code>POST /</code> institute).</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The target organization doesn't match the request (missing, not owned by the caller, deleted, deactivated, or otherwise ineligible — see each endpoint).</td></tr>
-    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>The <code>orgName</code> or <code>regNo</code> sent is already in use by another organization.</td></tr>
-    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td><code>orgTypeId</code>, <code>districtId</code>, <code>stateId</code>, or <code>countryId</code> doesn't reference an existing record.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The target record doesn't match the request (missing, not owned/managed by the caller, deleted, deactivated, or otherwise ineligible — see each endpoint).</td></tr>
+    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>The organization <code>orgName</code>/<code>regNo</code>, or the institute <code>instName</code> within its organization, is already in use.</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced id (organization type, institute type, district, state, country, organization, or product) doesn't exist.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>An organization still has institutes under it (see <a href="#org-deactive">Deactivate</a> / <a href="#org-delete">Delete organization</a>).</td></tr>
     <tr><td class="status-err">500</td><td><code>INTERNAL_ERROR</code></td><td>Unexpected server error.</td></tr>
   </tbody>
 </table>
@@ -208,63 +232,39 @@
     <tr><td>Production</td><td><code>POST https://api-vacc.vidyaone.com/inst/org?product={product}</code></td></tr>
   </tbody>
 </table>
-<p>Body — nested under <code>postDTO</code>:</p>
-<table>
-  <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
-  <tbody>
-    <tr><td><code>orgName</code></td><td>string</td><td class="req">yes</td><td>Max 150 chars.</td></tr>
-    <tr><td><code>orgTypeId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0; must reference an existing organization type.</td></tr>
-    <tr><td><code>mobile</code></td><td>string</td><td class="req">yes</td><td>Exactly 10 digits.</td></tr>
-    <tr><td><code>districtId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0; must reference an existing record.</td></tr>
-    <tr><td><code>stateId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0; must reference an existing record.</td></tr>
-    <tr><td><code>countryId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0; must reference an existing record.</td></tr>
-    <tr><td><code>email</code></td><td>string</td><td class="req">yes</td><td>Valid email, max 50 chars.</td></tr>
-    <tr><td><code>address</code></td><td>string</td><td class="req">yes</td><td>Max 500 chars.</td></tr>
-    <tr><td><code>pincode</code></td><td>string</td><td class="req">yes</td><td>Max 10 chars.</td></tr>
-    <tr><td><code>regNo</code></td><td>string</td><td class="opt">no</td><td>Max 50 chars.</td></tr>
-    <tr><td><code>regDate</code></td><td>string (date-time)</td><td class="opt">no</td><td>ISO-8601. Defaults to the current time if omitted.</td></tr>
-    <tr><td><code>logo</code></td><td>string</td><td class="opt">no</td><td>Max 100 chars.</td></tr>
-    <tr><td><code>isOwner</code></td><td>boolean</td><td class="opt">no</td><td>Default <code>false</code>. When <code>false</code>, <code>ownerName</code> and <code>ownerEmail</code> become required.</td></tr>
-    <tr><td><code>ownerName</code></td><td>string</td><td class="opt">conditional</td><td>Required (max 150 chars) when <code>isOwner=false</code>.</td></tr>
-    <tr><td><code>ownerEmail</code></td><td>string</td><td class="opt">conditional</td><td>Required (valid email, max 150 chars) when <code>isOwner=false</code>.</td></tr>
-    <tr><td><code>isWhatsappNumber</code></td><td>boolean</td><td class="opt">no</td><td>Default <code>false</code>.</td></tr>
-    <tr><td><code>isDefault</code></td><td>boolean</td><td class="opt">no</td><td>Default <code>false</code>. The caller's first organization is always created as their default, regardless of this value.</td></tr>
-    <tr><td><code>legalDocumentPath</code></td><td>string</td><td class="opt">no</td><td>Max 255 chars.</td></tr>
-    <tr><td><code>legalDocumentType</code></td><td>string</td><td class="opt">no</td><td>Max 50 chars.</td></tr>
-    <tr><td><code>identityProofPath</code></td><td>string</td><td class="opt">no</td><td>Max 255 chars.</td></tr>
-    <tr><td><code>identityProofType</code></td><td>string</td><td class="opt">no</td><td>Max 50 chars.</td></tr>
-    <tr><td><code>remarks</code></td><td>string</td><td class="opt">no</td><td>Max 500 chars.</td></tr>
-    <tr><td><code>submittedAt</code></td><td>string (date-time)</td><td class="opt">no</td><td>ISO-8601.</td></tr>
-  </tbody>
-</table>
-<p><code>proceedWithKyc</code> and <code>kycStatus</code> are not request fields. Sending both <code>legalDocumentPath</code> and <code>identityProofPath</code> results in <code>kycStatus: "Under Review"</code> in later reads; otherwise <code>kycStatus: "Pending"</code>.</p>
 
 <h4>Example request body</h4>
 <pre><code>{
   "postDTO": {
-    "orgName": "Acme Institute",
-    "orgTypeId": 1,
-    "mobile": "9876543210",
-    "email": "info@acme.example",
-    "regNo": "REG-2024-0007",
-    "address": "12 MG Road",
-    "districtId": 501, "stateId": 27, "countryId": 91,
-    "pincode": "560001",
-    "logo": "org/acme/logo.png",
-    "isOwner": true,
-    "ownerName": "Asha Rao",
-    "ownerEmail": "asha@acme.example",
-    "isWhatsappNumber": true,
-    "isDefault": true,
-    "legalDocumentType": "GST",
-    "legalDocumentPath": "org/acme/gst.pdf",
-    "submittedAt": "2026-09-09T10:15:00Z"
+    "orgName": "Acme Institute",              // required, string, max 150 chars
+    "orgTypeId": 1,                           // required, integer, > 0 &mdash; must reference an existing organization type
+    "regNo": "REG-2024-0007",                 // optional, string, max 50 chars
+    "regDate": "2024-04-01T00:00:00Z",        // optional, string, ISO-8601 date-time &mdash; omit to leave unset
+    "email": "info@acme.example",             // required, string, valid email, max 50 chars
+    "phoneCode": "+91",                       // optional, string, max 5 chars
+    "phone": "9876543210",                    // required, string, exactly 10 digits
+    "isWhatsappNumber": true,                 // optional, boolean, default false
+    "address": "12 MG Road",                  // required, string, max 500 chars
+    "districtId": 501,                        // required, integer, > 0 &mdash; must reference an existing record
+    "stateId": 27,                            // required, integer, > 0 &mdash; must reference an existing record
+    "countryId": 91,                          // required, integer, > 0 &mdash; must reference an existing record
+    "pincode": "560001",                      // required, string, max 10 chars
+    "logo": "org/acme/logo.png",              // optional, string, max 100 chars
+    "isOwner": true,                          // optional, boolean, default false &mdash; false requires ownerName/ownerEmail
+    "ownerName": "Asha Rao",                  // conditional, string, max 150 chars &mdash; required when isOwner=false
+    "ownerEmail": "asha@acme.example",        // conditional, string, valid email, max 150 chars &mdash; required when isOwner=false
+    "isDefault": true,                        // optional, boolean, default false &mdash; caller's first org is always forced default regardless of this value
+    "legalDocumentPath": "org/acme/gst.pdf",  // optional, string, max 255 chars
+    "legalDocumentType": "GST",               // optional, string, max 50 chars
+    "identityProofPath": null,                // optional, string, max 255 chars
+    "identityProofType": null                 // optional, string, max 50 chars
   }
 }</code></pre>
+<p><code>proceedWithKyc</code> and <code>kycStatus</code> are not request fields &mdash; nor are <code>remarks</code>/<code>submittedAt</code>, which are set by the server/reviewer only. Sending both <code>legalDocumentPath</code> and <code>identityProofPath</code> results in <code>kycStatus: "Under Review"</code> in later reads; otherwise <code>kycStatus: "Pending"</code>.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
-<pre><code>{ "success": true, "message": "Success." }</code></pre>
+<pre><code>{ "success": true, "message": "Success.", "data": { "orgId": 123 } }</code></pre>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
@@ -290,17 +290,8 @@
     <tr><td>Production</td><td><code>PUT https://api-vacc.vidyaone.com/inst/org?product={product}</code></td></tr>
   </tbody>
 </table>
-<p>Body — nested under <code>putDTO</code>, same fields as <a href="#org-post">Create organization</a> plus <code>orgId</code>. Every writable field is overwritten with the value sent — there is no partial update.</p>
-<table>
-  <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
-  <tbody>
-    <tr><td><code>orgId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0. Must be an organization the caller created or owns.</td></tr>
-    <tr><td><code>isOwner</code>, <code>ownerName</code>, <code>ownerEmail</code></td><td>—</td><td class="opt">conditional</td><td>Once the organization has an accepted owner, values sent for these three fields are ignored and the existing owner is kept.</td></tr>
-    <tr><td><code>isDefault</code></td><td>boolean</td><td class="opt">no</td><td><code>true</code> makes this the caller's default organization. Always honored as sent (no first-organization override, unlike <a href="#org-post">Create organization</a>).</td></tr>
-    <tr><td colspan="4">All other fields — <code>orgTypeId</code>, <code>mobile</code>, <code>regNo</code>, <code>regDate</code>, <code>email</code>, <code>address</code>, <code>districtId</code>, <code>stateId</code>, <code>countryId</code>, <code>pincode</code>, <code>logo</code>, <code>isWhatsappNumber</code>, <code>legalDocumentPath</code>, <code>legalDocumentType</code>, <code>identityProofPath</code>, <code>identityProofType</code>, <code>remarks</code>, <code>submittedAt</code> — same type/requiredness/constraints as <a href="#org-post">Create organization</a>.</td></tr>
-  </tbody>
-</table>
-<p>Sending <code>legalDocumentPath</code> / <code>identityProofPath</code> / <code>legalDocumentType</code> / <code>identityProofType</code> / <code>remarks</code> / <code>submittedAt</code> can change <code>kycStatus</code>, following this table (based on the organization's current <code>kycStatus</code>):</p>
+<p>Same fields as <a href="#org-post">Create organization</a>, nested under <code>putDTO</code>, plus <code>orgId</code>. Every writable field is overwritten with the value sent — there is no partial update. Once the organization has an accepted owner, values sent for <code>isOwner</code>/<code>ownerName</code>/<code>ownerEmail</code> are ignored and the existing owner is kept. Unlike create, <code>isDefault</code> is always honored exactly as sent (no first-organization override).</p>
+<p>Sending <code>legalDocumentPath</code> / <code>identityProofPath</code> / <code>legalDocumentType</code> / <code>identityProofType</code> can change <code>kycStatus</code>, following this table (based on the organization's current <code>kycStatus</code>):</p>
 <table>
   <thead><tr><th>Current <code>kycStatus</code></th><th>Condition</th><th>Resulting <code>kycStatus</code></th></tr></thead>
   <tbody>
@@ -316,24 +307,29 @@
 <h4>Example request body</h4>
 <pre><code>{
   "putDTO": {
-    "orgId": 123,
-    "orgName": "Acme Institute (Renamed)",
-    "orgTypeId": 1,
-    "mobile": "9876543210",
-    "email": "info@acme.example",
-    "regNo": "REG-2024-0007",
-    "address": "12 MG Road",
-    "districtId": 501, "stateId": 27, "countryId": 91,
-    "pincode": "560001",
-    "logo": "org/acme/logo-v2.png",
-    "isOwner": true,
-    "ownerName": "Asha Rao",
-    "ownerEmail": "asha@acme.example",
-    "isWhatsappNumber": true,
-    "isDefault": false,
-    "legalDocumentPath": "org/acme/gst.pdf",
-    "identityProofPath": "org/acme/pan.pdf",
-    "remarks": "docs ok"
+    "orgId": 123,                             // required, integer, > 0 &mdash; must be an organization the caller created or owns
+    "orgName": "Acme Institute (Renamed)",    // required, string, max 150 chars
+    "orgTypeId": 1,                           // required, integer, > 0
+    "regNo": "REG-2024-0007",                 // optional, string, max 50 chars
+    "regDate": "2024-04-01T00:00:00Z",        // optional, string, ISO-8601 date-time
+    "email": "info@acme.example",             // required, string, valid email, max 50 chars
+    "phoneCode": "+91",                       // optional, string, max 5 chars
+    "phone": "9876543210",                    // required, string, exactly 10 digits
+    "isWhatsappNumber": true,                 // optional, boolean, default false
+    "address": "12 MG Road",                  // required, string, max 500 chars
+    "districtId": 501,                        // required, integer, > 0
+    "stateId": 27,                            // required, integer, > 0
+    "countryId": 91,                          // required, integer, > 0
+    "pincode": "560001",                      // required, string, max 10 chars
+    "logo": "org/acme/logo-v2.png",           // optional, string, max 100 chars
+    "isOwner": true,                          // optional, boolean &mdash; ignored once the org has an accepted owner
+    "ownerName": "Asha Rao",                  // conditional, string, max 150 chars &mdash; required when isOwner=false; ignored once the org has an accepted owner
+    "ownerEmail": "asha@acme.example",        // conditional, string, valid email, max 150 chars &mdash; required when isOwner=false; ignored once the org has an accepted owner
+    "isDefault": false,                       // optional, boolean, default false &mdash; always honored exactly as sent
+    "legalDocumentPath": "org/acme/gst.pdf",  // optional, string, max 255 chars
+    "legalDocumentType": "GST",               // optional, string, max 50 chars
+    "identityProofPath": "org/acme/pan.pdf",  // optional, string, max 255 chars
+    "identityProofType": "PAN"                // optional, string, max 50 chars
   }
 }</code></pre>
 
@@ -383,7 +379,8 @@
     "regNo": "REG-2024-0007",
     "regDate": "2024-04-01T00:00:00+00:00",
     "email": "info@acme.example",
-    "mobile": "9876543210",
+    "phoneCode": "+91",
+    "phone": "9876543210",
     "address": "12 MG Road",
     "districtId": 501,
     "stateId": 27,
@@ -429,13 +426,11 @@
     <tr><td>Production</td><td><code>PUT https://api-vacc.vidyaone.com/inst/org/default?product={product}</code></td></tr>
   </tbody>
 </table>
-<table>
-  <thead><tr><th>Body field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
-  <tbody>
-    <tr><td><code>orgId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0. Must be an active, non-deleted organization owned by the caller.</td></tr>
-  </tbody>
-</table>
-<pre><code>{ "orgId": 123 }</code></pre>
+
+<h4>Example request body</h4>
+<pre><code>{
+  "orgId": 123   // required, integer, > 0 &mdash; must be an active, non-deleted organization owned by the caller
+}</code></pre>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -463,13 +458,11 @@
     <tr><td>Production</td><td><code>PUT https://api-vacc.vidyaone.com/inst/org/activate?product={product}</code></td></tr>
   </tbody>
 </table>
-<table>
-  <thead><tr><th>Body field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
-  <tbody>
-    <tr><td><code>orgIds</code></td><td>array of integer</td><td class="req">yes</td><td>At least one element, max 10; each &gt; 0.</td></tr>
-  </tbody>
-</table>
-<pre><code>{ "orgIds": [123, 124] }</code></pre>
+
+<h4>Example request body</h4>
+<pre><code>{
+  "orgIds": [123, 124]   // required, array of integer, 1&ndash;10 elements, each > 0
+}</code></pre>
 <p>Ids not owned by the caller, already active, or deleted are silently skipped. Returns <span class="status-ok">200 OK</span> as long as at least one organization is affected.</p>
 
 <h4>Response</h4>
@@ -498,14 +491,12 @@
     <tr><td>Production</td><td><code>PUT https://api-vacc.vidyaone.com/inst/org/deactive?product={product}</code></td></tr>
   </tbody>
 </table>
-<table>
-  <thead><tr><th>Body field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
-  <tbody>
-    <tr><td><code>orgIds</code></td><td>array of integer</td><td class="req">yes</td><td>At least one element, max 10; each &gt; 0.</td></tr>
-  </tbody>
-</table>
-<pre><code>{ "orgIds": [123, 124] }</code></pre>
-<p>Ids not owned by the caller are silently skipped. Returns <span class="status-ok">200 OK</span> as long as at least one row is affected. If a deactivated organization was anyone's default, that default is cleared.</p>
+
+<h4>Example request body</h4>
+<pre><code>{
+  "orgIds": [123, 124]   // required, array of integer, 1&ndash;10 elements, each > 0
+}</code></pre>
+<p>Ids not owned by the caller are silently skipped. Returns <span class="status-ok">200 OK</span> as long as at least one row is affected. If a deactivated organization was anyone's default, that default is cleared. An organization can only be deactivated once all of its institutes are deactivated or deleted.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -517,6 +508,7 @@
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match an eligible organization.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>One or more of the organizations still has an active institute under it.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
@@ -533,14 +525,12 @@
     <tr><td>Production</td><td><code>DELETE https://api-vacc.vidyaone.com/inst/org?product={product}</code></td></tr>
   </tbody>
 </table>
-<table>
-  <thead><tr><th>Body field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
-  <tbody>
-    <tr><td><code>orgIds</code></td><td>array of integer</td><td class="req">yes</td><td>At least one element, max 10; each &gt; 0.</td></tr>
-  </tbody>
-</table>
-<pre><code>{ "orgIds": [123] }</code></pre>
-<p>This request carries a body — use an HTTP client that sends a body on <code>DELETE</code> (curl does). Ids not owned by the caller, or already deleted, are silently skipped. If a deleted organization was anyone's default, that default is cleared.</p>
+
+<h4>Example request body</h4>
+<pre><code>{
+  "orgIds": [123]   // required, array of integer, 1&ndash;10 elements, each > 0
+}</code></pre>
+<p>This request carries a body — use an HTTP client that sends a body on <code>DELETE</code> (curl does). Ids not owned by the caller, or already deleted, are silently skipped. If a deleted organization was anyone's default, that default is cleared. An organization can only be deleted once all of its institutes are deleted.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -552,6 +542,7 @@
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match an eligible organization.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>One or more of the organizations still has an institute under it.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
@@ -619,13 +610,12 @@
         "orgName": "Acme Institute",
         "regNo": "REG-2024-0007",
         "email": "info@acme.example",
-        "mobile": "9876543210",
+        "phoneCode": "+91",
+        "phone": "9876543210",
         "isWhatsappNumber": true,
-        "address": "12 MG Road",
         "districtName": "Bengaluru Urban",
         "stateName": "Karnataka",
         "countryName": "India",
-        "pincode": "560001",
         "logo": "org/acme/logo.png",
         "creatorName": "Asha Rao",
         "isDefault": true,
@@ -684,7 +674,8 @@
     "regNo": "REG-2024-0007",
     "regDate": "2024-04-01T00:00:00+00:00",
     "email": "info@acme.example",
-    "mobile": "9876543210",
+    "phoneCode": "+91",
+    "phone": "9876543210",
     "isWhatsappNumber": true,
     "address": "12 MG Road",
     "districtName": "Bengaluru Urban",
@@ -723,7 +714,8 @@
     "regNo": "REG-2024-0007",
     "regDate": "2024-04-01T00:00:00+00:00",
     "email": "info@acme.example",
-    "mobile": "9876543210",
+    "phoneCode": "+91",
+    "phone": "9876543210",
     "isWhatsappNumber": true,
     "address": "12 MG Road",
     "districtName": "Bengaluru Urban",
@@ -747,6 +739,514 @@
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, is deleted, or (for a non-creator/owner caller) is deactivated.</td></tr>
   </tbody>
 </table>
+
+</section>
+
+<section id="institute">
+<h2>Institute</h2>
+<p><code>POST /</code>, <code>PUT /</code>, <code>PUT /default</code>, <code>PUT /activate</code>, <code>PUT /deactive</code>, <code>PUT /changeorg</code>, <code>DELETE /</code>, and <code>GET /edit</code> act only on institutes the caller created. <a href="#inst-list">List my institutes</a> is broader — it also includes institutes the caller was granted admin access to, without having created them. A caller may create at most 10 non-deleted institutes.</p>
+
+<!-- ========================= Create institute ========================= -->
+<h3 id="inst-post"><span class="method">POST</span> <code>/</code></h3>
+<p>Creates a new institute under an organization the caller created or owns.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>POST https://api-vacc.vidyaone.com/test/inst/?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>POST https://api-vacc.vidyaone.com/inst/?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Example request body</h4>
+<pre><code>{
+  "postDTO": {
+    "orgId": 123,                                  // required, integer, > 0 &mdash; must be an org the caller created or owns
+    "productId": 5,                                // required, integer, > 0 &mdash; must have an active trial plan
+    "instName": "Acme Engineering College",        // required, string, max 150 chars
+    "instTypeId": 2,                               // required, integer, > 0 &mdash; must reference an existing institute type
+    "contactPerson": "Ravi Kumar",                 // required, string, max 150 chars
+    "contactEmail": "ravi@acme.example",           // optional, string, valid email, max 50 chars
+    "contactPhoneCode": "+91",                     // optional, string, max 5 chars
+    "contactPhone": "9876500000",                  // required, string, exactly 10 digits
+    "contactIsWhatsappNumber": false,              // optional, boolean, default false
+    "email": "info@acme-engg.example",             // required, string, valid email, max 50 chars
+    "phoneCode": "+91",                            // optional, string, max 5 chars
+    "phone": "9876543210",                         // required, string, exactly 10 digits
+    "isWhatsappNumber": true,                      // optional, boolean, default false
+    "address": "45 College Road",                  // optional, string, max 500 chars
+    "districtId": 501,                             // required, integer, > 0 &mdash; must reference an existing record
+    "stateId": 27,                                 // required, integer, > 0 &mdash; must reference an existing record
+    "countryId": 91,                               // required, integer, > 0 &mdash; must reference an existing record
+    "pincode": "560001",                           // optional, string, max 10 chars
+    "logo": "inst/acme-engg/logo.png",             // optional, string, max 100 chars
+    "isDefault": true                              // optional, boolean, default false &mdash; caller's first institute is always forced default regardless of this value
+  }
+}</code></pre>
+<p>The institute is created on the product's trial plan; <code>productId</code>/<code>orgId</code> can never be changed afterward (moving an institute to a different org is <a href="#inst-changeorg">Change institute org</a>).</p>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{ "success": true, "message": "Success.", "data": { "instId": 456 } }</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created 10 non-deleted institutes.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td><code>orgId</code> doesn't exist, isn't owned/created by the caller, is deleted, or is deactivated; or <code>productId</code> doesn't exist or has no active trial plan.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>instName</code> already used by another institute in the same <code>orgId</code>.</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td><code>orgId</code> / <code>instTypeId</code> / <code>productId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful create returns <span class="status-err">409 Conflict</span> rather than the original success.</p>
+
+<!-- ========================= Update institute ========================= -->
+<h3 id="inst-put"><span class="method">PUT</span> <code>/</code></h3>
+<p>Updates an institute's own details. Its org and product can never be changed here.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>PUT https://api-vacc.vidyaone.com/test/inst/?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>PUT https://api-vacc.vidyaone.com/inst/?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Example request body</h4>
+<pre><code>{
+  "putDTO": {
+    "instId": 456,                                 // required, integer, > 0 &mdash; must be an institute the caller created
+    "instName": "Acme Engineering College",        // required, string, max 150 chars
+    "instTypeId": 2,                               // required, integer, > 0
+    "contactPerson": "Ravi Kumar",                 // required, string, max 150 chars
+    "contactEmail": "ravi@acme.example",           // optional, string, valid email, max 50 chars
+    "contactPhoneCode": "+91",                     // optional, string, max 5 chars
+    "contactPhone": "9876500000",                  // required, string, exactly 10 digits
+    "contactIsWhatsappNumber": false,              // optional, boolean, default false
+    "email": "info@acme-engg.example",             // required, string, valid email, max 50 chars
+    "phoneCode": "+91",                            // optional, string, max 5 chars
+    "phone": "9876543210",                         // required, string, exactly 10 digits
+    "isWhatsappNumber": true,                      // optional, boolean, default false
+    "address": "45 College Road",                  // optional, string, max 500 chars
+    "districtId": 501,                             // required, integer, > 0
+    "stateId": 27,                                 // required, integer, > 0
+    "countryId": 91,                               // required, integer, > 0
+    "pincode": "560001",                           // optional, string, max 10 chars
+    "logo": "inst/acme-engg/logo.png",             // optional, string, max 100 chars
+    "isDefault": false                             // optional, boolean, default false &mdash; always honored exactly as sent
+  }
+}</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{ "success": true, "message": "Institute updated successfully." }</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails, <code>instId &le; 0</code>, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't managed by the caller, is deleted, or is deactivated.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>instName</code> already used by another institute in the same org.</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td><code>instTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the institute in the same final state.</p>
+
+<!-- ========================= Set default institute ========================= -->
+<h3 id="inst-default"><span class="method">PUT</span> <code>/default</code></h3>
+<p>Makes one institute the caller's default and clears the flag on their other institutes.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>PUT https://api-vacc.vidyaone.com/test/inst/default?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>PUT https://api-vacc.vidyaone.com/inst/default?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Example request body</h4>
+<pre><code>{
+  "instId": 456   // required, integer, > 0 &mdash; must be an active, non-deleted institute created by the caller
+}</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{ "success": true, "message": "Institute set as default successfully." }</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId &le; 0</code> or body missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't managed by the caller, is deleted, or is deactivated.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the institute as the caller's default.</p>
+
+<!-- ========================= Activate institutes ========================= -->
+<h3 id="inst-activate"><span class="method">PUT</span> <code>/activate</code></h3>
+<p>Re-activates one or more of the caller's deactivated institutes.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>PUT https://api-vacc.vidyaone.com/test/inst/activate?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>PUT https://api-vacc.vidyaone.com/inst/activate?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Example request body</h4>
+<pre><code>{
+  "instIds": [456, 457]   // required, array of integer, 1&ndash;10 elements, each > 0
+}</code></pre>
+<p>Ids not created by the caller, already active, or deleted are silently skipped. An institute also can't be reactivated while its own organization is inactive. Returns <span class="status-ok">200 OK</span> as long as at least one institute is affected.</p>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{ "success": true, "message": "Institute activated successfully." }</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instIds</code> empty/missing, any element <code>&le; 0</code>, or body invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match a deactivated, non-deleted institute created by the caller whose organization is currently active.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
+
+<!-- ========================= Deactivate institutes ========================= -->
+<h3 id="inst-deactive"><span class="method">PUT</span> <code>/deactive</code></h3>
+<p>Deactivates one or more of the caller's institutes.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>PUT https://api-vacc.vidyaone.com/test/inst/deactive?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>PUT https://api-vacc.vidyaone.com/inst/deactive?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Example request body</h4>
+<pre><code>{
+  "instIds": [456, 457]   // required, array of integer, 1&ndash;10 elements, each > 0
+}</code></pre>
+<p>Ids not created by the caller are silently skipped. Returns <span class="status-ok">200 OK</span> as long as at least one row is affected. If a deactivated institute was anyone's default, that default is cleared.</p>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{ "success": true, "message": "Institute deactivated successfully." }</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instIds</code> empty/missing, any element <code>&le; 0</code>, or body invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match an eligible institute.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
+
+<!-- ========================= Change institute org ========================= -->
+<h3 id="inst-changeorg"><span class="method">PUT</span> <code>/changeorg</code></h3>
+<p>Moves an institute the caller created into a different organization the caller also created or owns.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>PUT https://api-vacc.vidyaone.com/test/inst/changeorg?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>PUT https://api-vacc.vidyaone.com/inst/changeorg?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Example request body</h4>
+<pre><code>{
+  "instId": 456,    // required, integer, > 0 &mdash; must be an active, non-deleted institute created by the caller
+  "newOrgId": 789   // required, integer, > 0 &mdash; must be an active, non-deleted org the caller created or owns
+}</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{ "success": true, "message": "Institute ChangeOrg successfully." }</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId</code>/<code>newOrgId</code> <code>&le; 0</code>, or body missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't managed by the caller, is deleted, or is deactivated; or <code>newOrgId</code> doesn't exist, isn't owned/created by the caller, is deleted, or is deactivated.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>newOrgId</code> already has another institute with the same name.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the institute in the same org.</p>
+
+<!-- ========================= Delete institutes ========================= -->
+<h3 id="inst-delete"><span class="method">DELETE</span> <code>/</code></h3>
+<p>Deletes one or more of the caller's institutes. There is no restore endpoint.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>DELETE https://api-vacc.vidyaone.com/test/inst/?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>DELETE https://api-vacc.vidyaone.com/inst/?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Example request body</h4>
+<pre><code>{
+  "instIds": [456]   // required, array of integer, 1&ndash;10 elements, each > 0
+}</code></pre>
+<p>This request carries a body — use an HTTP client that sends a body on <code>DELETE</code> (curl does). Ids not created by the caller, or already deleted, are silently skipped. If a deleted institute was anyone's default, that default is cleared.</p>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{ "success": true, "message": "Institute deleted successfully." }</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instIds</code> empty/missing or any element <code>&le; 0</code>.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match an eligible institute.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
+
+<!-- ========================= Institute options ========================= -->
+<h3 id="inst-options"><span class="method">GET</span> <code>/options</code></h3>
+<p>Returns the caller's active institutes as <code>{ id, name }</code> pairs, for populating a picker.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/options?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/options?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 456, "name": "Acme Engineering College" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= List my institutes ========================= -->
+<h3 id="inst-list"><span class="method">GET</span> <code>/list/admin</code></h3>
+<p>Returns a paged list of institutes the caller created, or was granted admin access to.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/list/admin?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/list/admin?product={product}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. Must be <code>&gt; 0</code> if sent.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. Must be <code>&gt; 0</code> and <code>&le; 200</code> if sent.</td></tr>
+  </tbody>
+</table>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": {
+    "records": [
+      {
+        "instId": 456,
+        "instTypeId": 2,
+        "instTypeName": "Engineering College",
+        "instName": "Acme Engineering College",
+        "email": "info@acme-engg.example",
+        "phoneCode": "+91",
+        "phone": "9876543210",
+        "isWhatsappNumber": true,
+        "districtName": "Bengaluru Urban",
+        "stateName": "Karnataka",
+        "countryName": "India",
+        "logo": "inst/acme-engg/logo.png",
+        "creatorName": "Asha Rao",
+        "isActive": true,
+        "isDefault": true
+      }
+    ],
+    "metaData": {
+      "totalCount": 1, "pageSize": 50, "currentPage": 1,
+      "totalPages": 1, "hasNext": false, "hasPrevious": false
+    }
+  }
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Invalid page params.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Get institute (edit) ========================= -->
+<h3 id="inst-edit"><span class="method">GET</span> <code>/edit</code></h3>
+<p>Returns one institute in a flat, editable shape that can be sent straight back to <a href="#inst-put">Update institute</a>.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/edit?product={product}&amp;instId={instId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/edit?product={product}&amp;instId={instId}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>instId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0.</td></tr>
+  </tbody>
+</table>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": {
+    "instId": 456,
+    "instName": "Acme Engineering College",
+    "instTypeId": 2,
+    "contactPerson": "Ravi Kumar",
+    "contactEmail": "ravi@acme.example",
+    "contactPhoneCode": "+91",
+    "contactPhone": "9876500000",
+    "contactIsWhatsappNumber": false,
+    "email": "info@acme-engg.example",
+    "phoneCode": "+91",
+    "phone": "9876543210",
+    "isWhatsappNumber": true,
+    "address": "45 College Road",
+    "districtId": 501,
+    "stateId": 27,
+    "countryId": 91,
+    "pincode": "560001",
+    "logo": "inst/acme-engg/logo.png",
+    "isDefault": true
+  }
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId</code> missing, <code>&le; 0</code>, or not an integer.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't managed by the caller, is deleted, or is deactivated.</td></tr>
+  </tbody>
+</table>
+
+</section>
+
+<section id="onboard">
+<h2>Onboard</h2>
+<p>Scoped to the authenticated institute for the given <code>product</code> — <code>instId</code>/<code>userId</code> are resolved from the session automatically, never sent by the caller.</p>
+
+<!-- ========================= Onboard status ========================= -->
+<h3 id="onboard-status"><span class="method">GET</span> <code>/onboard/status</code></h3>
+<p>Reports whether onboarding is complete for the authenticated institute.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/onboard/status?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/onboard/status?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{ "success": true, "data": true }</code></pre>
+<p><code>data</code> is <code>true</code> only once onboarding has been completed (by the user or by support); otherwise <code>false</code>.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Onboard by user ========================= -->
+<h3 id="onboard-byuser"><span class="method">PUT</span> <code>/onboard/byuser</code></h3>
+<p>Marks the authenticated institute as onboarded by the user.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>PUT https://api-vacc.vidyaone.com/test/inst/onboard/byuser?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>PUT https://api-vacc.vidyaone.com/inst/onboard/byuser?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{ "success": true, "message": "Onboard successfully." }</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The authenticated institute has no onboarding record.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> again returns <span class="status-ok">200 OK</span> and leaves the institute in the same onboarded state.</p>
+
+<!-- ========================= Onboard by support ========================= -->
+<h3 id="onboard-bysupport"><span class="method">PUT</span> <code>/onboard/bysupport</code></h3>
+<p>Marks the authenticated institute as onboarded by the support team.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>PUT https://api-vacc.vidyaone.com/test/inst/onboard/bysupport?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>PUT https://api-vacc.vidyaone.com/inst/onboard/bysupport?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{ "success": true, "message": "Onboard by support successfully." }</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The authenticated institute has no onboarding record.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> again returns <span class="status-ok">200 OK</span> and leaves the institute in the same onboarded state.</p>
 
 </section>
 
