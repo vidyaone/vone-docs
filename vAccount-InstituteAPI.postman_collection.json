@@ -319,6 +319,15 @@
             "url": "{{baseUrl}}edit?product={{product}}&instId={{instId}}"
           },
           "response": []
+        },
+        {
+          "name": "Get institute",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}view?product={{product}}&instId={{instId}}"
+          },
+          "response": []
         }
       ]
     },

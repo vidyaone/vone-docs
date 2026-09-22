@@ -102,6 +102,7 @@
       <li><a href="#inst-options"><code>GET /options</code></a></li>
       <li><a href="#inst-list"><code>GET /list/admin</code></a></li>
       <li><a href="#inst-edit"><code>GET /edit</code></a></li>
+      <li><a href="#inst-view"><code>GET /view</code></a></li>
     </ul>
   </div>
   <div class="menu">
@@ -210,7 +211,7 @@
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The target record doesn't match the request (missing, not owned/managed by the caller, deleted, deactivated, or otherwise ineligible — see each endpoint).</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>The organization <code>orgName</code>/<code>regNo</code>, or the institute <code>instName</code> within its organization, is already in use.</td></tr>
     <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced id (organization type, institute type, district, state, country, organization, or product) doesn't exist.</td></tr>
-    <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>An organization still has institutes under it (see <a href="#org-deactive">Deactivate</a> / <a href="#org-delete">Delete organization</a>).</td></tr>
+    <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>Every organization in the request is still blocked by an institute under it (see <a href="#org-deactive">Deactivate</a> / <a href="#org-delete">Delete organization</a>).</td></tr>
     <tr><td class="status-err">500</td><td><code>INTERNAL_ERROR</code></td><td>Unexpected server error.</td></tr>
   </tbody>
 </table>
@@ -496,7 +497,7 @@
 <pre><code>{
   "orgIds": [123, 124]   // required, array of integer, 1&ndash;10 elements, each > 0
 }</code></pre>
-<p>Ids not owned by the caller are silently skipped. Returns <span class="status-ok">200 OK</span> as long as at least one row is affected. If a deactivated organization was anyone's default, that default is cleared. An organization can only be deactivated once all of its institutes are deactivated or deleted.</p>
+<p>Ids not owned by the caller are silently skipped. An organization still blocked by an active institute under it is also silently skipped from this request — the rest still deactivate normally. If a deactivated organization was anyone's default, that default is cleared. Returns <span class="status-ok">200 OK</span> as long as at least one organization is actually deactivated.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -507,8 +508,8 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgIds</code> empty/missing, any element <code>&le; 0</code>, or body invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match an eligible organization.</td></tr>
-    <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>One or more of the organizations still has an active institute under it.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match an eligible (owned, active, non-deleted) organization.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>Every eligible organization in the request is still blocked by an active institute under it.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
@@ -530,7 +531,7 @@
 <pre><code>{
   "orgIds": [123]   // required, array of integer, 1&ndash;10 elements, each > 0
 }</code></pre>
-<p>This request carries a body — use an HTTP client that sends a body on <code>DELETE</code> (curl does). Ids not owned by the caller, or already deleted, are silently skipped. If a deleted organization was anyone's default, that default is cleared. An organization can only be deleted once all of its institutes are deleted.</p>
+<p>This request carries a body — use an HTTP client that sends a body on <code>DELETE</code> (curl does). Ids not owned by the caller, or already deleted, are silently skipped. An organization still blocked by an institute under it is also silently skipped from this request — the rest still delete normally. If a deleted organization was anyone's default, that default is cleared.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -541,8 +542,8 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgIds</code> empty/missing or any element <code>&le; 0</code>.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match an eligible organization.</td></tr>
-    <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>One or more of the organizations still has an institute under it.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match an eligible (owned, non-deleted) organization.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>Every eligible organization in the request is still blocked by an institute under it.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
@@ -744,7 +745,7 @@
 
 <section id="institute">
 <h2>Institute</h2>
-<p><code>POST /</code>, <code>PUT /</code>, <code>PUT /default</code>, <code>PUT /activate</code>, <code>PUT /deactive</code>, <code>PUT /changeorg</code>, <code>DELETE /</code>, and <code>GET /edit</code> act only on institutes the caller created. <a href="#inst-list">List my institutes</a> is broader — it also includes institutes the caller was granted admin access to, without having created them. A caller may create at most 10 non-deleted institutes.</p>
+<p><code>POST /</code>, <code>PUT /</code>, <code>PUT /default</code>, <code>PUT /activate</code>, <code>PUT /deactive</code>, <code>PUT /changeorg</code>, <code>DELETE /</code>, and <code>GET /edit</code> act only on institutes the caller created. <a href="#inst-view">Get institute</a> is the one exception — any authenticated caller can read any institute, with the response shape depending on their relationship to it. <a href="#inst-list">List my institutes</a> is broader than the write routes too — it also includes institutes the caller was granted admin access to, without having created them. A caller may create at most 10 non-deleted institutes.</p>
 
 <!-- ========================= Create institute ========================= -->
 <h3 id="inst-post"><span class="method">POST</span> <code>/</code></h3>
@@ -1162,6 +1163,136 @@
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't managed by the caller, is deleted, or is deactivated.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Get institute ========================= -->
+<h3 id="inst-view"><span class="method">GET</span> <code>/view</code></h3>
+<p>Returns one institute for read-only display, including its parent organization's detail. Any authenticated caller can look up any <code>instId</code>; the response shape depends on whether the caller created it or holds admin access to it.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/view?product={product}&amp;instId={instId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/view?product={product}&amp;instId={instId}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>instId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0.</td></tr>
+  </tbody>
+</table>
+
+<h4>Response — caller is the creator or holds admin access</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": {
+    "instId": 456,
+    "instCode": "INSTA1B2C3",
+    "instName": "Acme Engineering College",
+    "instTypeId": 2,
+    "instTypeName": "Engineering College",
+    "email": "info@acme-engg.example",
+    "phoneCode": "+91",
+    "phone": "9876543210",
+    "isWhatsappNumber": true,
+    "contactPerson": "Ravi Kumar",
+    "contactEmail": "ravi@acme.example",
+    "contactPhoneCode": "+91",
+    "contactPhone": "9876500000",
+    "contactIsWhatsappNumber": false,
+    "address": "45 College Road",
+    "districtName": "Bengaluru Urban",
+    "stateName": "Karnataka",
+    "countryName": "India",
+    "pincode": "560001",
+    "logo": "inst/acme-engg/logo.png",
+    "creatorName": "Ravi Kumar",
+    "creatorEmail": "ravi@acme.example",
+    "isDefault": true,
+    "orgId": 123,
+    "orgTypeId": 1,
+    "orgTypeName": "Private Limited",
+    "orgName": "Acme Institute",
+    "orgRegNo": "REG-2024-0007",
+    "orgRegDate": "2024-04-01T00:00:00+00:00",
+    "orgEmail": "info@acme.example",
+    "orgPhone": "9876543210",
+    "orgIsWhatsappNumber": true,
+    "orgAddress": "12 MG Road",
+    "orgDistrictName": "Bengaluru Urban",
+    "orgStateName": "Karnataka",
+    "orgCountryName": "India",
+    "orgPincode": "560001",
+    "orgLogo": "org/acme/logo.png",
+    "orgIsOwner": true,
+    "orgOwnerName": "Asha Rao",
+    "orgCreatorName": "Asha Rao",
+    "orgCreatorEmail": "asha@acme.example",
+    "orgOwnerEmail": "asha@acme.example",
+    "orgKycStatus": "Approved",
+    "totalUser": 3,
+    "audit": { "isActive": true, "createdAt": "2026-09-01T08:00:00+00:00", "updatedAt": "2026-09-09T10:20:00+00:00" }
+  }
+}</code></pre>
+<p>This shape is returned regardless of whether the institute is active.</p>
+
+<h4>Response — any other caller</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": {
+    "instId": 456,
+    "instCode": "INSTA1B2C3",
+    "instName": "Acme Engineering College",
+    "instTypeId": 2,
+    "instTypeName": "Engineering College",
+    "email": "info@acme-engg.example",
+    "phoneCode": "+91",
+    "phone": "9876543210",
+    "isWhatsappNumber": true,
+    "contactPerson": "Ravi Kumar",
+    "contactPhoneCode": "+91",
+    "contactPhone": "9876500000",
+    "contactIsWhatsappNumber": false,
+    "address": "45 College Road",
+    "districtName": "Bengaluru Urban",
+    "stateName": "Karnataka",
+    "countryName": "India",
+    "pincode": "560001",
+    "logo": "inst/acme-engg/logo.png",
+    "orgId": 123,
+    "orgTypeId": 1,
+    "orgTypeName": "Private Limited",
+    "orgName": "Acme Institute",
+    "orgRegNo": "REG-2024-0007",
+    "orgRegDate": "2024-04-01T00:00:00+00:00",
+    "orgEmail": "info@acme.example",
+    "orgPhone": "9876543210",
+    "orgIsWhatsappNumber": true,
+    "orgAddress": "12 MG Road",
+    "orgDistrictName": "Bengaluru Urban",
+    "orgStateName": "Karnataka",
+    "orgCountryName": "India",
+    "orgPincode": "560001",
+    "orgLogo": "org/acme/logo.png",
+    "orgIsOwner": true,
+    "orgOwnerName": "Asha Rao",
+    "orgKycStatus": "Approved",
+    "audit": { "isActive": true, "createdAt": "2026-09-01T08:00:00+00:00", "updatedAt": "2026-09-09T10:20:00+00:00" }
+  }
+}</code></pre>
+<p>This shape omits <code>contactEmail</code>, <code>creatorName</code>, <code>creatorEmail</code>, <code>isDefault</code>, <code>orgCreatorName</code>, <code>orgCreatorEmail</code>, <code>orgOwnerEmail</code>, and <code>totalUser</code>. It is only returned while the institute is active — an inactive institute reports <span class="status-err">404</span> to any caller who isn't its creator or an admin on it.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId</code> missing, <code>&le; 0</code>, or not an integer.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, is deleted, or (for a non-creator/non-admin caller) is deactivated.</td></tr>
   </tbody>
 </table>
 
