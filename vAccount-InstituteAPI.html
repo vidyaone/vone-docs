@@ -151,7 +151,7 @@
   <tbody>
     <tr><td>Testing</td><td><code>https://api-vacc.vidyaone.com/test/inst/</code></td><td><code>appsettings.Testing.json</code></td></tr>
     <tr><td>Production</td><td><code>https://api-vacc.vidyaone.com/inst/</code></td><td><code>appsettings.json</code></td></tr>
-    <tr><td>Local (Development)</td><td><code>http://localhost:5000/</code></td><td>no override present in this environment</td></tr>
+    <tr><td>Local (Development)</td><td><code>http://localhost:65082/</code></td><td><code>Properties/launchSettings.json</code> (no <code>App:BaseUrl</code> override in this environment)</td></tr>
   </tbody>
 </table>
 <p class="small">Concatenate the base URL with the route shown in each endpoint below. There is no version segment.</p>
@@ -206,7 +206,7 @@
     <tr><td class="status-ok">200</td><td>—</td><td>Success.</td></tr>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A request field fails validation, or the body is missing / not valid JSON.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> is missing from the query string.</td></tr>
-    <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created-or-owns 3 non-deleted organizations (<code>POST /org</code>), or already created 10 non-deleted institutes (<code>POST /</code> institute).</td></tr>
+    <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created-or-owns 10 non-deleted organizations (<code>POST /org</code>), or already created 20 non-deleted institutes (<code>POST /</code> institute).</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The target record doesn't match the request (missing, not owned/managed by the caller, deleted, deactivated, or otherwise ineligible — see each endpoint).</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>The organization <code>orgName</code>/<code>regNo</code>, or the institute <code>instName</code> within its organization, is already in use.</td></tr>
@@ -219,7 +219,7 @@
 
 <section id="organization">
 <h2>Organization</h2>
-<p>Most routes below act only on organizations the caller created or owns. <a href="#org-view">Get organization</a> is the one exception — any authenticated caller can read any organization, with the response shape depending on their relationship to it. A caller may create-or-own at most 3 non-deleted organizations.</p>
+<p>Most routes below act only on organizations the caller created or owns. <a href="#org-view">Get organization</a> is the one exception — any authenticated caller can read any organization, with the response shape depending on their relationship to it. A caller may create-or-own at most 10 non-deleted organizations.</p>
 
 <!-- ========================= Create organization ========================= -->
 <h3 id="org-post"><span class="method">POST</span> <code>/org</code></h3>
@@ -270,7 +270,7 @@
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails, or the body is missing / invalid.</td></tr>
-    <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created-or-owns 3 non-deleted organizations.</td></tr>
+    <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created-or-owns 10 non-deleted organizations.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>orgName</code> or <code>regNo</code> already in use.</td></tr>
@@ -745,7 +745,7 @@
 
 <section id="institute">
 <h2>Institute</h2>
-<p><code>POST /</code>, <code>PUT /</code>, <code>PUT /default</code>, <code>PUT /activate</code>, <code>PUT /deactive</code>, <code>PUT /changeorg</code>, <code>DELETE /</code>, and <code>GET /edit</code> act only on institutes the caller created. <a href="#inst-view">Get institute</a> is the one exception — any authenticated caller can read any institute, with the response shape depending on their relationship to it. <a href="#inst-list">List my institutes</a> is broader than the write routes too — it also includes institutes the caller was granted admin access to, without having created them. A caller may create at most 10 non-deleted institutes.</p>
+<p><code>POST /</code>, <code>PUT /</code>, <code>PUT /default</code>, <code>PUT /activate</code>, <code>PUT /deactive</code>, <code>PUT /changeorg</code>, <code>DELETE /</code>, and <code>GET /edit</code> act only on institutes the caller created. <a href="#inst-view">Get institute</a> is the one exception — any authenticated caller can read any institute, with the response shape depending on their relationship to it. <a href="#inst-list">List my institutes</a> is broader than the write routes too — it also includes institutes the caller was granted admin access to, without having created them. A caller may create at most 20 non-deleted institutes.</p>
 
 <!-- ========================= Create institute ========================= -->
 <h3 id="inst-post"><span class="method">POST</span> <code>/</code></h3>
@@ -764,9 +764,9 @@
 <pre><code>{
   "postDTO": {
     "orgId": 123,                                  // required, integer, > 0 &mdash; must be an org the caller created or owns
-    "productId": 5,                                // required, integer, > 0 &mdash; must have an active trial plan
+    "productId": 1,                                // required, integer, > 0 &mdash; must have an active trial plan
     "instName": "Acme Engineering College",        // required, string, max 150 chars
-    "instTypeId": 2,                               // required, integer, > 0 &mdash; must reference an existing institute type
+    "instTypeId": 1,                               // required, integer, > 0 &mdash; must reference an existing institute type
     "contactPerson": "Ravi Kumar",                 // required, string, max 150 chars
     "contactEmail": "ravi@acme.example",           // optional, string, valid email, max 50 chars
     "contactPhoneCode": "+91",                     // optional, string, max 5 chars
@@ -794,7 +794,7 @@
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails, or the body is missing / invalid.</td></tr>
-    <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created 10 non-deleted institutes.</td></tr>
+    <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created 20 non-deleted institutes.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td><code>orgId</code> doesn't exist, isn't owned/created by the caller, is deleted, or is deactivated; or <code>productId</code> doesn't exist or has no active trial plan.</td></tr>
@@ -822,7 +822,7 @@
   "putDTO": {
     "instId": 456,                                 // required, integer, > 0 &mdash; must be an institute the caller created
     "instName": "Acme Engineering College",        // required, string, max 150 chars
-    "instTypeId": 2,                               // required, integer, > 0
+    "instTypeId": 1,                               // required, integer, > 0
     "contactPerson": "Ravi Kumar",                 // required, string, max 150 chars
     "contactEmail": "ravi@acme.example",           // optional, string, valid email, max 50 chars
     "contactPhoneCode": "+91",                     // optional, string, max 5 chars
@@ -1080,7 +1080,7 @@
     "records": [
       {
         "instId": 456,
-        "instTypeId": 2,
+        "instTypeId": 1,
         "instTypeName": "Engineering College",
         "instName": "Acme Engineering College",
         "email": "info@acme-engg.example",
@@ -1137,7 +1137,7 @@
   "data": {
     "instId": 456,
     "instName": "Acme Engineering College",
-    "instTypeId": 2,
+    "instTypeId": 1,
     "contactPerson": "Ravi Kumar",
     "contactEmail": "ravi@acme.example",
     "contactPhoneCode": "+91",
@@ -1193,7 +1193,7 @@
     "instId": 456,
     "instCode": "INSTA1B2C3",
     "instName": "Acme Engineering College",
-    "instTypeId": 2,
+    "instTypeId": 1,
     "instTypeName": "Engineering College",
     "email": "info@acme-engg.example",
     "phoneCode": "+91",
@@ -1248,7 +1248,7 @@
     "instId": 456,
     "instCode": "INSTA1B2C3",
     "instName": "Acme Engineering College",
-    "instTypeId": 2,
+    "instTypeId": 1,
     "instTypeName": "Engineering College",
     "email": "info@acme-engg.example",
     "phoneCode": "+91",

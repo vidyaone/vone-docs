@@ -185,7 +185,7 @@
             "url": "{{baseUrl}}?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"postDTO\": {\n    \"orgId\": {{orgId}},\n    \"productId\": 5,\n    \"instName\": \"Acme Engineering College\",\n    \"instTypeId\": 2,\n    \"contactPerson\": \"Ravi Kumar\",\n    \"contactEmail\": \"ravi@acme.example\",\n    \"contactPhoneCode\": \"+91\",\n    \"contactPhone\": \"9876500000\",\n    \"contactIsWhatsappNumber\": false,\n    \"email\": \"info@acme-engg.example\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"45 College Road\",\n    \"districtId\": 49,\n    \"stateId\": 26,\n    \"countryId\": 1,\n    \"pincode\": \"560001\",\n    \"logo\": \"inst/acme-engg/logo.png\",\n    \"isDefault\": true\n  }\n}",
+              "raw": "{\n  \"postDTO\": {\n    \"orgId\": {{orgId}},\n    \"productId\": 1,\n    \"instName\": \"Acme Engineering College\",\n    \"instTypeId\": 1,\n    \"contactPerson\": \"Ravi Kumar\",\n    \"contactEmail\": \"ravi@acme.example\",\n    \"contactPhoneCode\": \"+91\",\n    \"contactPhone\": \"9876500000\",\n    \"contactIsWhatsappNumber\": false,\n    \"email\": \"info@acme-engg.example\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"45 College Road\",\n    \"districtId\": 49,\n    \"stateId\": 26,\n    \"countryId\": 1,\n    \"pincode\": \"560001\",\n    \"logo\": \"inst/acme-engg/logo.png\",\n    \"isDefault\": true\n  }\n}",
               "options": { "raw": { "language": "json" } }
             }
           },
@@ -202,7 +202,7 @@
             "url": "{{baseUrl}}?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"putDTO\": {\n    \"instId\": {{instId}},\n    \"instName\": \"Acme Engineering College\",\n    \"instTypeId\": 2,\n    \"contactPerson\": \"Ravi Kumar\",\n    \"contactEmail\": \"ravi@acme.example\",\n    \"contactPhoneCode\": \"+91\",\n    \"contactPhone\": \"9876500000\",\n    \"contactIsWhatsappNumber\": false,\n    \"email\": \"info@acme-engg.example\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"45 College Road\",\n    \"districtId\": 49,\n    \"stateId\": 26,\n    \"countryId\": 1,\n    \"pincode\": \"560001\",\n    \"logo\": \"inst/acme-engg/logo.png\",\n    \"isDefault\": false\n  }\n}",
+              "raw": "{\n  \"putDTO\": {\n    \"instId\": {{instId}},\n    \"instName\": \"Acme Engineering College\",\n    \"instTypeId\": 1,\n    \"contactPerson\": \"Ravi Kumar\",\n    \"contactEmail\": \"ravi@acme.example\",\n    \"contactPhoneCode\": \"+91\",\n    \"contactPhone\": \"9876500000\",\n    \"contactIsWhatsappNumber\": false,\n    \"email\": \"info@acme-engg.example\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"45 College Road\",\n    \"districtId\": 49,\n    \"stateId\": 26,\n    \"countryId\": 1,\n    \"pincode\": \"560001\",\n    \"logo\": \"inst/acme-engg/logo.png\",\n    \"isDefault\": false\n  }\n}",
               "options": { "raw": { "language": "json" } }
             }
           },
