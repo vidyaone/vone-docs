@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>vShared-DataAPI — Developer Guide</title>
+<style>
+  :root{
+    --accent:#0b6bcb;
+    --ink:#1c1e21;
+    --muted:#5b6470;
+    --line:#dfe3e8;
+    --bg:#fdfdfd;
+    --ok:#0a7d33;
+    --err:#b42318;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.65;
+    font-size:15px;
+  }
+  main{max-width:900px;margin:0 auto;padding:32px 24px 140px}
+  h1{font-size:24px;margin:28px 0 4px;color:var(--ink)}
+  h2{font-size:19px;margin:52px 0 14px;padding-top:14px;border-top:1px solid var(--line);color:var(--ink)}
+  h3{font-size:16px;margin:36px 0 8px;color:var(--ink)}
+  h4{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:18px 0 6px}
+  p{margin:8px 0}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:13px}
+  pre{background:#f6f7f8;border:1px solid var(--line);border-radius:4px;padding:12px 14px;overflow-x:auto;max-width:100%;font-size:13px;line-height:1.5}
+  pre code{font-size:13px}
+  table{border-collapse:collapse;width:100%;max-width:100%;margin:10px 0;font-size:14px;overflow-x:auto;display:block}
+  table thead,table tbody{display:table;width:100%;table-layout:fixed}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+  th{font-weight:700}
+  td.req{color:var(--accent);font-weight:600;white-space:nowrap}
+  td.opt{color:var(--muted);white-space:nowrap}
+  .status-ok{color:var(--ok);font-weight:700}
+  .status-err{color:var(--err);font-weight:700}
+  .method{font-family:ui-monospace,monospace;font-weight:700}
+  .small{font-size:13px;color:var(--muted)}
+  nav.top{
+    position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);
+    padding:10px 24px;display:flex;flex-wrap:wrap;gap:4px 18px;align-items:baseline;
+  }
+  nav.top strong{color:var(--ink);white-space:nowrap;margin-right:6px}
+  nav.top a{white-space:nowrap;font-size:14px}
+  nav.top a.download{font-weight:700;margin-left:auto}
+  nav.top .menu{position:relative;padding-bottom:8px;margin-bottom:-8px}
+  nav.top .submenu{
+    display:none;position:absolute;top:100%;left:0;margin:0;padding:6px 0;
+    list-style:none;min-width:210px;background:#fff;border:1px solid var(--line);z-index:20;
+  }
+  nav.top .menu:hover .submenu,
+  nav.top .menu:focus-within .submenu{display:block}
+  nav.top .submenu li{margin:0}
+  nav.top .submenu a{display:block;padding:5px 14px;font-size:13px;white-space:nowrap}
+  hr{border:none;border-top:1px solid var(--line);margin:36px 0}
+  ul.tight{margin:6px 0;padding-left:20px}
+  ul.tight li{margin:3px 0}
+</style>
+</head>
+<body id="top">
+
+<nav class="top">
+  <strong>vShared-DataAPI</strong>
+  <a href="https://vidyaone.github.io/vone-docs">Home</a>
+  <a href="#postman-setup">Postman setup</a>
+  <a href="#base-urls">Base URLs</a>
+  <a href="#common-rules">Common rules</a>
+  <div class="menu">
+    <a href="#options">Options</a>
+    <ul class="submenu">
+      <li><a href="#gender"><code>GET /options/gender</code></a></li>
+      <li><a href="#bloodgroup"><code>GET /options/bloodgroup</code></a></li>
+      <li><a href="#board"><code>GET /options/board</code></a></li>
+      <li><a href="#courtesy"><code>GET /options/courtesy</code></a></li>
+      <li><a href="#category"><code>GET /options/category</code></a></li>
+      <li><a href="#subcategory"><code>GET /options/subcategory</code></a></li>
+      <li><a href="#relation"><code>GET /options/relation</code></a></li>
+      <li><a href="#nationality"><code>GET /options/nationality</code></a></li>
+      <li><a href="#occupation"><code>GET /options/occupation</code></a></li>
+      <li><a href="#qualification"><code>GET /options/qualification</code></a></li>
+      <li><a href="#religion"><code>GET /options/religion</code></a></li>
+      <li><a href="#country"><code>GET /options/country</code></a></li>
+      <li><a href="#country-phone"><code>GET /options/country/phone</code></a></li>
+      <li><a href="#state"><code>GET /options/state</code></a></li>
+      <li><a href="#district"><code>GET /options/district</code></a></li>
+      <li><a href="#doc-identity"><code>GET /options/document/identity</code></a></li>
+      <li><a href="#doc-business"><code>GET /options/document/business</code></a></li>
+      <li><a href="#doc-ngo"><code>GET /options/document/ngo</code></a></li>
+      <li><a href="#doc-institute"><code>GET /options/document/institute</code></a></li>
+    </ul>
+  </div>
+  <div class="menu">
+    <a href="#product">Product</a>
+    <ul class="submenu">
+      <li><a href="#product-list"><code>GET /product/list</code></a></li>
+      <li><a href="#product-option"><code>GET /product/option</code></a></li>
+      <li><a href="#plan-option"><code>GET /product/plan/option</code></a></li>
+    </ul>
+  </div>
+  <a class="download" href="vShared-DataAPI.postman_collection.json" download>&#8595; Postman collection</a>
+</nav>
+
+<main>
+<h1>vShared-DataAPI — Developer Guide</h1>
+<p class="small">Documents the <strong>Options</strong> and <strong>Product</strong> resources — shared lookup/reference data and product/plan option data used across VIDYAOne products.</p>
+
+<section id="postman-setup">
+<h2>Postman setup guide</h2>
+<ol class="tight">
+  <li>Use Postman for web (<a href="https://web.postman.co">web.postman.co</a>), not the desktop app.</li>
+  <li>Install the <a href="https://chromewebstore.google.com/detail/postman-interceptor/aicmkgpgakddgnaphhhpliifpcfhicfo">Postman Interceptor</a> Chrome extension — it lets Postman's web app read cookies from your Chrome session.</li>
+  <li>Enable Interceptor, then log into the product normally in Chrome. Once logged in, your session is available to Postman automatically — you don't need to set any auth header or cookie by hand.</li>
+  <li>Download the collection from the link in the navbar above and import it into Postman, then send requests — it's pre-configured for Testing.</li>
+</ol>
+</section>
+
+<section id="base-urls">
+<h2>Base URLs</h2>
+<table>
+  <thead><tr><th>Environment</th><th>Base URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>https://api-shared.vidyaone.com/test/data/</code></td></tr>
+    <tr><td>Production</td><td><code>https://api-shared.vidyaone.com/data/</code></td></tr>
+  </tbody>
+</table>
+<p class="small">Concatenate the base URL with the route shown in each endpoint below. There is no version segment.</p>
+</section>
+
+<section id="common-rules">
+<h2>Common request &amp; response rules</h2>
+
+<h4>Authentication</h4>
+<p>Authentication required on every route documented in this guide.</p>
+
+<h4>Common query parameter</h4>
+<table>
+  <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>product</code></td><td>string</td><td class="opt">no</td><td>Accepted on every route below. Omitting it does not change the response.</td></tr>
+  </tbody>
+</table>
+
+<h4>Response envelope</h4>
+<p>Every response — success or failure — uses the same JSON shape:</p>
+<pre><code>{
+  "success": true | false,
+  "message": "human-readable string" | null,
+  "errors":  [ { "code": "...", "message": "...", "field": "..." } ] | null,
+  "data":    [ ... ] | null
+}</code></pre>
+<p><strong>Success example</strong>:</p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": [
+    { "id": 1, "name": "Male" },
+    { "id": 2, "name": "Female" }
+  ]
+}</code></pre>
+<p>An empty result is still <span class="status-ok">200 OK</span> with <code>"data": []</code> — never a 404.</p>
+<p><strong>Error example</strong>:</p>
+<pre><code>{
+  "success": false,
+  "message": "Validation failed.",
+  "errors": [ { "code": "VALIDATION_FAILED", "message": "State ID must be greater than 0.", "field": "CountryId" } ],
+  "data": null
+}</code></pre>
+<p>Each entry in <code>errors[]</code> has a machine-readable <code>code</code> — switch on <code>code</code>, not on <code>message</code> text.</p>
+
+<h4>Status &amp; error codes used in this guide</h4>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-ok">200</td><td>—</td><td>Success. Also returned for an empty result (<code>"data": []</code>).</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A required id query parameter (<code>categoryId</code>, <code>countryId</code>, <code>stateId</code>, <code>productId</code>) is missing, not a number, or <code>&le; 0</code>.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication cookie missing or invalid.</td></tr>
+    <tr><td class="status-err">500</td><td><code>INTERNAL_ERROR</code></td><td>Unexpected server error.</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="options">
+<h2>Options</h2>
+<p>Lookup/reference dropdown data. Every route below takes no request body and returns a flat list — either <code>{ id, name }</code> pairs, or a wider shape where noted.</p>
+
+<!-- ========================= Gender ========================= -->
+<h3 id="gender"><span class="method">GET</span> <code>/options/gender</code></h3>
+<p>Gender dropdown options.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/options/gender</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/gender</code></td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "Male" },
+    { "id": 2, "name": "Female" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Blood group ========================= -->
+<h3 id="bloodgroup"><span class="method">GET</span> <code>/options/bloodgroup</code></h3>
+<p>Blood group dropdown options.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/options/bloodgroup</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/bloodgroup</code></td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "A+" },
+    { "id": 2, "name": "B+" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Board ========================= -->
+<h3 id="board"><span class="method">GET</span> <code>/options/board</code></h3>
+<p>Education board dropdown options.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/options/board</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/board</code></td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "CBSE" },
+    { "id": 2, "name": "ICSE" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Courtesy ========================= -->
+<h3 id="courtesy"><span class="method">GET</span> <code>/options/courtesy</code></h3>
+<p>Courtesy title (Mr/Ms/...) dropdown options.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/options/courtesy</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/courtesy</code></td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "Mr" },
+    { "id": 2, "name": "Ms" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Category ========================= -->
+<h3 id="category"><span class="method">GET</span> <code>/options/category</code></h3>
+<p>Category dropdown options.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/options/category</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/category</code></td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "General" },
+    { "id": 2, "name": "OBC" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Sub-category ========================= -->
+<h3 id="subcategory"><span class="method">GET</span> <code>/options/subcategory</code></h3>
+<p>Sub-category dropdown options for a category.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/options/subcategory?categoryId={categoryId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/subcategory?categoryId={categoryId}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>categoryId</code></td><td>integer</td><td class="req">yes</td><td>Must be <code>&gt; 0</code> and reference an existing category.</td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "SC" },
+    { "id": 2, "name": "ST" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>categoryId</code> missing, not a number, or <code>&le; 0</code>.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Relation ========================= -->
+<h3 id="relation"><span class="method">GET</span> <code>/options/relation</code></h3>
+<p>Guardian relation dropdown options.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/options/relation</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/relation</code></td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "Father" },
+    { "id": 2, "name": "Mother" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Nationality ========================= -->
+<h3 id="nationality"><span class="method">GET</span> <code>/options/nationality</code></h3>
+<p>Nationality dropdown options.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/options/nationality</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/nationality</code></td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "Indian" },
+    { "id": 2, "name": "American" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Occupation ========================= -->
+<h3 id="occupation"><span class="method">GET</span> <code>/options/occupation</code></h3>
+<p>Occupation dropdown options.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/options/occupation</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/occupation</code></td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "Teacher" },
+    { "id": 2, "name": "Engineer" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Qualification ========================= -->
+<h3 id="qualification"><span class="method">GET</span> <code>/options/qualification</code></h3>
+<p>Qualification dropdown options.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/options/qualification</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/qualification</code></td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "Bachelor's Degree" },
+    { "id": 2, "name": "Master's Degree" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Religion ========================= -->
+<h3 id="religion"><span class="method">GET</span> <code>/options/religion</code></h3>
+<p>Religion dropdown options.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/options/religion</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/religion</code></td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "Hindu" },
+    { "id": 2, "name": "Muslim" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Country ========================= -->
+<h3 id="country"><span class="method">GET</span> <code>/options/country</code></h3>
+<p>Country dropdown options.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/options/country</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/country</code></td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "India" },
+    { "id": 2, "name": "United States" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Country phone ========================= -->
+<h3 id="country-phone"><span class="method">GET</span> <code>/options/country/phone</code></h3>
+<p>Country list with phone code, ISO codes and flag, for phone-number inputs.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/options/country/phone</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/country/phone</code></td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "name": "India",
+      "phoneCode": "+91",
+      "flagEmoji": "🇮🇳",
+      "flagUrl": "https://flagcdn.com/in.svg",
+      "countryCode2": "IN",
+      "countryCode3": "IND"
+    }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= State ========================= -->
+<h3 id="state"><span class="method">GET</span> <code>/options/state</code></h3>
+<p>State dropdown options for a country.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/options/state?countryId={countryId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/state?countryId={countryId}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>countryId</code></td><td>integer</td><td class="req">yes</td><td>Must be <code>&gt; 0</code> and reference an existing country.</td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 26, "name": "Karnataka" },
+    { "id": 27, "name": "Maharashtra" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>countryId</code> missing, not a number, or <code>&le; 0</code>.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= District ========================= -->
+<h3 id="district"><span class="method">GET</span> <code>/options/district</code></h3>
+<p>District dropdown options for a state.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/options/district?stateId={stateId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/district?stateId={stateId}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>stateId</code></td><td>integer</td><td class="req">yes</td><td>Must be <code>&gt; 0</code> and reference an existing state.</td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 49, "name": "Bengaluru Urban" },
+    { "id": 50, "name": "Bengaluru Rural" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>stateId</code> missing, not a number, or <code>&le; 0</code>.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Document — identity ========================= -->
+<h3 id="doc-identity"><span class="method">GET</span> <code>/options/document/identity</code></h3>
+<p>Identity-proof document options (Aadhaar, PAN, Passport, ...) with number regex and description.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/options/document/identity</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/document/identity</code></td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "name": "Aadhaar Card",
+      "numberRegex": "^[0-9]{12}$",
+      "description": "12-digit Aadhaar number"
+    },
+    {
+      "id": 2,
+      "name": "PAN Card",
+      "numberRegex": "^[A-Z]{5}[0-9]{4}[A-Z]{1}$",
+      "description": "10-character PAN"
+    }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Document — business ========================= -->
+<h3 id="doc-business"><span class="method">GET</span> <code>/options/document/business</code></h3>
+<p>Business-proof document options (GSTIN, Udyam, COI, ...) with number regex and description.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/options/document/business</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/document/business</code></td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    {
+      "id": 3,
+      "name": "GSTIN",
+      "numberRegex": "^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$",
+      "description": "15-character GST identification number"
+    }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Document — NGO ========================= -->
+<h3 id="doc-ngo"><span class="method">GET</span> <code>/options/document/ngo</code></h3>
+<p>NGO/trust-proof document options (Trust Deed, 12A, 80G, ...) with number regex and description.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/options/document/ngo</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/document/ngo</code></td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    {
+      "id": 4,
+      "name": "Trust Deed",
+      "numberRegex": "",
+      "description": "Registered trust deed document"
+    }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Document — institute ========================= -->
+<h3 id="doc-institute"><span class="method">GET</span> <code>/options/document/institute</code></h3>
+<p>Institute-proof document options (UDISE+, AISHE, affiliation, ...) with number regex and description.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/options/document/institute</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/document/institute</code></td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    {
+      "id": 5,
+      "name": "UDISE+",
+      "numberRegex": "^[0-9]{11}$",
+      "description": "11-digit UDISE+ code"
+    }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+</section>
+
+<section id="product">
+<h2>Product</h2>
+<p>Product and plan reference data.</p>
+
+<!-- ========================= Product list ========================= -->
+<h3 id="product-list"><span class="method">GET</span> <code>/product/list</code></h3>
+<p>Product list with code, subdomain, icon, website and admin URL.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/product/list</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/product/list</code></td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    {
+      "productId": 1,
+      "productName": "VIDYAOne LMS",
+      "productCode": "LMS",
+      "productSubdomain": "lms",
+      "productIcon": "https://cdn.vidyaone.com/icons/lms.svg",
+      "productWebsite": "https://lms.vidyaone.com",
+      "productAdmin": "https://lms.vidyaone.com/admin",
+      "instTypeId": 1
+    }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Product option ========================= -->
+<h3 id="product-option"><span class="method">GET</span> <code>/product/option</code></h3>
+<p>Product dropdown options.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/product/option</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/product/option</code></td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "VIDYAOne LMS" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= Plan option ========================= -->
+<h3 id="plan-option"><span class="method">GET</span> <code>/product/plan/option</code></h3>
+<p>Plan dropdown options for a product.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/product/plan/option?productId={productId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/product/plan/option?productId={productId}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>productId</code></td><td>integer</td><td class="req">yes</td><td>Must be <code>&gt; 0</code> and reference an existing product.</td></tr>
+  </tbody>
+</table>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "Basic" },
+    { "id": 2, "name": "Premium" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>productId</code> missing, not a number, or <code>&le; 0</code>.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+</section>
+
+</main>
+</body>
+</html>

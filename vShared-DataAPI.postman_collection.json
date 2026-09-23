@@ -1,0 +1,217 @@
+{
+  "info": {
+    "name": "vShared-DataAPI",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://api-shared.vidyaone.com/test/data", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Options",
+      "item": [
+        {
+          "name": "Gender options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/options/gender", "host": ["{{baseUrl}}"], "path": ["options", "gender"] }
+          }
+        },
+        {
+          "name": "Blood group options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/options/bloodgroup", "host": ["{{baseUrl}}"], "path": ["options", "bloodgroup"] }
+          }
+        },
+        {
+          "name": "Board options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/options/board", "host": ["{{baseUrl}}"], "path": ["options", "board"] }
+          }
+        },
+        {
+          "name": "Courtesy options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/options/courtesy", "host": ["{{baseUrl}}"], "path": ["options", "courtesy"] }
+          }
+        },
+        {
+          "name": "Category options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/options/category", "host": ["{{baseUrl}}"], "path": ["options", "category"] }
+          }
+        },
+        {
+          "name": "Sub-category options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/options/subcategory?categoryId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["options", "subcategory"],
+              "query": [ { "key": "categoryId", "value": "1" } ]
+            }
+          }
+        },
+        {
+          "name": "Relation options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/options/relation", "host": ["{{baseUrl}}"], "path": ["options", "relation"] }
+          }
+        },
+        {
+          "name": "Nationality options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/options/nationality", "host": ["{{baseUrl}}"], "path": ["options", "nationality"] }
+          }
+        },
+        {
+          "name": "Occupation options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/options/occupation", "host": ["{{baseUrl}}"], "path": ["options", "occupation"] }
+          }
+        },
+        {
+          "name": "Qualification options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/options/qualification", "host": ["{{baseUrl}}"], "path": ["options", "qualification"] }
+          }
+        },
+        {
+          "name": "Religion options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/options/religion", "host": ["{{baseUrl}}"], "path": ["options", "religion"] }
+          }
+        },
+        {
+          "name": "Country options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/options/country", "host": ["{{baseUrl}}"], "path": ["options", "country"] }
+          }
+        },
+        {
+          "name": "Country phone options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/options/country/phone", "host": ["{{baseUrl}}"], "path": ["options", "country", "phone"] }
+          }
+        },
+        {
+          "name": "State options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/options/state?countryId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["options", "state"],
+              "query": [ { "key": "countryId", "value": "1" } ]
+            }
+          }
+        },
+        {
+          "name": "District options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/options/district?stateId=26",
+              "host": ["{{baseUrl}}"],
+              "path": ["options", "district"],
+              "query": [ { "key": "stateId", "value": "26" } ]
+            }
+          }
+        },
+        {
+          "name": "Identity document options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/options/document/identity", "host": ["{{baseUrl}}"], "path": ["options", "document", "identity"] }
+          }
+        },
+        {
+          "name": "Business document options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/options/document/business", "host": ["{{baseUrl}}"], "path": ["options", "document", "business"] }
+          }
+        },
+        {
+          "name": "NGO document options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/options/document/ngo", "host": ["{{baseUrl}}"], "path": ["options", "document", "ngo"] }
+          }
+        },
+        {
+          "name": "Institute document options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/options/document/institute", "host": ["{{baseUrl}}"], "path": ["options", "document", "institute"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Product",
+      "item": [
+        {
+          "name": "Product list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/product/list", "host": ["{{baseUrl}}"], "path": ["product", "list"] }
+          }
+        },
+        {
+          "name": "Product options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/product/option", "host": ["{{baseUrl}}"], "path": ["product", "option"] }
+          }
+        },
+        {
+          "name": "Plan options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/product/plan/option?productId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["product", "plan", "option"],
+              "query": [ { "key": "productId", "value": "1" } ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
