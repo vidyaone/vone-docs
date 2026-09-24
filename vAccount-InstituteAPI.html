@@ -86,6 +86,7 @@
       <li><a href="#org-delete"><code>DELETE /org</code></a></li>
       <li><a href="#org-options"><code>GET /org/options</code></a></li>
       <li><a href="#org-list"><code>GET /org/list/owner</code></a></li>
+      <li><a href="#org-list-shared"><code>GET /org/list/shared</code></a></li>
       <li><a href="#org-view"><code>GET /org/view</code></a></li>
     </ul>
   </div>
@@ -93,6 +94,7 @@
     <a href="#institute">Institute</a>
     <ul class="submenu">
       <li><a href="#inst-post"><code>POST /</code></a></li>
+      <li><a href="#inst-trial"><code>POST /trial</code></a></li>
       <li><a href="#inst-put"><code>PUT /</code></a></li>
       <li><a href="#inst-default"><code>PUT /default</code></a></li>
       <li><a href="#inst-activate"><code>PUT /activate</code></a></li>
@@ -101,6 +103,7 @@
       <li><a href="#inst-delete"><code>DELETE /</code></a></li>
       <li><a href="#inst-options"><code>GET /options</code></a></li>
       <li><a href="#inst-list"><code>GET /list/admin</code></a></li>
+      <li><a href="#inst-list-shared"><code>GET /list/shared</code></a></li>
       <li><a href="#inst-edit"><code>GET /edit</code></a></li>
       <li><a href="#inst-view"><code>GET /view</code></a></li>
     </ul>
@@ -644,6 +647,63 @@
   </tbody>
 </table>
 
+<!-- ========================= List shared organizations ========================= -->
+<h3 id="org-list-shared"><span class="method">GET</span> <code>/org/list/shared</code></h3>
+<p>Returns a paged list of organizations the caller has institute-level access to, excluding any they created or own themselves (those are returned by <a href="#org-list">List my organizations</a> instead).</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/org/list/shared?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/org/list/shared?product={product}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. Must be <code>&gt; 0</code> if sent.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. Must be <code>&gt; 0</code> and <code>&le; 200</code> if sent.</td></tr>
+  </tbody>
+</table>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": {
+    "records": [
+      {
+        "orgId": 140,
+        "orgTypeId": 2,
+        "orgTypeName": "Trust",
+        "orgName": "Beacon Trust",
+        "regNo": "REG-2023-0091",
+        "email": "info@beacon.example",
+        "districtName": "Bengaluru Urban",
+        "stateName": "Karnataka",
+        "countryName": "India",
+        "logo": "org/beacon/logo.png",
+        "isActive": true,
+        "isDefault": false
+      }
+    ],
+    "metaData": {
+      "totalCount": 1, "pageSize": 50, "currentPage": 1,
+      "totalPages": 1, "hasNext": false, "hasPrevious": false
+    }
+  }
+}</code></pre>
+<p>This row shape omits <code>creatorName</code>, <code>phoneCode</code>, <code>phone</code>, <code>isWhatsappNumber</code>, owner fields, <code>kycStatus</code>, and <code>totalInst</code>/<code>totalUser</code> (unlike <a href="#org-list">List my organizations</a>).</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Invalid page params.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
 <!-- ========================= Get organization ========================= -->
 <h3 id="org-view"><span class="method">GET</span> <code>/org/view</code></h3>
 <p>Returns one organization for read-only display. Any authenticated caller can look up any <code>orgId</code>; the response shape depends on whether the caller created or owns it.</p>
@@ -803,6 +863,42 @@
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful create returns <span class="status-err">409 Conflict</span> rather than the original success.</p>
+
+<!-- ========================= Start institute trial ========================= -->
+<h3 id="inst-trial"><span class="method">POST</span> <code>/trial</code></h3>
+<p>Starts a trial for an existing institute on a different product, adding a new SaaS/plan row for it.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>POST https://api-vacc.vidyaone.com/test/inst/trial?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>POST https://api-vacc.vidyaone.com/inst/trial?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Example request body</h4>
+<pre><code>{
+  "instId": 456,    // required, integer, > 0 &mdash; must be an active, non-deleted institute created by or administered by the caller
+  "productId": 1    // required, integer, > 0 &mdash; must reference a product with an active trial plan
+}</code></pre>
+<p>The institute must not already have a trial (or any other) SaaS row for <code>productId</code>.</p>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{ "success": true, "message": "Success.", "data": { "instSaaSId": 789 } }</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId</code>/<code>productId</code> <code>&le; 0</code>, or body missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't managed by the caller, is deleted, or is deactivated; or <code>productId</code> doesn't exist or has no active trial plan.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>The institute already has a SaaS row for <code>productId</code>.</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td><code>productId</code> doesn't reference an existing record.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">409 Conflict</span> rather than the original success.</p>
 
 <!-- ========================= Update institute ========================= -->
 <h3 id="inst-put"><span class="method">PUT</span> <code>/</code></h3>
@@ -1102,6 +1198,65 @@
     }
   }
 }</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Invalid page params.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= List shared institutes ========================= -->
+<h3 id="inst-list-shared"><span class="method">GET</span> <code>/list/shared</code></h3>
+<p>Returns a paged list of institutes the caller is a member of, excluding any they created or administer (those are returned by <a href="#inst-list">List my institutes</a> instead).</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/list/shared?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/list/shared?product={product}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. Must be <code>&gt; 0</code> if sent.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. Must be <code>&gt; 0</code> and <code>&le; 200</code> if sent.</td></tr>
+  </tbody>
+</table>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": {
+    "records": [
+      {
+        "instId": 480,
+        "instTypeId": 2,
+        "instTypeName": "Arts College",
+        "instName": "Beacon Arts College",
+        "email": "info@beacon-arts.example",
+        "phoneCode": "+91",
+        "phone": "9876500001",
+        "isWhatsappNumber": false,
+        "districtName": "Bengaluru Urban",
+        "stateName": "Karnataka",
+        "countryName": "India",
+        "logo": "inst/beacon-arts/logo.png",
+        "isActive": true,
+        "isDefault": false
+      }
+    ],
+    "metaData": {
+      "totalCount": 1, "pageSize": 50, "currentPage": 1,
+      "totalPages": 1, "hasNext": false, "hasPrevious": false
+    }
+  }
+}</code></pre>
+<p>This row shape omits <code>creatorName</code> (unlike <a href="#inst-list">List my institutes</a>).</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
