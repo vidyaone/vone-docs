@@ -197,23 +197,30 @@
 <pre><code>{
   "success": false,
   "message": "Validation failed.",
-  "errors": [ { "code": "VALIDATION_FAILED", "message": "orgName is required.", "field": "postDTO.orgName" } ],
+  "errors": [ { "code": "VALIDATION_FAILED", "message": "OrgName is required.", "field": "PostDTO.OrgName" } ],
   "data": null
 }</code></pre>
-<p>Each entry in <code>errors[]</code> has a machine-readable <code>code</code> — switch on <code>code</code>, not on <code>message</code> text.</p>
+<p>Each entry in <code>errors[]</code> has a machine-readable <code>code</code> — switch on <code>code</code>, not on <code>message</code> text. For validation errors, <code>field</code> is the property path as sent, e.g. <code>PostDTO.OrgName</code>.</p>
+<p>JSON bodies accept numeric ids and numbers sent either as numbers or as quoted strings (<code>"instId": 5</code> and <code>"instId": "5"</code> are equivalent).</p>
+
+<h4>Paging (list routes)</h4>
+<p><code>pageNumber</code> and <code>pageSize</code> are optional query parameters. A value <code>&le; 0</code> is ignored and the default is used; a <code>pageSize</code> above <code>200</code> is rejected with <span class="status-err">400</span> <code>VALIDATION_FAILED</code>; a non-integer value is rejected with <span class="status-err">400</span>. A <code>pageNumber</code> past the last page returns the last page. On the institute and organization lists, the caller's default item is returned first, then the rest are sorted by name.</p>
 
 <h4>Status &amp; error codes used in this guide</h4>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
     <tr><td class="status-ok">200</td><td>—</td><td>Success.</td></tr>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A request field fails validation, or the body is missing / not valid JSON.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A request field fails validation, a query value can't be parsed, or the body is missing / not valid JSON.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> is missing from the query string.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>A referenced id (organization type, institute type, district, state or country) doesn't exist, or a value isn't allowed.</td></tr>
     <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created-or-owns 10 non-deleted organizations (<code>POST /org</code>), or already created 20 non-deleted institutes (<code>POST /</code> institute).</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The target record doesn't match the request (missing, not owned/managed by the caller, deleted, deactivated, or otherwise ineligible — see each endpoint).</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>The organization <code>orgName</code>/<code>regNo</code>, or the institute <code>instName</code> within its organization, is already in use.</td></tr>
-    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced id (organization type, institute type, district, state, country, organization, or product) doesn't exist.</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record was removed while the request was being processed.</td></tr>
+    <tr><td class="status-err">409</td><td><code>INVALID_STATE</code></td><td>The organization can't be edited or updated while its KYC is <code>Under Review</code>.</td></tr>
+    <tr><td class="status-err">409</td><td><code>CONCURRENCY_CONFLICT</code></td><td>The default institute couldn't be set because of a simultaneous update — retry.</td></tr>
     <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>Every organization in the request is still blocked by an institute under it (see <a href="#org-deactive">Deactivate</a> / <a href="#org-delete">Delete organization</a>).</td></tr>
     <tr><td class="status-err">500</td><td><code>INTERNAL_ERROR</code></td><td>Unexpected server error.</td></tr>
   </tbody>
@@ -243,8 +250,9 @@
     "orgName": "Acme Institute",              // required, string, max 150 chars
     "orgTypeId": 1,                           // required, integer, > 0 &mdash; must reference an existing organization type
     "regNo": "REG-2024-0007",                 // optional, string, max 50 chars
-    "regDate": "2024-04-01T00:00:00Z",        // optional, string, ISO-8601 date-time &mdash; omit to leave unset
+    "regDate": "2024-04-01T00:00:00Z",        // optional, string, ISO-8601 date-time in UTC (offset +00:00) &mdash; omit to leave unset
     "email": "info@acme.example",             // required, string, valid email, max 50 chars
+    "website": "https://acme.example",        // optional, string, http or https URL, max 50 chars
     "phoneCode": "+91",                       // optional, string, max 5 chars
     "phone": "9876543210",                    // required, string, exactly 10 digits
     "isWhatsappNumber": true,                 // optional, boolean, default false
@@ -258,9 +266,9 @@
     "ownerName": "Asha Rao",                  // conditional, string, max 150 chars &mdash; required when isOwner=false
     "ownerEmail": "asha@acme.example",        // conditional, string, valid email, max 150 chars &mdash; required when isOwner=false
     "isDefault": true,                        // optional, boolean, default false &mdash; caller's first org is always forced default regardless of this value
-    "legalDocumentPath": "org/acme/gst.pdf",  // optional, string, max 255 chars
+    "legalDocumentPath": "gst.pdf",           // optional, string, max 255 chars, file name only (no / \ or : characters)
     "legalDocumentType": "GST",               // optional, string, max 50 chars
-    "identityProofPath": null,                // optional, string, max 255 chars
+    "identityProofPath": null,                // optional, string, max 255 chars, file name only (no / \ or : characters)
     "identityProofType": null                 // optional, string, max 50 chars
   }
 }</code></pre>
@@ -272,12 +280,12 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including <code>regDate</code> not in UTC or a document value that isn't a file name), or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created-or-owns 10 non-deleted organizations.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>orgTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>orgName</code> or <code>regNo</code> already in use.</td></tr>
-    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td><code>orgTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful create returns <span class="status-err">409 Conflict</span> rather than the original success.</p>
@@ -299,7 +307,7 @@
 <table>
   <thead><tr><th>Current <code>kycStatus</code></th><th>Condition</th><th>Resulting <code>kycStatus</code></th></tr></thead>
   <tbody>
-    <tr><td><code>Under Review</code></td><td>any</td><td>Request rejected — see error table below.</td></tr>
+    <tr><td><code>Under Review</code></td><td>any</td><td>Request rejected with <span class="status-err">409</span> <code>INVALID_STATE</code> — see error table below.</td></tr>
     <tr><td><code>Approved</code> / <code>Rejected</code></td><td>Both documents removed</td><td><code>Pending</code></td></tr>
     <tr><td><code>Approved</code> / <code>Rejected</code></td><td>A document, or <code>orgName</code>/<code>regNo</code>/<code>address</code>, changed</td><td><code>Under Review</code></td></tr>
     <tr><td><code>Approved</code> / <code>Rejected</code></td><td>Nothing above changed</td><td>Unchanged</td></tr>
@@ -315,8 +323,9 @@
     "orgName": "Acme Institute (Renamed)",    // required, string, max 150 chars
     "orgTypeId": 1,                           // required, integer, > 0
     "regNo": "REG-2024-0007",                 // optional, string, max 50 chars
-    "regDate": "2024-04-01T00:00:00Z",        // optional, string, ISO-8601 date-time
+    "regDate": "2024-04-01T00:00:00Z",        // optional, string, ISO-8601 date-time in UTC (offset +00:00)
     "email": "info@acme.example",             // required, string, valid email, max 50 chars
+    "website": "https://acme.example",        // optional, string, http or https URL, max 50 chars
     "phoneCode": "+91",                       // optional, string, max 5 chars
     "phone": "9876543210",                    // required, string, exactly 10 digits
     "isWhatsappNumber": true,                 // optional, boolean, default false
@@ -330,9 +339,9 @@
     "ownerName": "Asha Rao",                  // conditional, string, max 150 chars &mdash; required when isOwner=false; ignored once the org has an accepted owner
     "ownerEmail": "asha@acme.example",        // conditional, string, valid email, max 150 chars &mdash; required when isOwner=false; ignored once the org has an accepted owner
     "isDefault": false,                       // optional, boolean, default false &mdash; always honored exactly as sent
-    "legalDocumentPath": "org/acme/gst.pdf",  // optional, string, max 255 chars
+    "legalDocumentPath": "gst.pdf",           // optional, string, max 255 chars, file name only (no / \ or : characters)
     "legalDocumentType": "GST",               // optional, string, max 50 chars
-    "identityProofPath": "org/acme/pan.pdf",  // optional, string, max 255 chars
+    "identityProofPath": "pan.pdf",           // optional, string, max 255 chars, file name only (no / \ or : characters)
     "identityProofType": "PAN"                // optional, string, max 50 chars
   }
 }</code></pre>
@@ -343,12 +352,13 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails, <code>orgId &le; 0</code>, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails (including <code>regDate</code> not in UTC or a document value that isn't a file name), <code>orgId &le; 0</code>, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, isn't owned by the caller, is deleted, is deactivated, or its <code>kycStatus</code> is currently <code>Under Review</code>.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, isn't owned by the caller, is deleted, or is deactivated.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>orgTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record.</td></tr>
+    <tr><td class="status-err">409</td><td><code>INVALID_STATE</code></td><td>The organization's <code>kycStatus</code> is currently <code>Under Review</code>.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>orgName</code> or <code>regNo</code> already in use.</td></tr>
-    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td><code>orgTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the organization in the same final state.</p>
@@ -383,6 +393,7 @@
     "regNo": "REG-2024-0007",
     "regDate": "2024-04-01T00:00:00+00:00",
     "email": "info@acme.example",
+    "website": "https://acme.example",
     "phoneCode": "+91",
     "phone": "9876543210",
     "address": "12 MG Road",
@@ -399,7 +410,7 @@
     "isDefault": true,
     "proceedWithKyc": true,
     "kycStatus": "Approved",
-    "legalDocumentPath": "org/acme/gst.pdf",
+    "legalDocumentPath": "gst.pdf",
     "legalDocumentType": "GST",
     "identityProofPath": null,
     "identityProofType": null,
@@ -413,8 +424,9 @@
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgId</code> missing, <code>&le; 0</code>, or not an integer.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, isn't owned by the caller, is deleted, is deactivated, or its <code>kycStatus</code> is <code>Under Review</code>.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, isn't owned by the caller, is deleted, or is deactivated.</td></tr>
+    <tr><td class="status-err">409</td><td><code>INVALID_STATE</code></td><td>The organization's <code>kycStatus</code> is <code>Under Review</code>.</td></tr>
   </tbody>
 </table>
 
@@ -433,7 +445,7 @@
 
 <h4>Example request body</h4>
 <pre><code>{
-  "orgId": 123   // required, integer, > 0 &mdash; must be an active, non-deleted organization owned by the caller
+  "orgId": 123   // required, integer, > 0 &mdash; must be an active, non-deleted organization
 }</code></pre>
 
 <h4>Response</h4>
@@ -444,8 +456,8 @@
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgId &le; 0</code> or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, isn't owned by the caller, is deleted, or is deactivated.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, is deleted, or is deactivated.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the organization as the caller's default.</p>
@@ -477,7 +489,7 @@
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgIds</code> empty/missing, any element <code>&le; 0</code>, or body invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match an owned, deactivated, non-deleted organization.</td></tr>
   </tbody>
 </table>
@@ -510,7 +522,7 @@
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgIds</code> empty/missing, any element <code>&le; 0</code>, or body invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match an eligible (owned, active, non-deleted) organization.</td></tr>
     <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>Every eligible organization in the request is still blocked by an active institute under it.</td></tr>
   </tbody>
@@ -544,7 +556,7 @@
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgIds</code> empty/missing or any element <code>&le; 0</code>.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match an eligible (owned, non-deleted) organization.</td></tr>
     <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>Every eligible organization in the request is still blocked by an institute under it.</td></tr>
   </tbody>
@@ -577,13 +589,13 @@
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
   </tbody>
 </table>
 
 <!-- ========================= List my organizations ========================= -->
 <h3 id="org-list"><span class="method">GET</span> <code>/org/list/owner</code></h3>
-<p>Returns a paged list of organizations the caller created or owns.</p>
+<p>Returns a paged list of organizations the caller created or owns. The caller's default organization is returned first. <code>totalInst</code> counts the organization's non-deleted institutes; <code>totalUser</code> counts distinct non-deleted users across them, deactivated users included.</p>
 
 <h4>Request</h4>
 <table>
@@ -596,8 +608,8 @@
 <table>
   <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. Must be <code>&gt; 0</code> if sent.</td></tr>
-    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. Must be <code>&gt; 0</code> and <code>&le; 200</code> if sent.</td></tr>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. A value <code>&le; 0</code> is ignored.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. A value <code>&le; 0</code> is ignored; above <code>200</code> is rejected.</td></tr>
   </tbody>
 </table>
 
@@ -614,6 +626,7 @@
         "orgName": "Acme Institute",
         "regNo": "REG-2024-0007",
         "email": "info@acme.example",
+        "website": "https://acme.example",
         "phoneCode": "+91",
         "phone": "9876543210",
         "isWhatsappNumber": true,
@@ -641,15 +654,15 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Invalid page params.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageSize</code> above <code>200</code>, or a value that isn't an integer.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
   </tbody>
 </table>
 
 <!-- ========================= List shared organizations ========================= -->
 <h3 id="org-list-shared"><span class="method">GET</span> <code>/org/list/shared</code></h3>
-<p>Returns a paged list of organizations the caller has institute-level access to, excluding any they created or own themselves (those are returned by <a href="#org-list">List my organizations</a> instead).</p>
+<p>Returns a paged list of organizations the caller has institute-level access to, excluding any they created or own themselves (those are returned by <a href="#org-list">List my organizations</a> instead). The caller's default organization, if it is in this list, is returned first.</p>
 
 <h4>Request</h4>
 <table>
@@ -662,8 +675,8 @@
 <table>
   <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. Must be <code>&gt; 0</code> if sent.</td></tr>
-    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. Must be <code>&gt; 0</code> and <code>&le; 200</code> if sent.</td></tr>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. A value <code>&le; 0</code> is ignored.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. A value <code>&le; 0</code> is ignored; above <code>200</code> is rejected.</td></tr>
   </tbody>
 </table>
 
@@ -680,6 +693,7 @@
         "orgName": "Beacon Trust",
         "regNo": "REG-2023-0091",
         "email": "info@beacon.example",
+        "website": "https://beacon.example",
         "districtName": "Bengaluru Urban",
         "stateName": "Karnataka",
         "countryName": "India",
@@ -698,9 +712,9 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Invalid page params.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageSize</code> above <code>200</code>, or a value that isn't an integer.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
   </tbody>
 </table>
 
@@ -735,6 +749,7 @@
     "regNo": "REG-2024-0007",
     "regDate": "2024-04-01T00:00:00+00:00",
     "email": "info@acme.example",
+    "website": "https://acme.example",
     "phoneCode": "+91",
     "phone": "9876543210",
     "isWhatsappNumber": true,
@@ -748,20 +763,20 @@
     "ownerName": "Asha Rao",
     "ownerEmail": "asha@acme.example",
     "creatorName": "Asha Rao",
-    "isDefault": true,
     "kycStatus": "Approved",
     "proceedWithKyc": true,
-    "legalDocumentPath": "org/acme/gst.pdf",
+    "legalDocumentPath": "gst.pdf",
     "legalDocumentType": "GST",
     "identityProofPath": null,
     "identityProofType": null,
     "submittedAt": "2026-09-09T10:15:00+00:00",
+    "remarks": "docs ok",
     "totalInst": 0,
     "totalUser": 0,
     "audit": { "isActive": true, "createdAt": "2026-09-01T08:00:00+00:00", "updatedAt": "2026-09-09T10:20:00+00:00" }
   }
 }</code></pre>
-<p>This shape is returned regardless of whether the organization is active.</p>
+<p>This shape is returned regardless of whether the organization is active. <code>totalInst</code> counts non-deleted institutes; <code>totalUser</code> counts distinct non-deleted users across them, deactivated users included.</p>
 
 <h4>Response — any other caller</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -775,6 +790,7 @@
     "regNo": "REG-2024-0007",
     "regDate": "2024-04-01T00:00:00+00:00",
     "email": "info@acme.example",
+    "website": "https://acme.example",
     "phoneCode": "+91",
     "phone": "9876543210",
     "isWhatsappNumber": true,
@@ -784,19 +800,17 @@
     "countryName": "India",
     "pincode": "560001",
     "logo": "org/acme/logo.png",
-    "isOwner": true,
-    "ownerName": "Asha Rao",
     "kycStatus": "Approved",
     "audit": { "isActive": true, "createdAt": "2026-09-01T08:00:00+00:00", "updatedAt": "2026-09-09T10:20:00+00:00" }
   }
 }</code></pre>
-<p>This shape omits <code>ownerEmail</code>, <code>creatorName</code>, <code>isDefault</code>, KYC document fields, and <code>totalInst</code>/<code>totalUser</code>. It is only returned while the organization is active — an inactive organization reports <span class="status-err">404</span> to any caller who isn't its creator or owner.</p>
+<p>This shape omits <code>isOwner</code>, <code>ownerName</code>, <code>ownerEmail</code>, <code>creatorName</code>, KYC document fields, <code>remarks</code>, and <code>totalInst</code>/<code>totalUser</code>. It is only returned while the organization is active — an inactive organization reports <span class="status-err">404</span> to any caller who isn't its creator or owner.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgId</code> missing, <code>&le; 0</code>, or not an integer.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, is deleted, or (for a non-creator/owner caller) is deactivated.</td></tr>
   </tbody>
 </table>
@@ -805,7 +819,7 @@
 
 <section id="institute">
 <h2>Institute</h2>
-<p><code>POST /</code>, <code>PUT /</code>, <code>PUT /default</code>, <code>PUT /activate</code>, <code>PUT /deactive</code>, <code>PUT /changeorg</code>, <code>DELETE /</code>, and <code>GET /edit</code> act only on institutes the caller created. <a href="#inst-view">Get institute</a> is the one exception — any authenticated caller can read any institute, with the response shape depending on their relationship to it. <a href="#inst-list">List my institutes</a> is broader than the write routes too — it also includes institutes the caller was granted admin access to, without having created them. A caller may create at most 20 non-deleted institutes.</p>
+<p><code>PUT /</code>, <code>PUT /activate</code>, <code>PUT /deactive</code>, <code>PUT /changeorg</code>, <code>DELETE /</code>, and <code>GET /edit</code> act only on institutes the caller created. <code>PUT /default</code> works on any institute the caller is a member of, and <code>POST /trial</code> requires the caller to be an Admin of the institute. <a href="#inst-view">Get institute</a> is the one exception — any authenticated caller can read any institute, with the response shape depending on their relationship to it. <a href="#inst-list">List my institutes</a> is broader than the write routes too — it also includes institutes the caller was granted admin access to, without having created them. A caller may create at most 20 non-deleted institutes.</p>
 
 <!-- ========================= Create institute ========================= -->
 <h3 id="inst-post"><span class="method">POST</span> <code>/</code></h3>
@@ -827,20 +841,22 @@
     "productId": 1,                                // required, integer, > 0 &mdash; must have an active trial plan
     "instName": "Acme Engineering College",        // required, string, max 150 chars
     "instTypeId": 1,                               // required, integer, > 0 &mdash; must reference an existing institute type
-    "contactPerson": "Ravi Kumar",                 // required, string, max 150 chars
+    "contactPerson": "Ravi Kumar",                 // required, string, max 50 chars
     "contactEmail": "ravi@acme.example",           // optional, string, valid email, max 50 chars
     "contactPhoneCode": "+91",                     // optional, string, max 5 chars
     "contactPhone": "9876500000",                  // required, string, exactly 10 digits
     "contactIsWhatsappNumber": false,              // optional, boolean, default false
     "email": "info@acme-engg.example",             // required, string, valid email, max 50 chars
+    "regNo": "COL-2024-0011",                      // optional, string, max 50 chars
+    "website": "https://acme-engg.example",        // optional, string, http or https URL, max 50 chars
     "phoneCode": "+91",                            // optional, string, max 5 chars
     "phone": "9876543210",                         // required, string, exactly 10 digits
     "isWhatsappNumber": true,                      // optional, boolean, default false
-    "address": "45 College Road",                  // optional, string, max 500 chars
+    "address": "45 College Road",                  // required, string, max 500 chars
     "districtId": 49,                             // required, integer, > 0 &mdash; must reference an existing record
     "stateId": 26,                                 // required, integer, > 0 &mdash; must reference an existing record
     "countryId": 1,                               // required, integer, > 0 &mdash; must reference an existing record
-    "pincode": "560001",                           // optional, string, max 10 chars
+    "pincode": "560001",                           // required, string, max 10 chars
     "logo": "inst/acme-engg/logo.png",             // optional, string, max 100 chars
     "isDefault": true                              // optional, boolean, default false &mdash; caller's first institute is always forced default regardless of this value
   }
@@ -854,12 +870,12 @@
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>instTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record.</td></tr>
     <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created 20 non-deleted institutes.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td><code>orgId</code> doesn't exist, isn't owned/created by the caller, is deleted, or is deactivated; or <code>productId</code> doesn't exist or has no active trial plan.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>instName</code> already used by another institute in the same <code>orgId</code>.</td></tr>
-    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td><code>orgId</code> / <code>instTypeId</code> / <code>productId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful create returns <span class="status-err">409 Conflict</span> rather than the original success.</p>
@@ -879,7 +895,7 @@
 
 <h4>Example request body</h4>
 <pre><code>{
-  "instId": 456,    // required, integer, > 0 &mdash; must be an active, non-deleted institute created by or administered by the caller
+  "instId": 456,    // required, integer, > 0 &mdash; must be an active, non-deleted institute the caller is an Admin of
   "productId": 1    // required, integer, > 0 &mdash; must reference a product with an active trial plan
 }</code></pre>
 <p>The institute must not already have a trial (or any other) SaaS row for <code>productId</code>.</p>
@@ -892,10 +908,9 @@
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId</code>/<code>productId</code> <code>&le; 0</code>, or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't managed by the caller, is deleted, or is deactivated; or <code>productId</code> doesn't exist or has no active trial plan.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, is deleted, is deactivated, or the caller isn't an Admin of it; or <code>productId</code> doesn't exist or has no active trial plan.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>The institute already has a SaaS row for <code>productId</code>.</td></tr>
-    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td><code>productId</code> doesn't reference an existing record.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">409 Conflict</span> rather than the original success.</p>
@@ -919,20 +934,22 @@
     "instId": 456,                                 // required, integer, > 0 &mdash; must be an institute the caller created
     "instName": "Acme Engineering College",        // required, string, max 150 chars
     "instTypeId": 1,                               // required, integer, > 0
-    "contactPerson": "Ravi Kumar",                 // required, string, max 150 chars
+    "contactPerson": "Ravi Kumar",                 // required, string, max 50 chars
     "contactEmail": "ravi@acme.example",           // optional, string, valid email, max 50 chars
     "contactPhoneCode": "+91",                     // optional, string, max 5 chars
     "contactPhone": "9876500000",                  // required, string, exactly 10 digits
     "contactIsWhatsappNumber": false,              // optional, boolean, default false
     "email": "info@acme-engg.example",             // required, string, valid email, max 50 chars
+    "regNo": "COL-2024-0011",                      // optional, string, max 50 chars
+    "website": "https://acme-engg.example",        // optional, string, http or https URL, max 50 chars
     "phoneCode": "+91",                            // optional, string, max 5 chars
     "phone": "9876543210",                         // required, string, exactly 10 digits
     "isWhatsappNumber": true,                      // optional, boolean, default false
-    "address": "45 College Road",                  // optional, string, max 500 chars
+    "address": "45 College Road",                  // required, string, max 500 chars
     "districtId": 49,                             // required, integer, > 0
     "stateId": 26,                                 // required, integer, > 0
     "countryId": 1,                               // required, integer, > 0
-    "pincode": "560001",                           // optional, string, max 10 chars
+    "pincode": "560001",                           // required, string, max 10 chars
     "logo": "inst/acme-engg/logo.png",             // optional, string, max 100 chars
     "isDefault": false                             // optional, boolean, default false &mdash; always honored exactly as sent
   }
@@ -946,10 +963,10 @@
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails, <code>instId &le; 0</code>, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>instTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't managed by the caller, is deleted, or is deactivated.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>instName</code> already used by another institute in the same org.</td></tr>
-    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td><code>instTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the institute in the same final state.</p>
@@ -969,7 +986,7 @@
 
 <h4>Example request body</h4>
 <pre><code>{
-  "instId": 456   // required, integer, > 0 &mdash; must be an active, non-deleted institute created by the caller
+  "instId": 456   // required, integer, > 0 &mdash; must be an active, non-deleted institute the caller is a member of
 }</code></pre>
 
 <h4>Response</h4>
@@ -980,8 +997,8 @@
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId &le; 0</code> or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't managed by the caller, is deleted, or is deactivated.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, is deleted, is deactivated, or the caller isn't a member of it.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the institute as the caller's default.</p>
@@ -1013,7 +1030,7 @@
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instIds</code> empty/missing, any element <code>&le; 0</code>, or body invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match a deactivated, non-deleted institute created by the caller whose organization is currently active.</td></tr>
   </tbody>
 </table>
@@ -1046,7 +1063,7 @@
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instIds</code> empty/missing, any element <code>&le; 0</code>, or body invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match an eligible institute.</td></tr>
   </tbody>
 </table>
@@ -1079,7 +1096,7 @@
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId</code>/<code>newOrgId</code> <code>&le; 0</code>, or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't managed by the caller, is deleted, or is deactivated; or <code>newOrgId</code> doesn't exist, isn't owned/created by the caller, is deleted, or is deactivated.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>newOrgId</code> already has another institute with the same name.</td></tr>
   </tbody>
@@ -1113,7 +1130,7 @@
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instIds</code> empty/missing or any element <code>&le; 0</code>.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match an eligible institute.</td></tr>
   </tbody>
 </table>
@@ -1144,13 +1161,13 @@
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
   </tbody>
 </table>
 
 <!-- ========================= List my institutes ========================= -->
 <h3 id="inst-list"><span class="method">GET</span> <code>/list/admin</code></h3>
-<p>Returns a paged list of institutes the caller created, or was granted admin access to.</p>
+<p>Returns a paged list of institutes the caller created, or was granted admin access to. The caller's default institute is returned first. <code>role</code> is the caller's role on the institute; <code>products</code> lists the institute's product subscriptions with their plan. <code>totalSaas</code> counts the institute's non-deleted product subscriptions; <code>totalUser</code> counts its distinct non-deleted users, deactivated users included.</p>
 
 <h4>Request</h4>
 <table>
@@ -1163,8 +1180,8 @@
 <table>
   <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. Must be <code>&gt; 0</code> if sent.</td></tr>
-    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. Must be <code>&gt; 0</code> and <code>&le; 200</code> if sent.</td></tr>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. A value <code>&le; 0</code> is ignored.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. A value <code>&le; 0</code> is ignored; above <code>200</code> is rejected.</td></tr>
   </tbody>
 </table>
 
@@ -1179,17 +1196,47 @@
         "instTypeId": 1,
         "instTypeName": "Engineering College",
         "instName": "Acme Engineering College",
+        "orgName": "Acme Institute",
+        "regNo": "COL-2024-0011",
         "email": "info@acme-engg.example",
+        "website": "https://acme-engg.example",
         "phoneCode": "+91",
         "phone": "9876543210",
         "isWhatsappNumber": true,
+        "contactPerson": "Ravi Kumar",
+        "contactEmail": "ravi@acme.example",
+        "contactPhone": "9876500000",
+        "address": "45 College Road",
+        "pincode": "560001",
         "districtName": "Bengaluru Urban",
         "stateName": "Karnataka",
         "countryName": "India",
         "logo": "inst/acme-engg/logo.png",
         "creatorName": "Asha Rao",
         "isActive": true,
-        "isDefault": true
+        "isDefault": true,
+        "totalSaas": 2,
+        "totalUser": 3,
+        "role": "Admin",
+        "products": [
+          {
+            "instSaaSId": 789,
+            "productId": 1,
+            "productName": "vWebsite",
+            "productCode": "WEB",
+            "productSubdomain": "vwebsite",
+            "productIcon": "vwebsite.png",
+            "productWebsite": "https://vwebsite.example",
+            "productAdmin": "https://admin.vwebsite.example",
+            "planId": 1,
+            "planName": "Trial",
+            "planCode": "TRIAL",
+            "planDays": 15,
+            "planStartDate": "2026-09-01T08:00:00+00:00",
+            "planEndDate": "2026-09-16T08:00:00+00:00",
+            "isActive": true
+          }
+        ]
       }
     ],
     "metaData": {
@@ -1201,15 +1248,15 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Invalid page params.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageSize</code> above <code>200</code>, or a value that isn't an integer.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
   </tbody>
 </table>
 
 <!-- ========================= List shared institutes ========================= -->
 <h3 id="inst-list-shared"><span class="method">GET</span> <code>/list/shared</code></h3>
-<p>Returns a paged list of institutes the caller is a member of, excluding any they created or administer (those are returned by <a href="#inst-list">List my institutes</a> instead).</p>
+<p>Returns a paged list of institutes the caller is a member of, excluding any they created or administer (those are returned by <a href="#inst-list">List my institutes</a> instead). The caller's default institute, if it is in this list, is returned first.</p>
 
 <h4>Request</h4>
 <table>
@@ -1222,8 +1269,8 @@
 <table>
   <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. Must be <code>&gt; 0</code> if sent.</td></tr>
-    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. Must be <code>&gt; 0</code> and <code>&le; 200</code> if sent.</td></tr>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. A value <code>&le; 0</code> is ignored.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. A value <code>&le; 0</code> is ignored; above <code>200</code> is rejected.</td></tr>
   </tbody>
 </table>
 
@@ -1239,6 +1286,7 @@
         "instTypeName": "Arts College",
         "instName": "Beacon Arts College",
         "email": "info@beacon-arts.example",
+        "website": "https://beacon-arts.example",
         "phoneCode": "+91",
         "phone": "9876500001",
         "isWhatsappNumber": false,
@@ -1247,7 +1295,27 @@
         "countryName": "India",
         "logo": "inst/beacon-arts/logo.png",
         "isActive": true,
-        "isDefault": false
+        "isDefault": false,
+        "role": "Admin",
+        "products": [
+          {
+            "instSaaSId": 789,
+            "productId": 1,
+            "productName": "vWebsite",
+            "productCode": "WEB",
+            "productSubdomain": "vwebsite",
+            "productIcon": "vwebsite.png",
+            "productWebsite": "https://vwebsite.example",
+            "productAdmin": "https://admin.vwebsite.example",
+            "planId": 1,
+            "planName": "Trial",
+            "planCode": "TRIAL",
+            "planDays": 15,
+            "planStartDate": "2026-09-01T08:00:00+00:00",
+            "planEndDate": "2026-09-16T08:00:00+00:00",
+            "isActive": true
+          }
+        ]
       }
     ],
     "metaData": {
@@ -1256,13 +1324,13 @@
     }
   }
 }</code></pre>
-<p>This row shape omits <code>creatorName</code> (unlike <a href="#inst-list">List my institutes</a>).</p>
+<p>This row shape omits <code>orgName</code>, <code>regNo</code>, the contact fields, <code>address</code>, <code>pincode</code>, <code>creatorName</code>, <code>totalSaas</code> and <code>totalUser</code> (unlike <a href="#inst-list">List my institutes</a>). <code>role</code> is empty if the caller has no role on the institute.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Invalid page params.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageSize</code> above <code>200</code>, or a value that isn't an integer.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
   </tbody>
 </table>
 
@@ -1299,6 +1367,8 @@
     "contactPhone": "9876500000",
     "contactIsWhatsappNumber": false,
     "email": "info@acme-engg.example",
+    "regNo": "COL-2024-0011",
+    "website": "https://acme-engg.example",
     "phoneCode": "+91",
     "phone": "9876543210",
     "isWhatsappNumber": true,
@@ -1316,7 +1386,7 @@
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId</code> missing, <code>&le; 0</code>, or not an integer.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't managed by the caller, is deleted, or is deactivated.</td></tr>
   </tbody>
 </table>
@@ -1350,24 +1420,45 @@
     "instName": "Acme Engineering College",
     "instTypeId": 1,
     "instTypeName": "Engineering College",
+    "regNo": "COL-2024-0011",
     "email": "info@acme-engg.example",
+    "website": "https://acme-engg.example",
     "phoneCode": "+91",
     "phone": "9876543210",
     "isWhatsappNumber": true,
-    "contactPerson": "Ravi Kumar",
-    "contactEmail": "ravi@acme.example",
-    "contactPhoneCode": "+91",
-    "contactPhone": "9876500000",
-    "contactIsWhatsappNumber": false,
     "address": "45 College Road",
     "districtName": "Bengaluru Urban",
     "stateName": "Karnataka",
     "countryName": "India",
     "pincode": "560001",
     "logo": "inst/acme-engg/logo.png",
+    "role": "Admin",
+    "products": [
+      {
+        "instSaaSId": 789,
+        "productId": 1,
+        "productName": "vWebsite",
+        "productCode": "WEB",
+        "productSubdomain": "vwebsite",
+        "productIcon": "vwebsite.png",
+        "productWebsite": "https://vwebsite.example",
+        "productAdmin": "https://admin.vwebsite.example",
+        "planId": 1,
+        "planName": "Trial",
+        "planCode": "TRIAL",
+        "planDays": 15,
+        "planStartDate": "2026-09-01T08:00:00+00:00",
+        "planEndDate": "2026-09-16T08:00:00+00:00",
+        "isActive": true
+      }
+    ],
+    "contactPerson": "Ravi Kumar",
+    "contactEmail": "ravi@acme.example",
+    "contactPhoneCode": "+91",
+    "contactPhone": "9876500000",
+    "contactIsWhatsappNumber": false,
     "creatorName": "Ravi Kumar",
     "creatorEmail": "ravi@acme.example",
-    "isDefault": true,
     "orgId": 123,
     "orgTypeId": 1,
     "orgTypeName": "Private Limited",
@@ -1375,6 +1466,8 @@
     "orgRegNo": "REG-2024-0007",
     "orgRegDate": "2024-04-01T00:00:00+00:00",
     "orgEmail": "info@acme.example",
+    "orgWebsite": "https://acme.example",
+    "orgPhoneCode": "+91",
     "orgPhone": "9876543210",
     "orgIsWhatsappNumber": true,
     "orgAddress": "12 MG Road",
@@ -1389,11 +1482,12 @@
     "orgCreatorEmail": "asha@acme.example",
     "orgOwnerEmail": "asha@acme.example",
     "orgKycStatus": "Approved",
+    "totalSaas": 2,
     "totalUser": 3,
     "audit": { "isActive": true, "createdAt": "2026-09-01T08:00:00+00:00", "updatedAt": "2026-09-09T10:20:00+00:00" }
   }
 }</code></pre>
-<p>This shape is returned regardless of whether the institute is active.</p>
+<p>This shape is returned regardless of whether the institute is active. <code>totalSaas</code> counts non-deleted product subscriptions; <code>totalUser</code> counts distinct non-deleted users, deactivated users included.</p>
 
 <h4>Response — any other caller</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -1405,20 +1499,38 @@
     "instName": "Acme Engineering College",
     "instTypeId": 1,
     "instTypeName": "Engineering College",
+    "regNo": "COL-2024-0011",
     "email": "info@acme-engg.example",
+    "website": "https://acme-engg.example",
     "phoneCode": "+91",
     "phone": "9876543210",
     "isWhatsappNumber": true,
-    "contactPerson": "Ravi Kumar",
-    "contactPhoneCode": "+91",
-    "contactPhone": "9876500000",
-    "contactIsWhatsappNumber": false,
     "address": "45 College Road",
     "districtName": "Bengaluru Urban",
     "stateName": "Karnataka",
     "countryName": "India",
     "pincode": "560001",
     "logo": "inst/acme-engg/logo.png",
+    "role": "Admin",
+    "products": [
+      {
+        "instSaaSId": 789,
+        "productId": 1,
+        "productName": "vWebsite",
+        "productCode": "WEB",
+        "productSubdomain": "vwebsite",
+        "productIcon": "vwebsite.png",
+        "productWebsite": "https://vwebsite.example",
+        "productAdmin": "https://admin.vwebsite.example",
+        "planId": 1,
+        "planName": "Trial",
+        "planCode": "TRIAL",
+        "planDays": 15,
+        "planStartDate": "2026-09-01T08:00:00+00:00",
+        "planEndDate": "2026-09-16T08:00:00+00:00",
+        "isActive": true
+      }
+    ],
     "orgId": 123,
     "orgTypeId": 1,
     "orgTypeName": "Private Limited",
@@ -1426,6 +1538,8 @@
     "orgRegNo": "REG-2024-0007",
     "orgRegDate": "2024-04-01T00:00:00+00:00",
     "orgEmail": "info@acme.example",
+    "orgWebsite": "https://acme.example",
+    "orgPhoneCode": "+91",
     "orgPhone": "9876543210",
     "orgIsWhatsappNumber": true,
     "orgAddress": "12 MG Road",
@@ -1434,19 +1548,16 @@
     "orgCountryName": "India",
     "orgPincode": "560001",
     "orgLogo": "org/acme/logo.png",
-    "orgIsOwner": true,
-    "orgOwnerName": "Asha Rao",
-    "orgKycStatus": "Approved",
     "audit": { "isActive": true, "createdAt": "2026-09-01T08:00:00+00:00", "updatedAt": "2026-09-09T10:20:00+00:00" }
   }
 }</code></pre>
-<p>This shape omits <code>contactEmail</code>, <code>creatorName</code>, <code>creatorEmail</code>, <code>isDefault</code>, <code>orgCreatorName</code>, <code>orgCreatorEmail</code>, <code>orgOwnerEmail</code>, and <code>totalUser</code>. It is only returned while the institute is active — an inactive institute reports <span class="status-err">404</span> to any caller who isn't its creator or an admin on it.</p>
+<p>This shape omits <code>contactPerson</code>, <code>contactEmail</code>, <code>contactPhoneCode</code>, <code>contactPhone</code>, <code>contactIsWhatsappNumber</code>, <code>creatorName</code>, <code>creatorEmail</code>, <code>orgIsOwner</code>, <code>orgOwnerName</code>, <code>orgKycStatus</code>, <code>orgCreatorName</code>, <code>orgCreatorEmail</code>, <code>orgOwnerEmail</code>, <code>totalSaas</code>, and <code>totalUser</code>. <code>role</code> is empty if the caller has no role on the institute. It is only returned while the institute is active — an inactive institute reports <span class="status-err">404</span> to any caller who isn't its creator or an admin on it.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId</code> missing, <code>&le; 0</code>, or not an integer.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, is deleted, or (for a non-creator/non-admin caller) is deactivated.</td></tr>
   </tbody>
 </table>
@@ -1478,7 +1589,7 @@
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
   </tbody>
 </table>
 
@@ -1502,7 +1613,7 @@
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The authenticated institute has no onboarding record.</td></tr>
   </tbody>
 </table>
@@ -1528,7 +1639,7 @@
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The authenticated institute has no onboarding record.</td></tr>
   </tbody>
 </table>
@@ -1555,8 +1666,8 @@
 <table>
   <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. Must be <code>&gt; 0</code> if sent.</td></tr>
-    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>10</code>. Must be <code>&gt; 0</code> and <code>&le; 200</code> if sent.</td></tr>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. A value <code>&le; 0</code> is ignored.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>10</code>. A value <code>&le; 0</code> is ignored; above <code>200</code> is rejected.</td></tr>
   </tbody>
 </table>
 
@@ -1578,9 +1689,9 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Invalid page params.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageSize</code> above <code>200</code>, or a value that isn't an integer.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
   </tbody>
 </table>
 
@@ -1610,7 +1721,7 @@
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
   </tbody>
 </table>
 
@@ -1635,8 +1746,8 @@
 <table>
   <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. Must be <code>&gt; 0</code> if sent.</td></tr>
-    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>10</code>. Must be <code>&gt; 0</code> and <code>&le; 200</code> if sent.</td></tr>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. A value <code>&le; 0</code> is ignored.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>10</code>. A value <code>&le; 0</code> is ignored; above <code>200</code> is rejected.</td></tr>
   </tbody>
 </table>
 
@@ -1658,9 +1769,9 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Invalid page params.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageSize</code> above <code>200</code>, or a value that isn't an integer.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
   </tbody>
 </table>
 
@@ -1690,7 +1801,7 @@
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
   </tbody>
 </table>
 

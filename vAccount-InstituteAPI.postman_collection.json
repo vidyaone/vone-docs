@@ -36,14 +36,24 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": "{{baseUrl}}org?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"postDTO\": {\n    \"orgName\": \"Acme Institute\",\n    \"orgTypeId\": 1,\n    \"regNo\": \"REG-2024-0007\",\n    \"regDate\": \"2024-04-01T00:00:00Z\",\n    \"email\": \"info@acme.example\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"12 MG Road\",\n    \"districtId\": 49,\n    \"stateId\": 26,\n    \"countryId\": 1,\n    \"pincode\": \"560001\",\n    \"logo\": \"org/acme/logo.png\",\n    \"isOwner\": true,\n    \"ownerName\": \"Asha Rao\",\n    \"ownerEmail\": \"asha@acme.example\",\n    \"isDefault\": true,\n    \"legalDocumentPath\": \"org/acme/gst.pdf\",\n    \"legalDocumentType\": \"GST\",\n    \"identityProofPath\": null,\n    \"identityProofType\": null\n  }\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"postDTO\": {\n    \"orgName\": \"Acme Institute\",\n    \"orgTypeId\": 1,\n    \"regNo\": \"REG-2024-0007\",\n    \"regDate\": \"2024-04-01T00:00:00Z\",\n    \"email\": \"info@acme.example\",\n    \"website\": \"https://acme.example\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"12 MG Road\",\n    \"districtId\": 49,\n    \"stateId\": 26,\n    \"countryId\": 1,\n    \"pincode\": \"560001\",\n    \"logo\": \"org/acme/logo.png\",\n    \"isOwner\": true,\n    \"ownerName\": \"Asha Rao\",\n    \"ownerEmail\": \"asha@acme.example\",\n    \"isDefault\": true,\n    \"legalDocumentPath\": \"gst.pdf\",\n    \"legalDocumentType\": \"GST\",\n    \"identityProofPath\": null,\n    \"identityProofType\": null\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -53,14 +63,24 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": "{{baseUrl}}org?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"putDTO\": {\n    \"orgId\": {{orgId}},\n    \"orgName\": \"Acme Institute (Renamed)\",\n    \"orgTypeId\": 1,\n    \"regNo\": \"REG-2024-0007\",\n    \"regDate\": \"2024-04-01T00:00:00Z\",\n    \"email\": \"info@acme.example\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"12 MG Road\",\n    \"districtId\": 49,\n    \"stateId\": 26,\n    \"countryId\": 1,\n    \"pincode\": \"560001\",\n    \"logo\": \"org/acme/logo-v2.png\",\n    \"isOwner\": true,\n    \"ownerName\": \"Asha Rao\",\n    \"ownerEmail\": \"asha@acme.example\",\n    \"isDefault\": false,\n    \"legalDocumentPath\": \"org/acme/gst.pdf\",\n    \"legalDocumentType\": \"GST\",\n    \"identityProofPath\": \"org/acme/pan.pdf\",\n    \"identityProofType\": \"PAN\"\n  }\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"putDTO\": {\n    \"orgId\": 123,\n    \"orgName\": \"Acme Institute (Renamed)\",\n    \"orgTypeId\": 1,\n    \"regNo\": \"REG-2024-0007\",\n    \"regDate\": \"2024-04-01T00:00:00Z\",\n    \"email\": \"info@acme.example\",\n    \"website\": \"https://acme.example\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"12 MG Road\",\n    \"districtId\": 49,\n    \"stateId\": 26,\n    \"countryId\": 1,\n    \"pincode\": \"560001\",\n    \"logo\": \"org/acme/logo-v2.png\",\n    \"isOwner\": true,\n    \"ownerName\": \"Asha Rao\",\n    \"ownerEmail\": \"asha@acme.example\",\n    \"isDefault\": false,\n    \"legalDocumentPath\": \"gst.pdf\",\n    \"legalDocumentType\": \"GST\",\n    \"identityProofPath\": \"pan.pdf\",\n    \"identityProofType\": \"PAN\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -79,14 +99,24 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": "{{baseUrl}}org/default?product={{product}}",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"orgId\": {{orgId}}\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -96,14 +126,24 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": "{{baseUrl}}org/activate?product={{product}}",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"orgIds\": [{{orgId}}]\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -113,14 +153,24 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": "{{baseUrl}}org/deactive?product={{product}}",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"orgIds\": [{{orgId}}]\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -130,14 +180,24 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": "{{baseUrl}}org?product={{product}}",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"orgIds\": [{{orgId}}]\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -188,14 +248,24 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": "{{baseUrl}}?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"postDTO\": {\n    \"orgId\": {{orgId}},\n    \"productId\": 1,\n    \"instName\": \"Acme Engineering College\",\n    \"instTypeId\": 1,\n    \"contactPerson\": \"Ravi Kumar\",\n    \"contactEmail\": \"ravi@acme.example\",\n    \"contactPhoneCode\": \"+91\",\n    \"contactPhone\": \"9876500000\",\n    \"contactIsWhatsappNumber\": false,\n    \"email\": \"info@acme-engg.example\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"45 College Road\",\n    \"districtId\": 49,\n    \"stateId\": 26,\n    \"countryId\": 1,\n    \"pincode\": \"560001\",\n    \"logo\": \"inst/acme-engg/logo.png\",\n    \"isDefault\": true\n  }\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"postDTO\": {\n    \"orgId\": 123,\n    \"productId\": 1,\n    \"instName\": \"Acme Engineering College\",\n    \"instTypeId\": 1,\n    \"contactPerson\": \"Ravi Kumar\",\n    \"contactEmail\": \"ravi@acme.example\",\n    \"contactPhoneCode\": \"+91\",\n    \"contactPhone\": \"9876500000\",\n    \"contactIsWhatsappNumber\": false,\n    \"email\": \"info@acme-engg.example\",\n    \"regNo\": \"COL-2024-0011\",\n    \"website\": \"https://acme-engg.example\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"45 College Road\",\n    \"districtId\": 49,\n    \"stateId\": 26,\n    \"countryId\": 1,\n    \"pincode\": \"560001\",\n    \"logo\": \"inst/acme-engg/logo.png\",\n    \"isDefault\": true\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -205,14 +275,24 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": "{{baseUrl}}trial?product={{product}}",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"instId\": {{instId}},\n  \"productId\": 1\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -222,14 +302,24 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": "{{baseUrl}}?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"putDTO\": {\n    \"instId\": {{instId}},\n    \"instName\": \"Acme Engineering College\",\n    \"instTypeId\": 1,\n    \"contactPerson\": \"Ravi Kumar\",\n    \"contactEmail\": \"ravi@acme.example\",\n    \"contactPhoneCode\": \"+91\",\n    \"contactPhone\": \"9876500000\",\n    \"contactIsWhatsappNumber\": false,\n    \"email\": \"info@acme-engg.example\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"45 College Road\",\n    \"districtId\": 49,\n    \"stateId\": 26,\n    \"countryId\": 1,\n    \"pincode\": \"560001\",\n    \"logo\": \"inst/acme-engg/logo.png\",\n    \"isDefault\": false\n  }\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"putDTO\": {\n    \"instId\": 456,\n    \"instName\": \"Acme Engineering College\",\n    \"instTypeId\": 1,\n    \"contactPerson\": \"Ravi Kumar\",\n    \"contactEmail\": \"ravi@acme.example\",\n    \"contactPhoneCode\": \"+91\",\n    \"contactPhone\": \"9876500000\",\n    \"contactIsWhatsappNumber\": false,\n    \"email\": \"info@acme-engg.example\",\n    \"regNo\": \"COL-2024-0011\",\n    \"website\": \"https://acme-engg.example\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"45 College Road\",\n    \"districtId\": 49,\n    \"stateId\": 26,\n    \"countryId\": 1,\n    \"pincode\": \"560001\",\n    \"logo\": \"inst/acme-engg/logo.png\",\n    \"isDefault\": false\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -239,14 +329,24 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": "{{baseUrl}}default?product={{product}}",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"instId\": {{instId}}\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -256,14 +356,24 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": "{{baseUrl}}activate?product={{product}}",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"instIds\": [{{instId}}]\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -273,14 +383,24 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": "{{baseUrl}}deactive?product={{product}}",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"instIds\": [{{instId}}]\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -290,14 +410,24 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": "{{baseUrl}}changeorg?product={{product}}",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"instId\": {{instId}},\n  \"newOrgId\": {{orgId}}\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -307,14 +437,24 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": "{{baseUrl}}?product={{product}}",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"instIds\": [{{instId}}]\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -383,7 +523,10 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": "{{baseUrl}}onboard/byuser?product={{product}}"
           },
@@ -394,7 +537,10 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": "{{baseUrl}}onboard/bysupport?product={{product}}"
           },
