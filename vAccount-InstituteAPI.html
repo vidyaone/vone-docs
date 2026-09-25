@@ -221,7 +221,7 @@
     <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record was removed while the request was being processed.</td></tr>
     <tr><td class="status-err">409</td><td><code>INVALID_STATE</code></td><td>The organization can't be edited or updated while its KYC is <code>Under Review</code>.</td></tr>
     <tr><td class="status-err">409</td><td><code>CONCURRENCY_CONFLICT</code></td><td>The default institute couldn't be set because of a simultaneous update — retry.</td></tr>
-    <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>Every organization in the request is still blocked by an institute under it (see <a href="#org-deactive">Deactivate</a> / <a href="#org-delete">Delete organization</a>).</td></tr>
+    <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>The organization is still blocked by an institute under it (see <a href="#org-deactive">Deactivate</a> / <a href="#org-delete">Delete organization</a>).</td></tr>
     <tr><td class="status-err">500</td><td><code>INTERNAL_ERROR</code></td><td>Unexpected server error.</td></tr>
   </tbody>
 </table>
@@ -432,7 +432,7 @@
 
 <!-- ========================= Set default organization ========================= -->
 <h3 id="org-default"><span class="method">PUT</span> <code>/org/default</code></h3>
-<p>Makes one organization the caller's default and clears the flag on their other organizations.</p>
+<p>Makes one organization the caller's default and clears the flag on their other organizations. Only the organization's creator or owner can set it as their default.</p>
 
 <h4>Request</h4>
 <table>
@@ -445,7 +445,7 @@
 
 <h4>Example request body</h4>
 <pre><code>{
-  "orgId": 123   // required, integer, > 0 &mdash; must be an active, non-deleted organization
+  "orgId": 123   // required, integer, > 0 &mdash; must be an active, non-deleted organization the caller created or owns
 }</code></pre>
 
 <h4>Response</h4>
@@ -457,14 +457,14 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgId &le; 0</code> or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, is deleted, or is deactivated.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, is deleted or deactivated, or the caller is neither its creator nor its owner.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the organization as the caller's default.</p>
 
-<!-- ========================= Activate organizations ========================= -->
+<!-- ========================= Activate organization ========================= -->
 <h3 id="org-activate"><span class="method">PUT</span> <code>/org/activate</code></h3>
-<p>Re-activates one or more of the caller's deactivated organizations.</p>
+<p>Re-activates one of the caller's deactivated organizations. The caller must be its creator or owner.</p>
 
 <h4>Request</h4>
 <table>
@@ -477,9 +477,8 @@
 
 <h4>Example request body</h4>
 <pre><code>{
-  "orgIds": [123, 124]   // required, array of integer, 1&ndash;10 elements, each > 0
+  "orgId": 123   // required, integer, &gt; 0 &mdash; must be a deactivated, non-deleted organization the caller created or owns
 }</code></pre>
-<p>Ids not owned by the caller, already active, or deleted are silently skipped. Returns <span class="status-ok">200 OK</span> as long as at least one organization is affected.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -487,17 +486,17 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgIds</code> empty/missing, any element <code>&le; 0</code>, or body invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgId &le; 0</code> or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match an owned, deactivated, non-deleted organization.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, the caller is neither its creator nor its owner, it is deleted, or it is already active.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
 
-<!-- ========================= Deactivate organizations ========================= -->
+<!-- ========================= Deactivate organization ========================= -->
 <h3 id="org-deactive"><span class="method">PUT</span> <code>/org/deactive</code></h3>
-<p>Deactivates one or more of the caller's organizations.</p>
+<p>Deactivates one of the caller's organizations. The caller must be its creator or owner.</p>
 
 <h4>Request</h4>
 <table>
@@ -510,9 +509,9 @@
 
 <h4>Example request body</h4>
 <pre><code>{
-  "orgIds": [123, 124]   // required, array of integer, 1&ndash;10 elements, each > 0
+  "orgId": 123   // required, integer, &gt; 0 &mdash; must be an active, non-deleted organization the caller created or owns
 }</code></pre>
-<p>Ids not owned by the caller are silently skipped. An organization still blocked by an active institute under it is also silently skipped from this request — the rest still deactivate normally. If a deactivated organization was anyone's default, that default is cleared. Returns <span class="status-ok">200 OK</span> as long as at least one organization is actually deactivated.</p>
+<p>If the organization was anyone's default, that default is cleared. It can't be deactivated while any active institute exists under it.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -520,18 +519,18 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgIds</code> empty/missing, any element <code>&le; 0</code>, or body invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgId &le; 0</code> or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match an eligible (owned, active, non-deleted) organization.</td></tr>
-    <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>Every eligible organization in the request is still blocked by an active institute under it.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, the caller is neither its creator nor its owner, it is deleted, or it is already deactivated.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>The organization still has an active institute under it.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
 
-<!-- ========================= Delete organizations ========================= -->
+<!-- ========================= Delete organization ========================= -->
 <h3 id="org-delete"><span class="method">DELETE</span> <code>/org</code></h3>
-<p>Deletes one or more of the caller's organizations. There is no restore endpoint.</p>
+<p>Deletes one of the caller's organizations. The caller must be its creator or owner. There is no restore endpoint.</p>
 
 <h4>Request</h4>
 <table>
@@ -544,9 +543,9 @@
 
 <h4>Example request body</h4>
 <pre><code>{
-  "orgIds": [123]   // required, array of integer, 1&ndash;10 elements, each > 0
+  "orgId": 123   // required, integer, &gt; 0 &mdash; must be a non-deleted organization the caller created or owns
 }</code></pre>
-<p>This request carries a body — use an HTTP client that sends a body on <code>DELETE</code> (curl does). Ids not owned by the caller, or already deleted, are silently skipped. An organization still blocked by an institute under it is also silently skipped from this request — the rest still delete normally. If a deleted organization was anyone's default, that default is cleared.</p>
+<p>This request carries a body — use an HTTP client that sends a body on <code>DELETE</code> (curl does). If the organization was anyone's default, that default is cleared. It can't be deleted while any non-deleted institute exists under it.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -554,11 +553,11 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgIds</code> empty/missing or any element <code>&le; 0</code>.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgId &le; 0</code> or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match an eligible (owned, non-deleted) organization.</td></tr>
-    <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>Every eligible organization in the request is still blocked by an institute under it.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, the caller is neither its creator nor its owner, or it is already deleted.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>The organization still has an institute under it that isn't deleted.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
@@ -1003,9 +1002,9 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the institute as the caller's default.</p>
 
-<!-- ========================= Activate institutes ========================= -->
+<!-- ========================= Activate institute ========================= -->
 <h3 id="inst-activate"><span class="method">PUT</span> <code>/activate</code></h3>
-<p>Re-activates one or more of the caller's deactivated institutes.</p>
+<p>Re-activates one of the caller's deactivated institutes.</p>
 
 <h4>Request</h4>
 <table>
@@ -1018,9 +1017,9 @@
 
 <h4>Example request body</h4>
 <pre><code>{
-  "instIds": [456, 457]   // required, array of integer, 1&ndash;10 elements, each > 0
+  "instId": 456   // required, integer, &gt; 0 &mdash; must be a deactivated, non-deleted institute created by the caller
 }</code></pre>
-<p>Ids not created by the caller, already active, or deleted are silently skipped. An institute also can't be reactivated while its own organization is inactive. Returns <span class="status-ok">200 OK</span> as long as at least one institute is affected.</p>
+<p>The institute also can't be reactivated while its own organization is inactive.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -1028,17 +1027,17 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instIds</code> empty/missing, any element <code>&le; 0</code>, or body invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId &le; 0</code> or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match a deactivated, non-deleted institute created by the caller whose organization is currently active.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't created by the caller, is deleted, is already active, or its organization is inactive.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
 
-<!-- ========================= Deactivate institutes ========================= -->
+<!-- ========================= Deactivate institute ========================= -->
 <h3 id="inst-deactive"><span class="method">PUT</span> <code>/deactive</code></h3>
-<p>Deactivates one or more of the caller's institutes.</p>
+<p>Deactivates one of the caller's institutes.</p>
 
 <h4>Request</h4>
 <table>
@@ -1051,9 +1050,9 @@
 
 <h4>Example request body</h4>
 <pre><code>{
-  "instIds": [456, 457]   // required, array of integer, 1&ndash;10 elements, each > 0
+  "instId": 456   // required, integer, &gt; 0 &mdash; must be an active, non-deleted institute created by the caller
 }</code></pre>
-<p>Ids not created by the caller are silently skipped. Returns <span class="status-ok">200 OK</span> as long as at least one row is affected. If a deactivated institute was anyone's default, that default is cleared.</p>
+<p>If the institute was anyone's default, that default is cleared.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -1061,10 +1060,10 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instIds</code> empty/missing, any element <code>&le; 0</code>, or body invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId &le; 0</code> or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match an eligible institute.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't created by the caller, is deleted, or is already deactivated.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
@@ -1103,9 +1102,9 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the institute in the same org.</p>
 
-<!-- ========================= Delete institutes ========================= -->
+<!-- ========================= Delete institute ========================= -->
 <h3 id="inst-delete"><span class="method">DELETE</span> <code>/</code></h3>
-<p>Deletes one or more of the caller's institutes. There is no restore endpoint.</p>
+<p>Deletes one of the caller's institutes. There is no restore endpoint.</p>
 
 <h4>Request</h4>
 <table>
@@ -1118,9 +1117,9 @@
 
 <h4>Example request body</h4>
 <pre><code>{
-  "instIds": [456]   // required, array of integer, 1&ndash;10 elements, each > 0
+  "instId": 456   // required, integer, &gt; 0 &mdash; must be a non-deleted institute created by the caller
 }</code></pre>
-<p>This request carries a body — use an HTTP client that sends a body on <code>DELETE</code> (curl does). Ids not created by the caller, or already deleted, are silently skipped. If a deleted institute was anyone's default, that default is cleared.</p>
+<p>This request carries a body — use an HTTP client that sends a body on <code>DELETE</code> (curl does). If the institute was anyone's default, that default is cleared.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -1128,10 +1127,10 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instIds</code> empty/missing or any element <code>&le; 0</code>.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId &le; 0</code> or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the ids match an eligible institute.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't created by the caller, or is already deleted.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>

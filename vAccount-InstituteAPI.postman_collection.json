@@ -122,7 +122,7 @@
           "response": []
         },
         {
-          "name": "Activate organizations",
+          "name": "Activate organization",
           "request": {
             "method": "PUT",
             "header": [
@@ -138,7 +138,7 @@
             "url": "{{baseUrl}}org/activate?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"orgIds\": [{{orgId}}]\n}",
+              "raw": "{\n  \"orgId\": {{orgId}}\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -149,7 +149,7 @@
           "response": []
         },
         {
-          "name": "Deactivate organizations",
+          "name": "Deactivate organization",
           "request": {
             "method": "PUT",
             "header": [
@@ -165,7 +165,7 @@
             "url": "{{baseUrl}}org/deactive?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"orgIds\": [{{orgId}}]\n}",
+              "raw": "{\n  \"orgId\": {{orgId}}\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -176,7 +176,7 @@
           "response": []
         },
         {
-          "name": "Delete organizations",
+          "name": "Delete organization",
           "request": {
             "method": "DELETE",
             "header": [
@@ -192,7 +192,7 @@
             "url": "{{baseUrl}}org?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"orgIds\": [{{orgId}}]\n}",
+              "raw": "{\n  \"orgId\": {{orgId}}\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -352,7 +352,7 @@
           "response": []
         },
         {
-          "name": "Activate institutes",
+          "name": "Activate institute",
           "request": {
             "method": "PUT",
             "header": [
@@ -368,7 +368,7 @@
             "url": "{{baseUrl}}activate?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"instIds\": [{{instId}}]\n}",
+              "raw": "{\n  \"instId\": {{instId}}\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -379,7 +379,7 @@
           "response": []
         },
         {
-          "name": "Deactivate institutes",
+          "name": "Deactivate institute",
           "request": {
             "method": "PUT",
             "header": [
@@ -395,7 +395,7 @@
             "url": "{{baseUrl}}deactive?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"instIds\": [{{instId}}]\n}",
+              "raw": "{\n  \"instId\": {{instId}}\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -433,7 +433,7 @@
           "response": []
         },
         {
-          "name": "Delete institutes",
+          "name": "Delete institute",
           "request": {
             "method": "DELETE",
             "header": [
@@ -449,7 +449,7 @@
             "url": "{{baseUrl}}?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"instIds\": [{{instId}}]\n}",
+              "raw": "{\n  \"instId\": {{instId}}\n}",
               "options": {
                 "raw": {
                   "language": "json"
