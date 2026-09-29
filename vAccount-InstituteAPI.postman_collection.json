@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "498db9d3-637c-4546-93b8-4d07592ede84",
     "name": "vAccount-InstituteAPI",
-    "description": "Testing environment only. Covers the Organization, Institute, Onboard, Organization Type, and Institute Type resources — see vAccount-InstituteAPI.html for the full field reference, error codes, and status behavior. Authentication is handled automatically by the Postman Interceptor Chrome extension once you're logged into the product in Chrome — see the HTML guide's Postman setup section.",
+    "description": "Testing environment only. Covers the Organization, Institute, Onboard, Organization Type, Institute Type, and Role resources — see vAccount-InstituteAPI.html for the full field reference, error codes, and status behavior. Authentication is handled automatically by the Postman Interceptor Chrome extension once you're logged into the product in Chrome — see the HTML guide's Postman setup section.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -14,7 +14,7 @@
     {
       "key": "product",
       "value": "account",
-      "description": "Calling product identifier, from appsettings.json → App:Product."
+      "description": "Calling product identifier — the identifier of whichever client app is calling this API (e.g. account). Not stored in this project's own config; supplied by each calling client app. Prefix with test- to run in test mode (e.g. test-account)."
     },
     {
       "key": "orgId",
@@ -216,7 +216,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}org/list/owner?product={{product}}&pageNumber=1&pageSize=20"
+            "url": "{{baseUrl}}org/list/owner?product={{product}}&orgTypeId=1&orgName=Acme&regNo=REG&pageNumber=1&pageSize=20"
           },
           "response": []
         },
@@ -225,7 +225,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}org/list/shared?product={{product}}&pageNumber=1&pageSize=20"
+            "url": "{{baseUrl}}org/list/shared?product={{product}}&orgTypeId=1&orgName=Acme&regNo=REG&pageNumber=1&pageSize=20"
           },
           "response": []
         },
@@ -473,7 +473,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}list/admin?product={{product}}&pageNumber=1&pageSize=20"
+            "url": "{{baseUrl}}list/admin?product={{product}}&orgId={{orgId}}&instTypeId=1&instName=Acme&instRegNo=COL&pageNumber=1&pageSize=20"
           },
           "response": []
         },
@@ -482,7 +482,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}list/shared?product={{product}}&pageNumber=1&pageSize=20"
+            "url": "{{baseUrl}}list/shared?product={{product}}&orgId={{orgId}}&instTypeId=1&instName=Acme&instRegNo=COL&pageNumber=1&pageSize=20"
           },
           "response": []
         },
@@ -589,6 +589,20 @@
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}insttype/options?product={{product}}"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Role",
+      "item": [
+        {
+          "name": "Access role options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}role/options?product={{product}}"
           },
           "response": []
         }

@@ -130,12 +130,18 @@
       <li><a href="#insttype-options"><code>GET /insttype/options</code></a></li>
     </ul>
   </div>
+  <div class="menu">
+    <a href="#role">Role</a>
+    <ul class="submenu">
+      <li><a href="#role-options"><code>GET /role/options</code></a></li>
+    </ul>
+  </div>
   <a class="download" href="vAccount-InstituteAPI.postman_collection.json" download>&#8595; Postman collection</a>
 </nav>
 
 <main>
 <h1>vAccount-InstituteAPI — Developer Guide</h1>
-<p class="small">Documents the <strong>Organization</strong>, <strong>Institute</strong>, <strong>Onboard</strong>, <strong>Organization Type</strong>, and <strong>Institute Type</strong> resources.</p>
+<p class="small">Documents the <strong>Organization</strong>, <strong>Institute</strong>, <strong>Onboard</strong>, <strong>Organization Type</strong>, <strong>Institute Type</strong>, and <strong>Role</strong> resources.</p>
 
 <section id="postman-setup">
 <h2>Postman setup guide</h2>
@@ -152,9 +158,9 @@
 <table>
   <thead><tr><th>Environment</th><th>Base URL</th><th>Source</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>https://api-vacc.vidyaone.com/test/inst/</code></td><td><code>appsettings.Testing.json</code></td></tr>
-    <tr><td>Production</td><td><code>https://api-vacc.vidyaone.com/inst/</code></td><td><code>appsettings.json</code></td></tr>
-    <tr><td>Local (Development)</td><td><code>http://localhost:65082/</code></td><td><code>Properties/launchSettings.json</code> (no <code>App:BaseUrl</code> override in this environment)</td></tr>
+    <tr><td>Testing</td><td><code>https://api-vacc.vidyaone.com/test/inst/</code></td><td><code>appsettings.Testing.json</code> → <code>App:BaseUrl</code></td></tr>
+    <tr><td>Production</td><td><code>https://api-vacc.vidyaone.com/inst/</code></td><td><code>appsettings.json</code> → <code>App:BaseUrl</code></td></tr>
+    <tr><td>Local (Development)</td><td><code>http://localhost:65082/</code></td><td><code>appsettings.Development.json</code> → <code>App:BaseUrl</code></td></tr>
   </tbody>
 </table>
 <p class="small">Concatenate the base URL with the route shown in each endpoint below. There is no version segment.</p>
@@ -179,7 +185,7 @@
 <table>
   <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>product</code></td><td>string</td><td class="req">yes</td><td>Calling product identifier, e.g. <code>lms</code>. Prefix with <code>test-</code> to run the request in test mode, e.g. <code>test-lms</code>. Required on every route below.</td></tr>
+    <tr><td><code>product</code></td><td>string</td><td class="req">yes</td><td>Calling client-app identifier, e.g. <code>account</code>. Prefix with <code>test-</code> to run the request in test mode, e.g. <code>test-account</code>. Required on every route below.</td></tr>
   </tbody>
 </table>
 
@@ -594,7 +600,7 @@
 
 <!-- ========================= List my organizations ========================= -->
 <h3 id="org-list"><span class="method">GET</span> <code>/org/list/owner</code></h3>
-<p>Returns a paged list of organizations the caller created or owns. The caller's default organization is returned first. <code>totalInst</code> counts the organization's non-deleted institutes; <code>totalUser</code> counts distinct non-deleted users across them, deactivated users included.</p>
+<p>Returns a paged list of organizations the caller created or owns, optionally filtered by org type, name and registration number. The caller's default organization is returned first. <code>totalInst</code> counts the organization's non-deleted institutes; <code>totalUser</code> counts distinct non-deleted users across them, deactivated users included.</p>
 
 <h4>Request</h4>
 <table>
@@ -607,10 +613,21 @@
 <table>
   <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
+    <tr><td><code>orgTypeId</code></td><td>integer</td><td class="opt">no</td><td>&gt; 0 when sent. Exact match — only orgs of this type. Omit for all types.</td></tr>
+    <tr><td><code>orgName</code></td><td>string</td><td class="opt">no</td><td>Max 150 chars. Case-insensitive "contains" match.</td></tr>
+    <tr><td><code>regNo</code></td><td>string</td><td class="opt">no</td><td>Max 50 chars. Case-insensitive "contains" match.</td></tr>
     <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. A value <code>&le; 0</code> is ignored.</td></tr>
     <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. A value <code>&le; 0</code> is ignored; above <code>200</code> is rejected.</td></tr>
   </tbody>
 </table>
+
+<h4>Sample request</h4>
+<pre><code>GET /org/list/owner?product=account
+    &amp;orgTypeId=1        // optional, integer, > 0 &mdash; only orgs of this type
+    &amp;orgName=Acme        // optional, string, max 150 chars &mdash; case-insensitive "contains"
+    &amp;regNo=REG           // optional, string, max 50 chars &mdash; case-insensitive "contains"
+    &amp;pageNumber=1        // optional, integer, default 1
+    &amp;pageSize=50         // optional, integer, default 50, max 200</code></pre>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -661,7 +678,7 @@
 
 <!-- ========================= List shared organizations ========================= -->
 <h3 id="org-list-shared"><span class="method">GET</span> <code>/org/list/shared</code></h3>
-<p>Returns a paged list of organizations the caller has institute-level access to, excluding any they created or own themselves (those are returned by <a href="#org-list">List my organizations</a> instead). The caller's default organization, if it is in this list, is returned first.</p>
+<p>Returns a paged list of organizations the caller has institute-level access to, excluding any they created or own themselves (those are returned by <a href="#org-list">List my organizations</a> instead), optionally filtered by org type, name and registration number. The caller's default organization, if it is in this list, is returned first.</p>
 
 <h4>Request</h4>
 <table>
@@ -674,10 +691,21 @@
 <table>
   <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
+    <tr><td><code>orgTypeId</code></td><td>integer</td><td class="opt">no</td><td>&gt; 0 when sent. Exact match — only orgs of this type. Omit for all types.</td></tr>
+    <tr><td><code>orgName</code></td><td>string</td><td class="opt">no</td><td>Max 150 chars. Case-insensitive "contains" match.</td></tr>
+    <tr><td><code>regNo</code></td><td>string</td><td class="opt">no</td><td>Max 50 chars. Case-insensitive "contains" match.</td></tr>
     <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. A value <code>&le; 0</code> is ignored.</td></tr>
     <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. A value <code>&le; 0</code> is ignored; above <code>200</code> is rejected.</td></tr>
   </tbody>
 </table>
+
+<h4>Sample request</h4>
+<pre><code>GET /org/list/shared?product=account
+    &amp;orgTypeId=1        // optional, integer, > 0 &mdash; only orgs of this type
+    &amp;orgName=Acme        // optional, string, max 150 chars &mdash; case-insensitive "contains"
+    &amp;regNo=REG           // optional, string, max 50 chars &mdash; case-insensitive "contains"
+    &amp;pageNumber=1        // optional, integer, default 1
+    &amp;pageSize=50         // optional, integer, default 50, max 200</code></pre>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -742,7 +770,6 @@
   "success": true,
   "data": {
     "orgId": 123,
-    "orgTypeId": 1,
     "orgTypeName": "Private Limited",
     "orgName": "Acme Institute",
     "regNo": "REG-2024-0007",
@@ -783,7 +810,6 @@
   "success": true,
   "data": {
     "orgId": 123,
-    "orgTypeId": 1,
     "orgTypeName": "Private Limited",
     "orgName": "Acme Institute",
     "regNo": "REG-2024-0007",
@@ -1166,7 +1192,7 @@
 
 <!-- ========================= List my institutes ========================= -->
 <h3 id="inst-list"><span class="method">GET</span> <code>/list/admin</code></h3>
-<p>Returns a paged list of institutes the caller created, or was granted admin access to. The caller's default institute is returned first. <code>role</code> is the caller's role on the institute; <code>products</code> lists the institute's product subscriptions with their plan. <code>totalSaas</code> counts the institute's non-deleted product subscriptions; <code>totalUser</code> counts its distinct non-deleted users, deactivated users included.</p>
+<p>Returns a paged list of institutes the caller created, or was granted admin access to, optionally filtered by org, institute type, name and registration number. The caller's default institute is returned first. <code>role</code> is the caller's role on the institute; <code>products</code> lists the institute's product subscriptions with their plan. <code>totalSaas</code> counts the institute's non-deleted product subscriptions; <code>totalUser</code> counts its distinct non-deleted users, deactivated users included.</p>
 
 <h4>Request</h4>
 <table>
@@ -1179,10 +1205,23 @@
 <table>
   <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
+    <tr><td><code>orgId</code></td><td>integer</td><td class="opt">no</td><td>&gt; 0 when sent. Exact match — only institutes under this org. Omit for all orgs.</td></tr>
+    <tr><td><code>instTypeId</code></td><td>integer</td><td class="opt">no</td><td>&gt; 0 when sent. Exact match — only institutes of this type. Omit for all types.</td></tr>
+    <tr><td><code>instName</code></td><td>string</td><td class="opt">no</td><td>Max 150 chars. Case-insensitive "contains" match.</td></tr>
+    <tr><td><code>instRegNo</code></td><td>string</td><td class="opt">no</td><td>Max 50 chars. Case-insensitive "contains" match.</td></tr>
     <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. A value <code>&le; 0</code> is ignored.</td></tr>
     <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. A value <code>&le; 0</code> is ignored; above <code>200</code> is rejected.</td></tr>
   </tbody>
 </table>
+
+<h4>Sample request</h4>
+<pre><code>GET /list/admin?product=account
+    &amp;orgId=123          // optional, integer, > 0 &mdash; only institutes under this org
+    &amp;instTypeId=1        // optional, integer, > 0 &mdash; only institutes of this type
+    &amp;instName=Acme       // optional, string, max 150 chars &mdash; case-insensitive "contains"
+    &amp;instRegNo=COL       // optional, string, max 50 chars &mdash; case-insensitive "contains"
+    &amp;pageNumber=1        // optional, integer, default 1
+    &amp;pageSize=50         // optional, integer, default 50, max 200</code></pre>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -1255,7 +1294,7 @@
 
 <!-- ========================= List shared institutes ========================= -->
 <h3 id="inst-list-shared"><span class="method">GET</span> <code>/list/shared</code></h3>
-<p>Returns a paged list of institutes the caller is a member of, excluding any they created or administer (those are returned by <a href="#inst-list">List my institutes</a> instead). The caller's default institute, if it is in this list, is returned first.</p>
+<p>Returns a paged list of institutes the caller is a member of, excluding any they created or administer (those are returned by <a href="#inst-list">List my institutes</a> instead), optionally filtered by org, institute type, name and registration number. The caller's default institute, if it is in this list, is returned first.</p>
 
 <h4>Request</h4>
 <table>
@@ -1268,10 +1307,23 @@
 <table>
   <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
+    <tr><td><code>orgId</code></td><td>integer</td><td class="opt">no</td><td>&gt; 0 when sent. Exact match — only institutes under this org. Omit for all orgs.</td></tr>
+    <tr><td><code>instTypeId</code></td><td>integer</td><td class="opt">no</td><td>&gt; 0 when sent. Exact match — only institutes of this type. Omit for all types.</td></tr>
+    <tr><td><code>instName</code></td><td>string</td><td class="opt">no</td><td>Max 150 chars. Case-insensitive "contains" match.</td></tr>
+    <tr><td><code>instRegNo</code></td><td>string</td><td class="opt">no</td><td>Max 50 chars. Case-insensitive "contains" match.</td></tr>
     <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. A value <code>&le; 0</code> is ignored.</td></tr>
     <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. A value <code>&le; 0</code> is ignored; above <code>200</code> is rejected.</td></tr>
   </tbody>
 </table>
+
+<h4>Sample request</h4>
+<pre><code>GET /list/shared?product=account
+    &amp;orgId=123          // optional, integer, > 0 &mdash; only institutes under this org
+    &amp;instTypeId=1        // optional, integer, > 0 &mdash; only institutes of this type
+    &amp;instName=Acme       // optional, string, max 150 chars &mdash; case-insensitive "contains"
+    &amp;instRegNo=COL       // optional, string, max 50 chars &mdash; case-insensitive "contains"
+    &amp;pageNumber=1        // optional, integer, default 1
+    &amp;pageSize=50         // optional, integer, default 50, max 200</code></pre>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -1417,7 +1469,6 @@
     "instId": 456,
     "instCode": "INSTA1B2C3",
     "instName": "Acme Engineering College",
-    "instTypeId": 1,
     "instTypeName": "Engineering College",
     "regNo": "COL-2024-0011",
     "email": "info@acme-engg.example",
@@ -1459,7 +1510,6 @@
     "creatorName": "Ravi Kumar",
     "creatorEmail": "ravi@acme.example",
     "orgId": 123,
-    "orgTypeId": 1,
     "orgTypeName": "Private Limited",
     "orgName": "Acme Institute",
     "orgRegNo": "REG-2024-0007",
@@ -1475,7 +1525,6 @@
     "orgCountryName": "India",
     "orgPincode": "560001",
     "orgLogo": "org/acme/logo.png",
-    "orgIsOwner": true,
     "orgOwnerName": "Asha Rao",
     "orgCreatorName": "Asha Rao",
     "orgCreatorEmail": "asha@acme.example",
@@ -1496,7 +1545,6 @@
     "instId": 456,
     "instCode": "INSTA1B2C3",
     "instName": "Acme Engineering College",
-    "instTypeId": 1,
     "instTypeName": "Engineering College",
     "regNo": "COL-2024-0011",
     "email": "info@acme-engg.example",
@@ -1531,7 +1579,6 @@
       }
     ],
     "orgId": 123,
-    "orgTypeId": 1,
     "orgTypeName": "Private Limited",
     "orgName": "Acme Institute",
     "orgRegNo": "REG-2024-0007",
@@ -1550,7 +1597,7 @@
     "audit": { "isActive": true, "createdAt": "2026-09-01T08:00:00+00:00", "updatedAt": "2026-09-09T10:20:00+00:00" }
   }
 }</code></pre>
-<p>This shape omits <code>contactPerson</code>, <code>contactEmail</code>, <code>contactPhoneCode</code>, <code>contactPhone</code>, <code>contactIsWhatsappNumber</code>, <code>creatorName</code>, <code>creatorEmail</code>, <code>orgIsOwner</code>, <code>orgOwnerName</code>, <code>orgKycStatus</code>, <code>orgCreatorName</code>, <code>orgCreatorEmail</code>, <code>orgOwnerEmail</code>, <code>totalSaas</code>, and <code>totalUser</code>. <code>role</code> is empty if the caller has no role on the institute. It is only returned while the institute is active — an inactive institute reports <span class="status-err">404</span> to any caller who isn't its creator or an admin on it.</p>
+<p>This shape omits <code>contactPerson</code>, <code>contactEmail</code>, <code>contactPhoneCode</code>, <code>contactPhone</code>, <code>contactIsWhatsappNumber</code>, <code>creatorName</code>, <code>creatorEmail</code>, <code>orgOwnerName</code>, <code>orgKycStatus</code>, <code>orgCreatorName</code>, <code>orgCreatorEmail</code>, <code>orgOwnerEmail</code>, <code>totalSaas</code>, and <code>totalUser</code>. <code>role</code> is empty if the caller has no role on the institute. It is only returned while the institute is active — an inactive institute reports <span class="status-err">404</span> to any caller who isn't its creator or an admin on it.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
@@ -1794,6 +1841,46 @@
   "data": [
     { "id": 1, "name": "Engineering College" },
     { "id": 2, "name": "Arts College" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+
+</section>
+
+<section id="role">
+<h2>Role</h2>
+<p>Shared reference data, not scoped to the caller.</p>
+
+<!-- ========================= Access role options ========================= -->
+<h3 id="role-options"><span class="method">GET</span> <code>/role/options</code></h3>
+<p>Returns access roles as <code>{ id, name }</code> pairs, for populating a picker.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/role/options?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/role/options?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /role/options?product=account</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "Admin" },
+    { "id": 2, "name": "User" },
+    { "id": 3, "name": "Viewer" }
   ]
 }</code></pre>
 <table>
