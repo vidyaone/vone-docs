@@ -361,7 +361,8 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails (including <code>regDate</code> not in UTC or a document value that isn't a file name), <code>orgId &le; 0</code>, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, isn't owned by the caller, is deleted, or is deactivated.</td></tr>
+    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The organization exists but the caller neither created nor owns it.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, is deleted, or is deactivated.</td></tr>
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>orgTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record.</td></tr>
     <tr><td class="status-err">409</td><td><code>INVALID_STATE</code></td><td>The organization's <code>kycStatus</code> is currently <code>Under Review</code>.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>orgName</code> or <code>regNo</code> already in use.</td></tr>
@@ -431,7 +432,8 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgId</code> missing, <code>&le; 0</code>, or not an integer.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, isn't owned by the caller, is deleted, or is deactivated.</td></tr>
+    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The organization exists, isn't deleted, and is active, but the caller neither created nor owns it.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, is deleted, or is deactivated.</td></tr>
     <tr><td class="status-err">409</td><td><code>INVALID_STATE</code></td><td>The organization's <code>kycStatus</code> is <code>Under Review</code>.</td></tr>
   </tbody>
 </table>
@@ -463,7 +465,8 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgId &le; 0</code> or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, is deleted or deactivated, or the caller is neither its creator nor its owner.</td></tr>
+    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The organization exists but the caller is neither its creator nor its owner.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, is deleted, or is deactivated.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the organization as the caller's default.</p>
@@ -495,7 +498,8 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgId &le; 0</code> or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, the caller is neither its creator nor its owner, it is deleted, or it is already active.</td></tr>
+    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The organization exists but the caller is neither its creator nor its owner.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, is deleted, or is already active.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
@@ -528,7 +532,8 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgId &le; 0</code> or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, the caller is neither its creator nor its owner, it is deleted, or it is already deactivated.</td></tr>
+    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The organization exists but the caller is neither its creator nor its owner.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, is deleted, or is already deactivated.</td></tr>
     <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>The organization still has an active institute under it.</td></tr>
   </tbody>
 </table>
@@ -562,7 +567,8 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>orgId &le; 0</code> or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, the caller is neither its creator nor its owner, or it is already deleted.</td></tr>
+    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The organization exists but the caller is neither its creator nor its owner.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist or is already deleted.</td></tr>
     <tr><td class="status-err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>The organization still has an institute under it that isn't deleted.</td></tr>
   </tbody>
 </table>
@@ -899,7 +905,8 @@
     <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created 20 non-deleted institutes.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td><code>orgId</code> doesn't exist, isn't owned/created by the caller, is deleted, or is deactivated; or <code>productId</code> doesn't exist or has no active trial plan.</td></tr>
+    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td><code>orgId</code> exists but isn't owned/created by the caller.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td><code>orgId</code> doesn't exist, is deleted, or is deactivated; or <code>productId</code> doesn't exist or has no active trial plan.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>instName</code> already used by another institute in the same <code>orgId</code>.</td></tr>
   </tbody>
 </table>
@@ -934,7 +941,8 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId</code>/<code>productId</code> <code>&le; 0</code>, or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, is deleted, is deactivated, or the caller isn't an Admin of it; or <code>productId</code> doesn't exist or has no active trial plan.</td></tr>
+    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The institute exists, isn't deleted, and is active, but the caller isn't an Admin of it.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, is deleted, or is deactivated; or <code>productId</code> doesn't exist or has no active trial plan.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>The institute already has a SaaS row for <code>productId</code>.</td></tr>
   </tbody>
 </table>
@@ -990,7 +998,8 @@
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>instTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't managed by the caller, is deleted, or is deactivated.</td></tr>
+    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The institute exists but isn't managed by the caller.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, is deleted, or is deactivated.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>instName</code> already used by another institute in the same org.</td></tr>
   </tbody>
 </table>
@@ -1056,7 +1065,8 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId &le; 0</code> or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't created by the caller, is deleted, is already active, or its organization is inactive.</td></tr>
+    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The institute exists but isn't created by the caller.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, is deleted, is already active, or its organization is inactive.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
@@ -1089,7 +1099,8 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId &le; 0</code> or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't created by the caller, is deleted, or is already deactivated.</td></tr>
+    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The institute exists but isn't created by the caller.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, is deleted, or is already deactivated.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
@@ -1122,7 +1133,8 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId</code>/<code>newOrgId</code> <code>&le; 0</code>, or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't managed by the caller, is deleted, or is deactivated; or <code>newOrgId</code> doesn't exist, isn't owned/created by the caller, is deleted, or is deactivated.</td></tr>
+    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The institute exists but isn't managed by the caller; or <code>newOrgId</code> exists but isn't owned/created by the caller.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, is deleted, or is deactivated; or <code>newOrgId</code> doesn't exist, is deleted, or is deactivated.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>newOrgId</code> already has another institute with the same name.</td></tr>
   </tbody>
 </table>
@@ -1156,7 +1168,8 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId &le; 0</code> or body missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't created by the caller, or is already deleted.</td></tr>
+    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The institute exists but isn't created by the caller.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist or is already deleted.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
@@ -1410,6 +1423,7 @@
   "success": true,
   "data": {
     "instId": 456,
+    "orgId": 123,
     "instName": "Acme Engineering College",
     "instTypeId": 1,
     "contactPerson": "Ravi Kumar",
@@ -1438,7 +1452,8 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId</code> missing, <code>&le; 0</code>, or not an integer.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, isn't managed by the caller, is deleted, or is deactivated.</td></tr>
+    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The institute exists, isn't deleted, and is active, but isn't managed by the caller.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, is deleted, or is deactivated.</td></tr>
   </tbody>
 </table>
 

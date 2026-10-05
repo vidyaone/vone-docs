@@ -204,6 +204,8 @@
     <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/gender</code></td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /options/gender?product=lms</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -231,6 +233,8 @@
     <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/bloodgroup</code></td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /options/bloodgroup?product=lms</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -258,6 +262,8 @@
     <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/board</code></td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /options/board?product=lms</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -285,6 +291,8 @@
     <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/courtesy</code></td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /options/courtesy?product=lms</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -312,6 +320,8 @@
     <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/category</code></td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /options/category?product=lms</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -345,6 +355,9 @@
     <tr><td><code>categoryId</code></td><td>integer</td><td class="req">yes</td><td>Must be <code>&gt; 0</code> and reference an existing category.</td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /options/subcategory?product=lms
+    &amp;categoryId=1    // required, integer, > 0 — category to list sub-categories for</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -373,6 +386,8 @@
     <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/relation</code></td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /options/relation?product=lms</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -400,6 +415,8 @@
     <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/nationality</code></td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /options/nationality?product=lms</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -427,6 +444,8 @@
     <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/occupation</code></td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /options/occupation?product=lms</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -454,6 +473,8 @@
     <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/qualification</code></td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /options/qualification?product=lms</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -481,6 +502,8 @@
     <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/religion</code></td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /options/religion?product=lms</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -508,6 +531,8 @@
     <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/country</code></td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /options/country?product=lms</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -535,6 +560,8 @@
     <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/country/phone</code></td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /options/country/phone?product=lms</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -575,6 +602,9 @@
     <tr><td><code>countryId</code></td><td>integer</td><td class="req">yes</td><td>Must be <code>&gt; 0</code> and reference an existing country.</td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /options/state?product=lms
+    &amp;countryId=1    // required, integer, > 0 — country to list states for</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -609,6 +639,9 @@
     <tr><td><code>stateId</code></td><td>integer</td><td class="req">yes</td><td>Must be <code>&gt; 0</code> and reference an existing state.</td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /options/district?product=lms
+    &amp;stateId=26    // required, integer, > 0 — state to list districts for</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -637,6 +670,8 @@
     <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/document/identity</code></td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /options/document/identity?product=lms</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -674,6 +709,8 @@
     <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/document/business</code></td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /options/document/business?product=lms</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -705,6 +742,8 @@
     <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/document/ngo</code></td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /options/document/ngo?product=lms</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -736,6 +775,8 @@
     <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/options/document/institute</code></td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /options/document/institute?product=lms</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -773,6 +814,8 @@
     <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/product/list</code></td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /product/list?product=lms</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -808,6 +851,8 @@
     <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/product/option</code></td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /product/option?product=lms</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -840,6 +885,9 @@
     <tr><td><code>productId</code></td><td>integer</td><td class="req">yes</td><td>Must be <code>&gt; 0</code> and reference an existing product.</td></tr>
   </tbody>
 </table>
+<h4>Sample request</h4>
+<pre><code>GET /product/plan/option?product=lms
+    &amp;productId=1    // required, integer, > 0 — product to list plans for</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{

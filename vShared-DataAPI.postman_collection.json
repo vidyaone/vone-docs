@@ -15,7 +15,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/options/gender", "host": ["{{baseUrl}}"], "path": ["options", "gender"] }
+            "url": {
+              "raw": "{{baseUrl}}/options/gender?product=lms",
+              "host": ["{{baseUrl}}"],
+              "path": ["options", "gender"],
+              "query": [ { "key": "product", "value": "lms" } ]
+            }
           }
         },
         {
@@ -23,7 +28,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/options/bloodgroup", "host": ["{{baseUrl}}"], "path": ["options", "bloodgroup"] }
+            "url": {
+              "raw": "{{baseUrl}}/options/bloodgroup?product=lms",
+              "host": ["{{baseUrl}}"],
+              "path": ["options", "bloodgroup"],
+              "query": [ { "key": "product", "value": "lms" } ]
+            }
           }
         },
         {
@@ -31,7 +41,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/options/board", "host": ["{{baseUrl}}"], "path": ["options", "board"] }
+            "url": {
+              "raw": "{{baseUrl}}/options/board?product=lms",
+              "host": ["{{baseUrl}}"],
+              "path": ["options", "board"],
+              "query": [ { "key": "product", "value": "lms" } ]
+            }
           }
         },
         {
@@ -39,7 +54,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/options/courtesy", "host": ["{{baseUrl}}"], "path": ["options", "courtesy"] }
+            "url": {
+              "raw": "{{baseUrl}}/options/courtesy?product=lms",
+              "host": ["{{baseUrl}}"],
+              "path": ["options", "courtesy"],
+              "query": [ { "key": "product", "value": "lms" } ]
+            }
           }
         },
         {
@@ -47,7 +67,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/options/category", "host": ["{{baseUrl}}"], "path": ["options", "category"] }
+            "url": {
+              "raw": "{{baseUrl}}/options/category?product=lms",
+              "host": ["{{baseUrl}}"],
+              "path": ["options", "category"],
+              "query": [ { "key": "product", "value": "lms" } ]
+            }
           }
         },
         {
@@ -56,10 +81,10 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/options/subcategory?categoryId=1",
+              "raw": "{{baseUrl}}/options/subcategory?product=lms&categoryId=1",
               "host": ["{{baseUrl}}"],
               "path": ["options", "subcategory"],
-              "query": [ { "key": "categoryId", "value": "1" } ]
+              "query": [ { "key": "product", "value": "lms" }, { "key": "categoryId", "value": "1" } ]
             }
           }
         },
@@ -68,7 +93,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/options/relation", "host": ["{{baseUrl}}"], "path": ["options", "relation"] }
+            "url": {
+              "raw": "{{baseUrl}}/options/relation?product=lms",
+              "host": ["{{baseUrl}}"],
+              "path": ["options", "relation"],
+              "query": [ { "key": "product", "value": "lms" } ]
+            }
           }
         },
         {
@@ -76,7 +106,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/options/nationality", "host": ["{{baseUrl}}"], "path": ["options", "nationality"] }
+            "url": {
+              "raw": "{{baseUrl}}/options/nationality?product=lms",
+              "host": ["{{baseUrl}}"],
+              "path": ["options", "nationality"],
+              "query": [ { "key": "product", "value": "lms" } ]
+            }
           }
         },
         {
@@ -84,7 +119,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/options/occupation", "host": ["{{baseUrl}}"], "path": ["options", "occupation"] }
+            "url": {
+              "raw": "{{baseUrl}}/options/occupation?product=lms",
+              "host": ["{{baseUrl}}"],
+              "path": ["options", "occupation"],
+              "query": [ { "key": "product", "value": "lms" } ]
+            }
           }
         },
         {
@@ -92,7 +132,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/options/qualification", "host": ["{{baseUrl}}"], "path": ["options", "qualification"] }
+            "url": {
+              "raw": "{{baseUrl}}/options/qualification?product=lms",
+              "host": ["{{baseUrl}}"],
+              "path": ["options", "qualification"],
+              "query": [ { "key": "product", "value": "lms" } ]
+            }
           }
         },
         {
@@ -100,7 +145,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/options/religion", "host": ["{{baseUrl}}"], "path": ["options", "religion"] }
+            "url": {
+              "raw": "{{baseUrl}}/options/religion?product=lms",
+              "host": ["{{baseUrl}}"],
+              "path": ["options", "religion"],
+              "query": [ { "key": "product", "value": "lms" } ]
+            }
           }
         },
         {
@@ -108,7 +158,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/options/country", "host": ["{{baseUrl}}"], "path": ["options", "country"] }
+            "url": {
+              "raw": "{{baseUrl}}/options/country?product=lms",
+              "host": ["{{baseUrl}}"],
+              "path": ["options", "country"],
+              "query": [ { "key": "product", "value": "lms" } ]
+            }
           }
         },
         {
@@ -116,7 +171,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/options/country/phone", "host": ["{{baseUrl}}"], "path": ["options", "country", "phone"] }
+            "url": {
+              "raw": "{{baseUrl}}/options/country/phone?product=lms",
+              "host": ["{{baseUrl}}"],
+              "path": ["options", "country", "phone"],
+              "query": [ { "key": "product", "value": "lms" } ]
+            }
           }
         },
         {
@@ -125,10 +185,10 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/options/state?countryId=1",
+              "raw": "{{baseUrl}}/options/state?product=lms&countryId=1",
               "host": ["{{baseUrl}}"],
               "path": ["options", "state"],
-              "query": [ { "key": "countryId", "value": "1" } ]
+              "query": [ { "key": "product", "value": "lms" }, { "key": "countryId", "value": "1" } ]
             }
           }
         },
@@ -138,10 +198,10 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/options/district?stateId=26",
+              "raw": "{{baseUrl}}/options/district?product=lms&stateId=26",
               "host": ["{{baseUrl}}"],
               "path": ["options", "district"],
-              "query": [ { "key": "stateId", "value": "26" } ]
+              "query": [ { "key": "product", "value": "lms" }, { "key": "stateId", "value": "26" } ]
             }
           }
         },
@@ -150,7 +210,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/options/document/identity", "host": ["{{baseUrl}}"], "path": ["options", "document", "identity"] }
+            "url": {
+              "raw": "{{baseUrl}}/options/document/identity?product=lms",
+              "host": ["{{baseUrl}}"],
+              "path": ["options", "document", "identity"],
+              "query": [ { "key": "product", "value": "lms" } ]
+            }
           }
         },
         {
@@ -158,7 +223,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/options/document/business", "host": ["{{baseUrl}}"], "path": ["options", "document", "business"] }
+            "url": {
+              "raw": "{{baseUrl}}/options/document/business?product=lms",
+              "host": ["{{baseUrl}}"],
+              "path": ["options", "document", "business"],
+              "query": [ { "key": "product", "value": "lms" } ]
+            }
           }
         },
         {
@@ -166,7 +236,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/options/document/ngo", "host": ["{{baseUrl}}"], "path": ["options", "document", "ngo"] }
+            "url": {
+              "raw": "{{baseUrl}}/options/document/ngo?product=lms",
+              "host": ["{{baseUrl}}"],
+              "path": ["options", "document", "ngo"],
+              "query": [ { "key": "product", "value": "lms" } ]
+            }
           }
         },
         {
@@ -174,7 +249,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/options/document/institute", "host": ["{{baseUrl}}"], "path": ["options", "document", "institute"] }
+            "url": {
+              "raw": "{{baseUrl}}/options/document/institute?product=lms",
+              "host": ["{{baseUrl}}"],
+              "path": ["options", "document", "institute"],
+              "query": [ { "key": "product", "value": "lms" } ]
+            }
           }
         }
       ]
@@ -187,7 +267,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/product/list", "host": ["{{baseUrl}}"], "path": ["product", "list"] }
+            "url": {
+              "raw": "{{baseUrl}}/product/list?product=lms",
+              "host": ["{{baseUrl}}"],
+              "path": ["product", "list"],
+              "query": [ { "key": "product", "value": "lms" } ]
+            }
           }
         },
         {
@@ -195,7 +280,12 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{baseUrl}}/product/option", "host": ["{{baseUrl}}"], "path": ["product", "option"] }
+            "url": {
+              "raw": "{{baseUrl}}/product/option?product=lms",
+              "host": ["{{baseUrl}}"],
+              "path": ["product", "option"],
+              "query": [ { "key": "product", "value": "lms" } ]
+            }
           }
         },
         {
@@ -204,10 +294,10 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/product/plan/option?productId=1",
+              "raw": "{{baseUrl}}/product/plan/option?product=lms&productId=1",
               "host": ["{{baseUrl}}"],
               "path": ["product", "plan", "option"],
-              "query": [ { "key": "productId", "value": "1" } ]
+              "query": [ { "key": "product", "value": "lms" }, { "key": "productId", "value": "1" } ]
             }
           }
         }
