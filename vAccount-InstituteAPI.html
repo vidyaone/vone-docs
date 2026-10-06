@@ -297,6 +297,7 @@
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful create returns <span class="status-err">409 Conflict</span> rather than the original success.</p>
 
 <!-- ========================= Update organization ========================= -->
+<hr>
 <h3 id="org-put"><span class="method">PUT</span> <code>/org</code></h3>
 <p>Updates an organization the caller created or owns, including its KYC data.</p>
 
@@ -371,6 +372,7 @@
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the organization in the same final state.</p>
 
 <!-- ========================= Get organization (edit) ========================= -->
+<hr>
 <h3 id="org-edit"><span class="method">GET</span> <code>/org/edit</code></h3>
 <p>Returns one organization in a flat, editable shape that can be sent straight back to <a href="#org-put">Update organization</a>.</p>
 
@@ -439,6 +441,7 @@
 </table>
 
 <!-- ========================= Set default organization ========================= -->
+<hr>
 <h3 id="org-default"><span class="method">PUT</span> <code>/org/default</code></h3>
 <p>Makes one organization the caller's default and clears the flag on their other organizations. Only the organization's creator or owner can set it as their default.</p>
 
@@ -472,6 +475,7 @@
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the organization as the caller's default.</p>
 
 <!-- ========================= Activate organization ========================= -->
+<hr>
 <h3 id="org-activate"><span class="method">PUT</span> <code>/org/activate</code></h3>
 <p>Re-activates one of the caller's deactivated organizations. The caller must be its creator or owner.</p>
 
@@ -505,6 +509,7 @@
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
 
 <!-- ========================= Deactivate organization ========================= -->
+<hr>
 <h3 id="org-deactive"><span class="method">PUT</span> <code>/org/deactive</code></h3>
 <p>Deactivates one of the caller's organizations. The caller must be its creator or owner.</p>
 
@@ -540,6 +545,7 @@
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
 
 <!-- ========================= Delete organization ========================= -->
+<hr>
 <h3 id="org-delete"><span class="method">DELETE</span> <code>/org</code></h3>
 <p>Deletes one of the caller's organizations. The caller must be its creator or owner. There is no restore endpoint.</p>
 
@@ -575,6 +581,7 @@
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
 
 <!-- ========================= Organization options ========================= -->
+<hr>
 <h3 id="org-options"><span class="method">GET</span> <code>/org/options</code></h3>
 <p>Returns the caller's active organizations as <code>{ id, name }</code> pairs, for populating a picker.</p>
 
@@ -605,6 +612,7 @@
 </table>
 
 <!-- ========================= List my organizations ========================= -->
+<hr>
 <h3 id="org-list"><span class="method">GET</span> <code>/org/list/owner</code></h3>
 <p>Returns a paged list of organizations the caller created or owns, optionally filtered by org type, name and registration number. The caller's default organization is returned first. <code>totalInst</code> counts the organization's non-deleted institutes; <code>totalUser</code> counts distinct non-deleted users across them, deactivated users included.</p>
 
@@ -683,6 +691,7 @@
 </table>
 
 <!-- ========================= List shared organizations ========================= -->
+<hr>
 <h3 id="org-list-shared"><span class="method">GET</span> <code>/org/list/shared</code></h3>
 <p>Returns a paged list of organizations the caller has institute-level access to, excluding any they created or own themselves (those are returned by <a href="#org-list">List my organizations</a> instead), optionally filtered by org type, name and registration number. The caller's default organization, if it is in this list, is returned first.</p>
 
@@ -752,6 +761,7 @@
 </table>
 
 <!-- ========================= Get organization ========================= -->
+<hr>
 <h3 id="org-view"><span class="method">GET</span> <code>/org/view</code></h3>
 <p>Returns one organization for read-only display. Any authenticated caller can look up any <code>orgId</code>; the response shape depends on whether the caller created or owns it.</p>
 
@@ -913,6 +923,7 @@
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful create returns <span class="status-err">409 Conflict</span> rather than the original success.</p>
 
 <!-- ========================= Start institute trial ========================= -->
+<hr>
 <h3 id="inst-trial"><span class="method">POST</span> <code>/trial</code></h3>
 <p>Starts a trial for an existing institute on a different product, adding a new SaaS/plan row for it.</p>
 
@@ -949,6 +960,7 @@
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">409 Conflict</span> rather than the original success.</p>
 
 <!-- ========================= Update institute ========================= -->
+<hr>
 <h3 id="inst-put"><span class="method">PUT</span> <code>/</code></h3>
 <p>Updates an institute's own details. Its org and product can never be changed here.</p>
 
@@ -1006,6 +1018,7 @@
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the institute in the same final state.</p>
 
 <!-- ========================= Set default institute ========================= -->
+<hr>
 <h3 id="inst-default"><span class="method">PUT</span> <code>/default</code></h3>
 <p>Makes one institute the caller's default and clears the flag on their other institutes.</p>
 
@@ -1038,6 +1051,7 @@
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the institute as the caller's default.</p>
 
 <!-- ========================= Activate institute ========================= -->
+<hr>
 <h3 id="inst-activate"><span class="method">PUT</span> <code>/activate</code></h3>
 <p>Re-activates one of the caller's deactivated institutes.</p>
 
@@ -1072,6 +1086,7 @@
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
 
 <!-- ========================= Deactivate institute ========================= -->
+<hr>
 <h3 id="inst-deactive"><span class="method">PUT</span> <code>/deactive</code></h3>
 <p>Deactivates one of the caller's institutes.</p>
 
@@ -1106,6 +1121,7 @@
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
 
 <!-- ========================= Change institute org ========================= -->
+<hr>
 <h3 id="inst-changeorg"><span class="method">PUT</span> <code>/changeorg</code></h3>
 <p>Moves an institute the caller created into a different organization the caller also created or owns.</p>
 
@@ -1141,6 +1157,7 @@
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the institute in the same org.</p>
 
 <!-- ========================= Delete institute ========================= -->
+<hr>
 <h3 id="inst-delete"><span class="method">DELETE</span> <code>/</code></h3>
 <p>Deletes one of the caller's institutes. There is no restore endpoint.</p>
 
@@ -1175,6 +1192,7 @@
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
 
 <!-- ========================= Institute options ========================= -->
+<hr>
 <h3 id="inst-options"><span class="method">GET</span> <code>/options</code></h3>
 <p>Returns the caller's active institutes as <code>{ id, name }</code> pairs, for populating a picker.</p>
 
@@ -1204,6 +1222,7 @@
 </table>
 
 <!-- ========================= List my institutes ========================= -->
+<hr>
 <h3 id="inst-list"><span class="method">GET</span> <code>/list/admin</code></h3>
 <p>Returns a paged list of institutes the caller created, or was granted admin access to, optionally filtered by org, institute type, name and registration number. The caller's default institute is returned first. <code>role</code> is the caller's role on the institute; <code>products</code> lists the institute's product subscriptions with their plan. <code>totalSaas</code> counts the institute's non-deleted product subscriptions; <code>totalUser</code> counts its distinct non-deleted users, deactivated users included.</p>
 
@@ -1306,6 +1325,7 @@
 </table>
 
 <!-- ========================= List shared institutes ========================= -->
+<hr>
 <h3 id="inst-list-shared"><span class="method">GET</span> <code>/list/shared</code></h3>
 <p>Returns a paged list of institutes the caller is a member of, excluding any they created or administer (those are returned by <a href="#inst-list">List my institutes</a> instead), optionally filtered by org, institute type, name and registration number. The caller's default institute, if it is in this list, is returned first.</p>
 
@@ -1399,6 +1419,7 @@
 </table>
 
 <!-- ========================= Get institute (edit) ========================= -->
+<hr>
 <h3 id="inst-edit"><span class="method">GET</span> <code>/edit</code></h3>
 <p>Returns one institute in a flat, editable shape that can be sent straight back to <a href="#inst-put">Update institute</a>.</p>
 
@@ -1458,6 +1479,7 @@
 </table>
 
 <!-- ========================= Get institute ========================= -->
+<hr>
 <h3 id="inst-view"><span class="method">GET</span> <code>/view</code></h3>
 <p>Returns one institute for read-only display, including its parent organization's detail. Any authenticated caller can look up any <code>instId</code>; the response shape depends on whether the caller created it or holds admin access to it.</p>
 
@@ -1655,6 +1677,7 @@
 </table>
 
 <!-- ========================= Onboard by user ========================= -->
+<hr>
 <h3 id="onboard-byuser"><span class="method">PUT</span> <code>/onboard/byuser</code></h3>
 <p>Marks the authenticated institute as onboarded by the user.</p>
 
@@ -1681,6 +1704,7 @@
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> again returns <span class="status-ok">200 OK</span> and leaves the institute in the same onboarded state.</p>
 
 <!-- ========================= Onboard by support ========================= -->
+<hr>
 <h3 id="onboard-bysupport"><span class="method">PUT</span> <code>/onboard/bysupport</code></h3>
 <p>Marks the authenticated institute as onboarded by the support team.</p>
 
@@ -1757,6 +1781,7 @@
 </table>
 
 <!-- ========================= Organization type options ========================= -->
+<hr>
 <h3 id="orgtype-options"><span class="method">GET</span> <code>/orgtype/options</code></h3>
 <p>Returns all organization types as <code>{ id, name }</code> pairs, for populating a picker.</p>
 
@@ -1837,6 +1862,7 @@
 </table>
 
 <!-- ========================= Institute type options ========================= -->
+<hr>
 <h3 id="insttype-options"><span class="method">GET</span> <code>/insttype/options</code></h3>
 <p>Returns all institute types as <code>{ id, name }</code> pairs, for populating a picker.</p>
 
