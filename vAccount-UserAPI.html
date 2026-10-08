@@ -150,7 +150,7 @@
   "data":    { ... } | null
 }</code></pre>
 <p><strong>Success example</strong> (command):</p>
-<pre><code>{ "success": true, "message": "User updated successfully.", "data": null, "errors": null }</code></pre>
+<pre><code>{ "success": true, "message": "User updated successfully.", "data": { "uploadPresign": null }, "errors": null }</code></pre>
 <p><strong>Error example</strong>:</p>
 <pre><code>{
   "success": false,
@@ -169,7 +169,7 @@
     <tr><td class="status-ok">302</td><td>—</td><td><code>GET /saas/userinstdetail</code> only — the institute's plan has expired. See that endpoint.</td></tr>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A request field fails validation on <code>PUT /user</code>, or the body is missing / not valid JSON.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> is missing from the query string, or (rarely) a required field was missing at write time on <code>PUT /user</code>.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>A submitted value on <code>PUT /user</code> was rejected.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>A submitted value on <code>PUT /user</code> was rejected, including an unsupported <code>uploadProfilePictureFileName</code> extension.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The target record doesn't exist for the caller — see each endpoint.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>PUT /user</code> — a submitted social link collided with an existing one.</td></tr>
@@ -207,8 +207,10 @@
   "success": true,
   "message": null,
   "data": {
+    "userId": 10432,
     "instName": "Sunrise Public School",
     "instSaaSCode": "K7QK2M9F1A",
+    "redirectPath": "/dashboard",
     "startDate": "2026-06-01T00:00:00+00:00",
     "endDate": "2026-12-01T00:00:00+00:00",
     "remainingDays": 54,
@@ -239,7 +241,7 @@
   },
   "errors": null
 }</code></pre>
-<p class="small"><code>instDisrictName</code>/<code>orgDisrictName</code> — spelled exactly this way in the response; it is not a typo to fix client-side. <code>planStatus</code> is one of <code>Active</code>, <code>Renew</code> (less than 30 days remain), <code>Trial</code>, or <code>Expired</code>. <code>token</code> is a fresh random value on every call — it is not a session or bearer token issued by this service.</p>
+<p class="small"><code>instDisrictName</code>/<code>orgDisrictName</code> — spelled exactly this way in the response; it is not a typo to fix client-side. <code>planStatus</code> is one of <code>Active</code>, <code>Renew</code> (less than 30 days remain), <code>Trial</code>, or <code>Expired</code>. <code>redirectPath</code> is the institute's product landing path; may be empty. <code>token</code> is a fresh random value on every call — it is not a session or bearer token issued by this service.</p>
 
 <h4>Plan-expired redirect</h4>
 <p>When <code>remainingDays &le; 0</code>, this endpoint responds with a redirect instead of a JSON body:</p>
@@ -281,6 +283,7 @@ Location: https://account.vidyaone.com?saascode=K7QK2M9F1A       // normal mode<
   "success": true,
   "message": null,
   "data": {
+    "userId": 10432,
     "supportType": "Self",
     "fullName": "Asha Rao",
     "userRole": "Admin",
@@ -376,7 +379,7 @@ Location: https://account.vidyaone.com?saascode=K7QK2M9F1A       // normal mode<
 <!-- ========================= Update profile ========================= -->
 <hr>
 <h3 id="user-put"><span class="method">PUT</span> <code>/user</code></h3>
-<p>Overwrites the caller's profile and replaces their social links. Every writable field is overwritten with the value sent — there is no partial update, so always send the complete object, including <code>socialLinks</code>.</p>
+<p>Overwrites the caller's profile and replaces their social links. Every writable field is overwritten with the value sent — there is no partial update, so always send the complete object, including <code>socialLinks</code>. Optionally, in the same call, also issues a presigned S3 upload for a new profile picture — set <code>uploadProfilePictureFileName</code> and the response includes <code>uploadPresign</code>; set <code>putDTO.profileImageUrl</code> yourself to the resulting URL (the object key is deterministic from the file extension, so you don't need to wait for the upload to finish to know it) and actually upload the file to S3 afterward using the returned presign.</p>
 
 <h4>Request</h4>
 <table>
@@ -428,17 +431,44 @@ Location: https://account.vidyaone.com?saascode=K7QK2M9F1A       // normal mode<
         "profileUrl": "https://youtube.com/@asha"
       }
     ]
-  }
+  },
+  "uploadProfilePictureFileName": "profile.jpg"   // optional, string, max 255 chars &mdash; only the extension is used; must be jpg, jpeg, png, gif, webp, or bmp. When set, the response also includes a presigned upload for this file.
 }</code></pre>
-<p><code>userId</code> and <code>email</code> are not request fields — identity is taken from the authentication cookie, not the body.</p>
+<p><code>userId</code> and <code>email</code> are not request fields — identity is taken from the authentication cookie, not the body. <code>putDTO.profileImageUrl</code> is saved exactly as sent, even if it points at a file not uploaded yet — set it yourself to <code>vAccount/user_profile/{userId}/profile.{ext}</code>'s resulting URL (same extension as <code>uploadProfilePictureFileName</code>) before or after the actual S3 upload.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
-<pre><code>{ "success": true, "message": "User updated successfully.", "data": null, "errors": null }</code></pre>
+<pre><code>{
+  "success": true,
+  "message": "User updated successfully.",
+  "data": {
+    "uploadPresign": {
+      "key": "vAccount/user_profile/10432/profile.jpg",
+      "post": {
+        "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/",
+        "fields": {
+          "key": "vAccount/user_profile/10432/profile.jpg",
+          "x-amz-server-side-encryption": "AES256",
+          "x-amz-credential": "AKIA...redacted/20261008/ap-south-1/s3/aws4_request",
+          "x-amz-algorithm": "AWS4-HMAC-SHA256",
+          "x-amz-date": "20261008T000000Z",
+          "policy": "eyJ...redacted",
+          "x-amz-signature": "a1b2...redacted"
+        }
+      },
+      "expiresIn": 120,
+      "maxFileSize": 2097152,
+      "contentTypePrefix": "image/"
+    }
+  },
+  "errors": null
+}</code></pre>
+<p class="small"><code>uploadPresign</code> is <code>null</code> when <code>uploadProfilePictureFileName</code> was not sent. When present: upload directly to <code>uploadPresign.post.url</code> as <code>multipart/form-data</code>, including every entry in <code>post.fields</code> as a form field (unchanged, in order) plus the file content itself as a final field named <code>file</code>. S3 enforces <code>maxFileSize</code> (bytes) and requires the uploaded <code>Content-Type</code> to start with <code>contentTypePrefix</code>; the whole presigned POST expires after <code>expiresIn</code> seconds. <code>key</code> is always <code>vAccount/user_profile/{userId}/profile.{ext}</code> — fixed per caller and file type, so re-uploading the same image type always overwrites the previous picture (uploading a different image type afterward leaves the old file's object behind under its own extension). The response does not include a public URL for the uploaded file.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails, <code>putDTO</code> is missing, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including <code>uploadProfilePictureFileName</code> over 255 chars), <code>putDTO</code> is missing, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadProfilePictureFileName</code>'s extension is not one of jpg, jpeg, png, gif, webp, bmp. The profile is <strong>not</strong> updated when this fires.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No profile record exists for the caller, or a submitted <code>socialLinkId &gt; 0</code> doesn't belong to the caller.</td></tr>
@@ -447,7 +477,7 @@ Location: https://account.vidyaone.com?saascode=K7QK2M9F1A       // normal mode<
     <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td><code>countryId</code> / <code>stateId</code> / <code>districtId</code> doesn't reference an existing record.</td></tr>
   </tbody>
 </table>
-<p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the profile in the same final state.</p>
+<p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the profile in the same final state; if <code>uploadProfilePictureFileName</code> was set, a new presigned POST is issued each time (signature and <code>x-amz-date</code> differ) for the same <code>key</code> — safe to retry.</p>
 
 </section>
 </main>

@@ -36,8 +36,8 @@
 <body>
 <div class="wrap">
   <h1>VIDYAOne — Global Notifications</h1>
-  <div class="meta">Cross-project · last updated 2026-10-07 · 32 items across 1 project</div>
-  <div class="nav"><a href="#vAccount/vAccount-InstituteAPI">vAccount/vAccount-InstituteAPI</a></div>
+  <div class="meta">Cross-project · last updated 2026-10-08 · 33 items across 2 projects</div>
+  <div class="nav"><a href="#vAccount/vAccount-InstituteAPI">vAccount/vAccount-InstituteAPI</a> · <a href="#vAccount/vAccount-UserAPI">vAccount/vAccount-UserAPI</a></div>
   <table>
     <tr class="proj"><td colspan="6"><h2 id="vAccount/vAccount-InstituteAPI">vAccount/vAccount-InstituteAPI <span class="badge">32</span></h2></td></tr>
     <tr class="head"><th>#</th><th>Event</th><th>Queue</th><th>Trigger</th><th>Payload</th><th>Recipients</th></tr>
@@ -73,6 +73,9 @@
     <tr><td class=num>30</td><td><code>INST_ONBOARDED</code></td><td>normal</td><td class=loc><code>OnboardBySupportCommandHandler.cs:32</code> — every call (no already-onboarded check, unlike the by-user route)</td><td>InstOnboardedEventDTO: InstId=onboarded institute's id, EmailUserTo=support caller's user id, EmailTo=empty</td><td>caller (support user)</td></tr>
     <tr><td class=num>31</td><td><code>INST_ONBOARDED</code></td><td>super-admin</td><td class=loc><code>OnboardBySupportCommandHandler.cs:34</code> — every call</td><td>InstOnboardedEventDTO (same fields as #30)</td><td>super-admin team</td></tr>
     <tr><td class=num>32</td><td><span class="tag pending">PENDING</span></td><td>—</td><td class=loc><code>OrganizationRepository.cs:35</code></td><td colspan="2">Add a method to assign/invite an owner for any existing org (e.g. AssignOwnerAsync) — sets OwnerUserId directly when the owner is a known user, or stores OwnerName/OwnerEmail with IsOwner = false and OwnerUserId = 0 for an invitation. Must also publish the ORG_OWNER_INVITE event once built.</td></tr>
+    <tr class="proj"><td colspan="6"><h2 id="vAccount/vAccount-UserAPI">vAccount/vAccount-UserAPI <span class="badge">1</span></h2></td></tr>
+    <tr class="head"><th>#</th><th>Event</th><th>Queue</th><th>Trigger</th><th>Payload</th><th>Recipients</th></tr>
+    <tr><td class=num>1</td><td><code>USER_PROFILE_UPDATED</code></td><td>normal</td><td class=loc><code>UserUpdateCommandHandler.cs:41</code> — every successful profile update</td><td>UserProfileUpdatedEventDTO: EmailUserTo=updated user's id, EmailTo=empty</td><td>the updated user</td></tr>
   </table>
 </div>
 </body>
