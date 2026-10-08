@@ -1,0 +1,86 @@
+{
+  "info": {
+    "_postman_id": "7c2d5e0a-4e5b-4b8a-9b0b-2a8e6f1c9d3f",
+    "name": "vAccount-UserAPI",
+    "description": "Testing environment only. Covers the SaaS and User resources — see vAccount-UserAPI.html for the full field reference, error codes, and status behavior. Authentication is handled automatically by the Postman Interceptor Chrome extension once you're logged into the product in Chrome — see the HTML guide's Postman setup section.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api-vacc.vidyaone.com/test/user/",
+      "description": "Testing environment (appsettings.Testing.json → App:BaseUrl). This collection targets Testing only."
+    },
+    {
+      "key": "product",
+      "value": "test-scl-website",
+      "description": "Calling product identifier — the identifier of whichever client app is calling this API (e.g. scl-website). Not stored in this project's own config; supplied by each calling client app. Prefixed with test- to run in test mode."
+    }
+  ],
+  "item": [
+    {
+      "name": "SaaS",
+      "item": [
+        {
+          "name": "Get institute/plan detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}saas/userinstdetail?product={{product}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Get user detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}saas/userdetail?product={{product}}"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Get profile (edit)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}user/edit?product={{product}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Update profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": "{{baseUrl}}user?product={{product}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"putDTO\": {\n    \"fullName\": \"Asha Rao\",\n    \"mobileCountryCode\": \"91\",\n    \"mobileNumber\": \"9876543210\",\n    \"isWhatsappMobile\": true,\n    \"altMobileCountryCode\": \"91\",\n    \"altMobileNumber\": \"9123456789\",\n    \"isWhatsappAltMobile\": false,\n    \"dob\": \"1990-04-12\",\n    \"gender\": \"Female\",\n    \"profileImageUrl\": \"https://cdn.example.com/u/10432.jpg\",\n    \"address\": \"12 MG Road, Bengaluru\",\n    \"countryId\": 1,\n    \"stateId\": 26,\n    \"districtId\": 49,\n    \"pinCode\": \"560001\",\n    \"employeeId\": \"EMP-1042\",\n    \"designation\": \"Administrator\",\n    \"department\": \"Operations\",\n    \"workEmail\": \"asha.rao@sunrise.edu\",\n    \"qualification\": \"M.Sc.\",\n    \"dateOfJoining\": \"2022-06-01\",\n    \"employmentType\": \"Full-time\",\n    \"socialLinks\": [\n      { \"socialLinkId\": 7, \"platform\": \"LinkedIn\", \"profileUrl\": \"https://linkedin.com/in/asha\" },\n      { \"socialLinkId\": 0, \"platform\": \"YouTube\", \"profileUrl\": \"https://youtube.com/@asha\" }\n    ]\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
