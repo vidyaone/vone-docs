@@ -379,7 +379,7 @@ Location: https://account.vidyaone.com?saascode=K7QK2M9F1A       // normal mode<
 <!-- ========================= Update profile ========================= -->
 <hr>
 <h3 id="user-put"><span class="method">PUT</span> <code>/user</code></h3>
-<p>Overwrites the caller's profile and replaces their social links. Every writable field is overwritten with the value sent — there is no partial update, so always send the complete object, including <code>socialLinks</code>. Optionally, in the same call, also issues a presigned S3 upload for a new profile picture — set <code>uploadProfilePictureFileName</code> and the response includes <code>uploadPresign</code>; set <code>putDTO.profileImageUrl</code> yourself to the resulting URL (the object key is deterministic from the file extension, so you don't need to wait for the upload to finish to know it) and actually upload the file to S3 afterward using the returned presign.</p>
+<p>Overwrites the caller's profile and replaces their social links. Every writable field is overwritten with the value sent — there is no partial update, so always send the complete object, including <code>socialLinks</code>. Optionally, in the same call, also issues a presigned S3 upload for a new profile picture — set <code>uploadProfilePictureFileName</code> and the response includes <code>uploadPresign</code>; set <code>putDTO.profileImageUrl</code> yourself to the resulting URL (the object key is deterministic from the sanitized file name you send, so you don't need to wait for the upload to finish to know it) and actually upload the file to S3 afterward using the returned presign.</p>
 
 <h4>Request</h4>
 <table>
@@ -406,7 +406,7 @@ Location: https://account.vidyaone.com?saascode=K7QK2M9F1A       // normal mode<
     "isWhatsappAltMobile": false,                             // optional, boolean, default false
     "dob": "1990-04-12",                                      // optional, string, date (YYYY-MM-DD), must be in the past
     "gender": "Female",                                       // optional, string, max 20 chars
-    "profileImageUrl": "https://cdn.example.com/u/10432.jpg", // optional, string, max 200 chars
+    "profileImageUrl": "https://cdn.example.com/u/10432.jpg", // optional, string, max 200 chars, http(s) URL
     "address": "12 MG Road, Bengaluru",                       // optional, string, max 1000 chars
     "countryId": 1,                                           // optional, integer, > 0
     "stateId": 26,                                            // optional, integer, > 0
@@ -432,9 +432,9 @@ Location: https://account.vidyaone.com?saascode=K7QK2M9F1A       // normal mode<
       }
     ]
   },
-  "uploadProfilePictureFileName": "profile.jpg"   // optional, string, max 255 chars &mdash; only the extension is used; must be jpg, jpeg, png, gif, webp, or bmp. When set, the response also includes a presigned upload for this file.
+  "uploadProfilePictureFileName": "asha_profile.jpg"   // optional, string, max 255 chars &mdash; extension must be jpg, jpeg, png, gif, webp, or bmp. The name itself (sanitized) becomes part of the uploaded object's key. When set, the response also includes a presigned upload for this file.
 }</code></pre>
-<p><code>userId</code> and <code>email</code> are not request fields — identity is taken from the authentication cookie, not the body. <code>putDTO.profileImageUrl</code> is saved exactly as sent, even if it points at a file not uploaded yet — set it yourself to <code>vAccount/user_profile/{userId}/profile.{ext}</code>'s resulting URL (same extension as <code>uploadProfilePictureFileName</code>) before or after the actual S3 upload.</p>
+<p><code>userId</code> and <code>email</code> are not request fields — identity is taken from the authentication cookie, not the body. <code>putDTO.profileImageUrl</code> is saved exactly as sent, even if it points at a file not uploaded yet — set it yourself to <code>vAccount/user_profile/{userId}/{sanitized-file-name}</code>'s resulting URL, where <code>sanitized-file-name</code> is <code>uploadProfilePictureFileName</code> with every character other than letters, digits, <code>.</code>, <code>_</code>, <code>-</code> and space replaced with <code>_</code>, truncated to 200 characters (extension preserved) if longer — before or after the actual S3 upload.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -443,11 +443,11 @@ Location: https://account.vidyaone.com?saascode=K7QK2M9F1A       // normal mode<
   "message": "User updated successfully.",
   "data": {
     "uploadPresign": {
-      "key": "vAccount/user_profile/10432/profile.jpg",
+      "key": "vAccount/user_profile/10432/asha_profile.jpg",
       "post": {
         "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/",
         "fields": {
-          "key": "vAccount/user_profile/10432/profile.jpg",
+          "key": "vAccount/user_profile/10432/asha_profile.jpg",
           "x-amz-server-side-encryption": "AES256",
           "x-amz-credential": "AKIA...redacted/20261008/ap-south-1/s3/aws4_request",
           "x-amz-algorithm": "AWS4-HMAC-SHA256",
@@ -463,12 +463,12 @@ Location: https://account.vidyaone.com?saascode=K7QK2M9F1A       // normal mode<
   },
   "errors": null
 }</code></pre>
-<p class="small"><code>uploadPresign</code> is <code>null</code> when <code>uploadProfilePictureFileName</code> was not sent. When present: upload directly to <code>uploadPresign.post.url</code> as <code>multipart/form-data</code>, including every entry in <code>post.fields</code> as a form field (unchanged, in order) plus the file content itself as a final field named <code>file</code>. S3 enforces <code>maxFileSize</code> (bytes) and requires the uploaded <code>Content-Type</code> to start with <code>contentTypePrefix</code>; the whole presigned POST expires after <code>expiresIn</code> seconds. <code>key</code> is always <code>vAccount/user_profile/{userId}/profile.{ext}</code> — fixed per caller and file type, so re-uploading the same image type always overwrites the previous picture (uploading a different image type afterward leaves the old file's object behind under its own extension). The response does not include a public URL for the uploaded file.</p>
+<p class="small"><code>uploadPresign</code> is <code>null</code> when <code>uploadProfilePictureFileName</code> was not sent. When present: upload directly to <code>uploadPresign.post.url</code> as <code>multipart/form-data</code>, including every entry in <code>post.fields</code> as a form field (unchanged, in order) plus the file content itself as a final field named <code>file</code>. S3 enforces <code>maxFileSize</code> (bytes) and requires the uploaded <code>Content-Type</code> to start with <code>contentTypePrefix</code>; the whole presigned POST expires after <code>expiresIn</code> seconds. <code>key</code> is <code>vAccount/user_profile/{userId}/{sanitized-file-name}</code> — re-uploading with the same (sanitized) <code>uploadProfilePictureFileName</code> overwrites the previous object at that key; uploading with a different file name creates a new object and leaves the old one in place. The response does not include a public URL for the uploaded file.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including <code>uploadProfilePictureFileName</code> over 255 chars), <code>putDTO</code> is missing, or the body is missing / invalid.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadProfilePictureFileName</code>'s extension is not one of jpg, jpeg, png, gif, webp, bmp. The profile is <strong>not</strong> updated when this fires.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadProfilePictureFileName</code>'s extension is not one of jpg, jpeg, png, gif, webp, bmp, or its sanitized file name would contain <code>..</code>. The profile is <strong>not</strong> updated when this fires.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No profile record exists for the caller, or a submitted <code>socialLinkId &gt; 0</code> doesn't belong to the caller.</td></tr>
