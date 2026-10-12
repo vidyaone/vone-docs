@@ -275,7 +275,7 @@
     "stateId": 26,                            // required, integer, > 0 &mdash; must reference an existing record
     "countryId": 1,                          // required, integer, > 0 &mdash; must reference an existing record
     "pincode": "560001",                      // required, string, max 10 chars
-    "logo": "org/acme/logo.png",              // optional, string, max 100 chars
+    "logo": "org/acme/logo.png",              // optional, string, max 100 chars, file name only (no / \ or : characters)
     "isOwner": true,                          // optional, boolean, default false &mdash; false requires ownerName/ownerEmail
     "ownerName": "Asha Rao",                  // conditional, string, max 150 chars &mdash; required when isOwner=false
     "ownerEmail": "asha@acme.example",        // conditional, string, valid email, max 150 chars &mdash; required when isOwner=false
@@ -341,7 +341,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including <code>regDate</code> not in UTC, a document value that isn't a file name, or an <code>uploadXFileName</code> over 255 chars), or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including <code>regDate</code> not in UTC, a <code>logo</code>/document value that isn't a file name, or an <code>uploadXFileName</code> over 255 chars), or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created-or-owns 10 non-deleted organizations.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
@@ -396,7 +396,7 @@
     "stateId": 26,                            // required, integer, > 0
     "countryId": 1,                          // required, integer, > 0
     "pincode": "560001",                      // required, string, max 10 chars
-    "logo": "org/acme/logo-v2.png",           // optional, string, max 100 chars
+    "logo": "org/acme/logo-v2.png",           // optional, string, max 100 chars, file name only (no / \ or : characters)
     "isOwner": true,                          // optional, boolean &mdash; ignored once the org has an accepted owner
     "ownerName": "Asha Rao",                  // conditional, string, max 150 chars &mdash; required when isOwner=false; ignored once the org has an accepted owner
     "ownerEmail": "asha@acme.example",        // conditional, string, valid email, max 150 chars &mdash; required when isOwner=false; ignored once the org has an accepted owner
@@ -449,7 +449,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails (including <code>regDate</code> not in UTC, a document value that isn't a file name, or an <code>uploadXFileName</code> over 255 chars), <code>orgId &le; 0</code>, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails (including <code>regDate</code> not in UTC, a <code>logo</code>/document value that isn't a file name, or an <code>uploadXFileName</code> over 255 chars), <code>orgId &le; 0</code>, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The organization exists but the caller neither created nor owns it.</td></tr>
@@ -988,7 +988,7 @@
     "stateId": 26,                                 // required, integer, > 0 &mdash; must reference an existing record
     "countryId": 1,                               // required, integer, > 0 &mdash; must reference an existing record
     "pincode": "560001",                           // required, string, max 10 chars
-    "logo": "inst/acme-engg/logo.png",             // optional, string, max 100 chars
+    "logo": "inst/acme-engg/logo.png",             // optional, string, max 100 chars, file name only (no / \ or : characters)
     "isDefault": true                              // optional, boolean, default false &mdash; caller's first institute is always forced default regardless of this value
   },
   "uploadLogoFileName": "logo.png"                 // optional, string, max 255 chars &mdash; see "Uploading the logo" below
@@ -1030,7 +1030,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including <code>uploadLogoFileName</code> over 255 chars), or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including a <code>logo</code> value that isn't a file name, or <code>uploadLogoFileName</code> over 255 chars), or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>instTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record; or <code>uploadLogoFileName</code> has an unsupported/unsafe value (see "Uploading the logo" above) &mdash; the institute is still created, only the presign is withheld.</td></tr>
     <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created 20 non-deleted institutes.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
@@ -1115,7 +1115,7 @@
     "stateId": 26,                                 // required, integer, > 0
     "countryId": 1,                               // required, integer, > 0
     "pincode": "560001",                           // required, string, max 10 chars
-    "logo": "inst/acme-engg/logo.png",             // optional, string, max 100 chars
+    "logo": "inst/acme-engg/logo.png",             // optional, string, max 100 chars, file name only (no / \ or : characters)
     "isDefault": false                             // optional, boolean, default false &mdash; always honored exactly as sent
   },
   "uploadLogoFileName": "logo-v2.png"              // optional, string, max 255 chars &mdash; see "Uploading the logo" below
@@ -1144,7 +1144,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including <code>uploadLogoFileName</code> over 255 chars), <code>instId &le; 0</code>, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including a <code>logo</code> value that isn't a file name, or <code>uploadLogoFileName</code> over 255 chars), <code>instId &le; 0</code>, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>instTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record; or <code>uploadLogoFileName</code> has an unsupported/unsafe value (see "Uploading the logo" above) &mdash; nothing is updated.</td></tr>
