@@ -109,6 +109,13 @@
     </ul>
   </div>
   <div class="menu">
+    <a href="#product">Product</a>
+    <ul class="submenu">
+      <li><a href="#product-list"><code>GET /product/list</code></a></li>
+      <li><a href="#product-list-trial"><code>GET /product/list/trial</code></a></li>
+    </ul>
+  </div>
+  <div class="menu">
     <a href="#onboard">Onboard</a>
     <ul class="submenu">
       <li><a href="#onboard-status"><code>GET /onboard/status</code></a></li>
@@ -141,7 +148,7 @@
 
 <main>
 <h1>vAccount-InstituteAPI — Developer Guide</h1>
-<p class="small">Documents the <strong>Organization</strong>, <strong>Institute</strong>, <strong>Onboard</strong>, <strong>Organization Type</strong>, <strong>Institute Type</strong>, and <strong>Role</strong> resources.</p>
+<p class="small">Documents the <strong>Organization</strong>, <strong>Institute</strong>, <strong>Product</strong>, <strong>Onboard</strong>, <strong>Organization Type</strong>, <strong>Institute Type</strong>, and <strong>Role</strong> resources.</p>
 
 <section id="postman-setup">
 <h2>Postman setup guide</h2>
@@ -222,6 +229,7 @@
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>A referenced id (organization type, institute type, district, state or country) doesn't exist, or a value isn't allowed.</td></tr>
     <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created-or-owns 10 non-deleted organizations (<code>POST /org</code>), or already created 20 non-deleted institutes (<code>POST /</code> institute).</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The target record exists but the caller doesn't have the required relationship to it (creator, owner, Admin, or member — see each endpoint).</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The target record doesn't match the request (missing, not owned/managed by the caller, deleted, deactivated, or otherwise ineligible — see each endpoint).</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>The organization <code>orgName</code>/<code>regNo</code>, or the institute <code>instName</code> within its organization, is already in use.</td></tr>
     <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record was removed while the request was being processed.</td></tr>
@@ -276,21 +284,68 @@
     "legalDocumentType": "GST",               // optional, string, max 50 chars
     "identityProofPath": null,                // optional, string, max 255 chars, file name only (no / \ or : characters)
     "identityProofType": null                 // optional, string, max 50 chars
-  }
+  },
+  "uploadLogoFileName": "logo.png",           // optional, string, max 255 chars &mdash; see "Uploading the logo/documents" below
+  "uploadLegalDocumentFileName": "gst.pdf",   // optional, string, max 255 chars &mdash; see "Uploading the logo/documents" below
+  "uploadIdentityProofFileName": null         // optional, string, max 255 chars &mdash; see "Uploading the logo/documents" below
 }</code></pre>
 <p><code>proceedWithKyc</code> and <code>kycStatus</code> are not request fields &mdash; nor are <code>remarks</code>/<code>submittedAt</code>, which are set by the server/reviewer only. Sending both <code>legalDocumentPath</code> and <code>identityProofPath</code> results in <code>kycStatus: "Under Review"</code> in later reads; otherwise <code>kycStatus: "Pending"</code>.</p>
 
+<h4>Uploading the logo/documents</h4>
+<p>Sending <code>uploadLogoFileName</code> / <code>uploadLegalDocumentFileName</code> / <code>uploadIdentityProofFileName</code> returns a matching presigned S3 upload in the response &mdash; one presign per file name sent, resolved <strong>after</strong> the organization is created, so an unsupported/unsafe file name still leaves the organization created; only the matching presign is withheld and the call fails with <span class="status-err">400</span> <code>INVALID_INPUT</code> instead. Set <code>postDTO.logo</code> / <code>legalDocumentPath</code> / <code>identityProofPath</code> to the same file name, then <code>POST</code> the raw file bytes plus every field in the matching <code>...uploadPresign.post.fields</code> directly to <code>...uploadPresign.post.url</code> (as multipart form fields, file field last).</p>
+<table>
+  <thead><tr><th>Field</th><th>Allowed extensions (case-insensitive)</th><th>Max size</th></tr></thead>
+  <tbody>
+    <tr><td><code>uploadLogoFileName</code></td><td><code>jpg</code>, <code>jpeg</code>, <code>png</code>, <code>gif</code>, <code>webp</code>, <code>bmp</code></td><td>10 MB (<code>10485760</code> bytes)</td></tr>
+    <tr><td><code>uploadLegalDocumentFileName</code> / <code>uploadIdentityProofFileName</code></td><td><code>pdf</code>, <code>jpg</code>, <code>jpeg</code>, <code>png</code></td><td>10 MB (<code>10485760</code> bytes)</td></tr>
+  </tbody>
+</table>
+<p class="small">Also rejected regardless of extension: a name over 200 characters, one containing a path separator (<code>/</code> or <code>\</code>), <code>..</code>, a control character, or a second, disguised extension (e.g. <code>invoice.php.jpg</code>).</p>
+
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
-<pre><code>{ "success": true, "message": "Success.", "data": { "orgId": 123 } }</code></pre>
+<pre><code>{
+  "success": true,
+  "message": "Success.",
+  "data": {
+    "orgId": 123,
+    "logoUploadPresign": {
+      "key": "vAccount/logo/org_123/logo.png",
+      "post": {
+        "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/",
+        "fields": {
+          "key": "vAccount/logo/org_123/logo.png",
+          "x-amz-server-side-encryption": "AES256",
+          "x-amz-credential": "ASIAEXAMPLE/20261012/ap-south-1/s3/aws4_request",
+          "x-amz-algorithm": "AWS4-HMAC-SHA256",
+          "x-amz-date": "20261012T000000Z",
+          "policy": "eyJleHBpcmF0aW9uIjoiMjAyNi0xMC0xMlQwMDowMjowMFoi...",
+          "x-amz-signature": "a1b2c3d4e5f6..."
+        }
+      },
+      "expiresIn": 120,
+      "maxFileSize": 10485760,
+      "contentTypePrefix": "image/"
+    },
+    "legalDocumentUploadPresign": {
+      "key": "vAccount/document/org_123/gst.pdf",
+      "post": { "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/", "fields": { "...": "..." } },
+      "expiresIn": 120,
+      "maxFileSize": 10485760,
+      "contentTypePrefix": "application/pdf"
+    },
+    "identityProofUploadPresign": null
+  }
+}</code></pre>
+<p>Each <code>...uploadPresign</code> field is <code>null</code> unless the matching <code>uploadXFileName</code> was sent. <code>post.url</code>/<code>post.fields</code> expire <code>expiresIn</code> seconds (120) after this response.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including <code>regDate</code> not in UTC or a document value that isn't a file name), or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including <code>regDate</code> not in UTC, a document value that isn't a file name, or an <code>uploadXFileName</code> over 255 chars), or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created-or-owns 10 non-deleted organizations.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>orgTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>orgTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record; or an <code>uploadXFileName</code> has an unsupported/unsafe value (see "Uploading the logo/documents" above) &mdash; the organization is still created, only that presign is withheld.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>orgName</code> or <code>regNo</code> already in use.</td></tr>
   </tbody>
 </table>
@@ -350,21 +405,56 @@
     "legalDocumentType": "GST",               // optional, string, max 50 chars
     "identityProofPath": "pan.pdf",           // optional, string, max 255 chars, file name only (no / \ or : characters)
     "identityProofType": "PAN"                // optional, string, max 50 chars
-  }
+  },
+  "uploadLogoFileName": "logo-v2.png",        // optional, string, max 255 chars &mdash; see "Uploading the logo/documents" below
+  "uploadLegalDocumentFileName": null,        // optional, string, max 255 chars &mdash; see "Uploading the logo/documents" below
+  "uploadIdentityProofFileName": "pan.pdf"    // optional, string, max 255 chars &mdash; see "Uploading the logo/documents" below
 }</code></pre>
+
+<h4>Uploading the logo/documents</h4>
+<p>Sending <code>uploadLogoFileName</code> / <code>uploadLegalDocumentFileName</code> / <code>uploadIdentityProofFileName</code> returns a matching presigned S3 upload in the response &mdash; one presign per file name sent. Unlike <a href="#org-post">Create organization</a>, this is resolved <strong>before</strong> the update is written: an unsupported/unsafe file name fails the whole request with <span class="status-err">400</span> <code>INVALID_INPUT</code> and the organization is <strong>not</strong> updated at all. Set <code>putDTO.logo</code> / <code>legalDocumentPath</code> / <code>identityProofPath</code> to the same file name, then <code>POST</code> the raw file bytes plus every field in the matching <code>...uploadPresign.post.fields</code> directly to <code>...uploadPresign.post.url</code> (as multipart form fields, file field last).</p>
+<table>
+  <thead><tr><th>Field</th><th>Allowed extensions (case-insensitive)</th><th>Max size</th></tr></thead>
+  <tbody>
+    <tr><td><code>uploadLogoFileName</code></td><td><code>jpg</code>, <code>jpeg</code>, <code>png</code>, <code>gif</code>, <code>webp</code>, <code>bmp</code></td><td>10 MB (<code>10485760</code> bytes)</td></tr>
+    <tr><td><code>uploadLegalDocumentFileName</code> / <code>uploadIdentityProofFileName</code></td><td><code>pdf</code>, <code>jpg</code>, <code>jpeg</code>, <code>png</code></td><td>10 MB (<code>10485760</code> bytes)</td></tr>
+  </tbody>
+</table>
+<p class="small">Also rejected regardless of extension: a name over 200 characters, one containing a path separator (<code>/</code> or <code>\</code>), <code>..</code>, a control character, or a second, disguised extension (e.g. <code>invoice.php.jpg</code>).</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
-<pre><code>{ "success": true, "message": "Organisation updated successfully." }</code></pre>
+<pre><code>{
+  "success": true,
+  "message": "Organisation updated successfully.",
+  "data": {
+    "logoUploadPresign": {
+      "key": "vAccount/logo/org_123/logo-v2.png",
+      "post": { "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/", "fields": { "...": "..." } },
+      "expiresIn": 120,
+      "maxFileSize": 10485760,
+      "contentTypePrefix": "image/"
+    },
+    "legalDocumentUploadPresign": null,
+    "identityProofUploadPresign": {
+      "key": "vAccount/document/org_123/pan.pdf",
+      "post": { "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/", "fields": { "...": "..." } },
+      "expiresIn": 120,
+      "maxFileSize": 10485760,
+      "contentTypePrefix": "application/pdf"
+    }
+  }
+}</code></pre>
+<p>Each <code>...uploadPresign</code> field is <code>null</code> unless the matching <code>uploadXFileName</code> was sent.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails (including <code>regDate</code> not in UTC or a document value that isn't a file name), <code>orgId &le; 0</code>, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails (including <code>regDate</code> not in UTC, a document value that isn't a file name, or an <code>uploadXFileName</code> over 255 chars), <code>orgId &le; 0</code>, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The organization exists but the caller neither created nor owns it.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The organization doesn't exist, is deleted, or is deactivated.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>orgTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>orgTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record; or an <code>uploadXFileName</code> has an unsupported/unsafe value (see "Uploading the logo/documents" above) &mdash; nothing is updated.</td></tr>
     <tr><td class="status-err">409</td><td><code>INVALID_STATE</code></td><td>The organization's <code>kycStatus</code> is currently <code>Under Review</code>.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>orgName</code> or <code>regNo</code> already in use.</td></tr>
   </tbody>
@@ -900,18 +990,48 @@
     "pincode": "560001",                           // required, string, max 10 chars
     "logo": "inst/acme-engg/logo.png",             // optional, string, max 100 chars
     "isDefault": true                              // optional, boolean, default false &mdash; caller's first institute is always forced default regardless of this value
-  }
+  },
+  "uploadLogoFileName": "logo.png"                 // optional, string, max 255 chars &mdash; see "Uploading the logo" below
 }</code></pre>
 <p>The institute is created on the product's trial plan; <code>productId</code>/<code>orgId</code> can never be changed afterward (moving an institute to a different org is <a href="#inst-changeorg">Change institute org</a>).</p>
 
+<h4>Uploading the logo</h4>
+<p>Sending <code>uploadLogoFileName</code> returns a presigned S3 upload in the response, resolved <strong>after</strong> the institute is created &mdash; an unsupported/unsafe file name still leaves the institute created; only <code>logoUploadPresign</code> is withheld and the call fails with <span class="status-err">400</span> <code>INVALID_INPUT</code> instead. Set <code>postDTO.logo</code> to the same file name, then <code>POST</code> the raw file bytes plus every field in <code>logoUploadPresign.post.fields</code> directly to <code>logoUploadPresign.post.url</code> (as multipart form fields, file field last). Allowed extensions (case-insensitive): <code>jpg</code>, <code>jpeg</code>, <code>png</code>, <code>gif</code>, <code>webp</code>, <code>bmp</code>; max size 10&nbsp;MB (<code>10485760</code> bytes).</p>
+<p class="small">Also rejected regardless of extension: a name over 200 characters, one containing a path separator (<code>/</code> or <code>\</code>), <code>..</code>, a control character, or a second, disguised extension (e.g. <code>invoice.php.jpg</code>).</p>
+
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
-<pre><code>{ "success": true, "message": "Success.", "data": { "instId": 456 } }</code></pre>
+<pre><code>{
+  "success": true,
+  "message": "Success.",
+  "data": {
+    "instId": 456,
+    "logoUploadPresign": {
+      "key": "vAccount/logo/inst_456/logo.png",
+      "post": {
+        "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/",
+        "fields": {
+          "key": "vAccount/logo/inst_456/logo.png",
+          "x-amz-server-side-encryption": "AES256",
+          "x-amz-credential": "ASIAEXAMPLE/20261012/ap-south-1/s3/aws4_request",
+          "x-amz-algorithm": "AWS4-HMAC-SHA256",
+          "x-amz-date": "20261012T000000Z",
+          "policy": "eyJleHBpcmF0aW9uIjoiMjAyNi0xMC0xMlQwMDowMjowMFoi...",
+          "x-amz-signature": "a1b2c3d4e5f6..."
+        }
+      },
+      "expiresIn": 120,
+      "maxFileSize": 10485760,
+      "contentTypePrefix": "image/"
+    }
+  }
+}</code></pre>
+<p><code>logoUploadPresign</code> is <code>null</code> unless <code>uploadLogoFileName</code> was sent.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails, or the body is missing / invalid.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>instTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including <code>uploadLogoFileName</code> over 255 chars), or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>instTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record; or <code>uploadLogoFileName</code> has an unsupported/unsafe value (see "Uploading the logo" above) &mdash; the institute is still created, only the presign is withheld.</td></tr>
     <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created 20 non-deleted institutes.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
@@ -997,19 +1117,37 @@
     "pincode": "560001",                           // required, string, max 10 chars
     "logo": "inst/acme-engg/logo.png",             // optional, string, max 100 chars
     "isDefault": false                             // optional, boolean, default false &mdash; always honored exactly as sent
-  }
+  },
+  "uploadLogoFileName": "logo-v2.png"              // optional, string, max 255 chars &mdash; see "Uploading the logo" below
 }</code></pre>
+
+<h4>Uploading the logo</h4>
+<p>Sending <code>uploadLogoFileName</code> returns a presigned S3 upload in the response. Unlike <a href="#inst-post">Create institute</a>, this is resolved <strong>before</strong> the update is written: an unsupported/unsafe file name fails the whole request with <span class="status-err">400</span> <code>INVALID_INPUT</code> and the institute is <strong>not</strong> updated at all. Set <code>putDTO.logo</code> to the same file name, then <code>POST</code> the raw file bytes plus every field in <code>logoUploadPresign.post.fields</code> directly to <code>logoUploadPresign.post.url</code> (as multipart form fields, file field last). Allowed extensions (case-insensitive): <code>jpg</code>, <code>jpeg</code>, <code>png</code>, <code>gif</code>, <code>webp</code>, <code>bmp</code>; max size 10&nbsp;MB (<code>10485760</code> bytes).</p>
+<p class="small">Also rejected regardless of extension: a name over 200 characters, one containing a path separator (<code>/</code> or <code>\</code>), <code>..</code>, a control character, or a second, disguised extension (e.g. <code>invoice.php.jpg</code>).</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
-<pre><code>{ "success": true, "message": "Institute updated successfully." }</code></pre>
+<pre><code>{
+  "success": true,
+  "message": "Institute updated successfully.",
+  "data": {
+    "logoUploadPresign": {
+      "key": "vAccount/logo/inst_456/logo-v2.png",
+      "post": { "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/", "fields": { "...": "..." } },
+      "expiresIn": 120,
+      "maxFileSize": 10485760,
+      "contentTypePrefix": "image/"
+    }
+  }
+}</code></pre>
+<p><code>logoUploadPresign</code> is <code>null</code> unless <code>uploadLogoFileName</code> was sent.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails, <code>instId &le; 0</code>, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including <code>uploadLogoFileName</code> over 255 chars), <code>instId &le; 0</code>, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>instTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>instTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record; or <code>uploadLogoFileName</code> has an unsupported/unsafe value (see "Uploading the logo" above) &mdash; nothing is updated.</td></tr>
     <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The institute exists but isn't managed by the caller.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, is deleted, or is deactivated.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>instName</code> already used by another institute in the same org.</td></tr>
@@ -1664,6 +1802,140 @@
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, is deleted, or (for a non-creator/non-admin caller) is deactivated.</td></tr>
+  </tbody>
+</table>
+
+</section>
+
+<section id="product">
+<h2>Product</h2>
+<p>An institute's product (SaaS) subscriptions, and what else it can still try, scoped by <code>instId</code>. <a href="#product-list">List institute products</a> is open to any member of the institute; <a href="#product-list-trial">List products available for trial</a> requires the caller to be an Admin of it.</p>
+
+<!-- ========================= List institute products ========================= -->
+<h3 id="product-list"><span class="method">GET</span> <code>/product/list</code></h3>
+<p>Returns a paged list of an institute's product (SaaS) subscriptions, optionally filtered by plan status. The caller must hold any membership role on the institute.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/product/list?product={product}&amp;instId={instId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/product/list?product={product}&amp;instId={instId}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>instId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0.</td></tr>
+    <tr><td><code>planStatus</code></td><td>string</td><td class="opt">no</td><td>Case-insensitive exact match. One of <code>Active</code>, <code>Trial</code>, <code>Renew</code>, <code>Expired</code>. Omit for all statuses.</td></tr>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. A value &le; 0 is ignored.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>10</code>. A value &le; 0 is ignored; above <code>200</code> is rejected.</td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /product/list?product=account
+    &amp;instId=456          // required, integer, > 0
+    &amp;planStatus=Active   // optional, string &mdash; one of Active, Trial, Renew, Expired
+    &amp;pageNumber=1        // optional, integer, default 1
+    &amp;pageSize=10         // optional, integer, default 10, max 200</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": {
+    "records": [
+      {
+        "instSaaSId": 789,
+        "instCode": "INSTA1B2C3",
+        "instSaaSCode": "SAASX7Y8Z9",
+        "instName": "Acme Engineering College",
+        "orgName": "Acme Institute",
+        "productId": 1,
+        "productName": "vWebsite",
+        "productCode": "WEB",
+        "productSubdomain": "vwebsite",
+        "productIcon": "vwebsite.png",
+        "productWebsite": "https://vwebsite.example",
+        "productAdmin": "https://admin.vwebsite.example",
+        "planId": 1,
+        "planName": "Trial",
+        "planCode": "TRIAL",
+        "isHighest": false,
+        "planStartDate": "2026-09-01T08:00:00+00:00",
+        "planEndDate": "2026-09-16T08:00:00+00:00",
+        "planStatus": "Active",
+        "isActive": true
+      }
+    ],
+    "metaData": {
+      "totalCount": 1, "pageSize": 10, "currentPage": 1,
+      "totalPages": 1, "hasNext": false, "hasPrevious": false
+    }
+  }
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId</code> missing, <code>&le; 0</code>, or not an integer; or <code>pageSize</code> above <code>200</code>.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The institute exists, isn't deleted, and is active, but the caller has no membership row on it.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, is deleted, or is deactivated.</td></tr>
+  </tbody>
+</table>
+
+<!-- ========================= List products available for trial ========================= -->
+<hr>
+<h3 id="product-list-trial"><span class="method">GET</span> <code>/product/list/trial</code></h3>
+<p>Returns the products this institute can still start a trial on — matching the institute's type, with no existing subscription yet. Not paginated. The caller must be an Admin of the institute — the same rule <a href="#inst-trial">Start institute trial</a> enforces.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/product/list/trial?product={product}&amp;instId={instId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/product/list/trial?product={product}&amp;instId={instId}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>instId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0.</td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /product/list/trial?product=account
+    &amp;instId=456   // required, integer, > 0</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    {
+      "productId": 2,
+      "productName": "vForm",
+      "productCode": "FORM",
+      "productSubdomain": "vform",
+      "productIcon": "vform.png",
+      "productWebsite": "https://vform.example",
+      "productAdmin": "https://admin.vform.example",
+      "productAdminCta": "Start Trial"
+    }
+  ]
+}</code></pre>
+<p>Empty array when the institute already has a subscription to every product matching its institute type.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId</code> missing, <code>&le; 0</code>, or not an integer.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The institute exists, isn't deleted, and is active, but the caller isn't an Admin of it.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, is deleted, or is deactivated.</td></tr>
   </tbody>
 </table>
 
