@@ -275,14 +275,14 @@
     "stateId": 26,                            // required, integer, > 0 &mdash; must reference an existing record
     "countryId": 1,                          // required, integer, > 0 &mdash; must reference an existing record
     "pincode": "560001",                      // required, string, max 10 chars
-    "logo": "org/acme/logo.png",              // optional, string, max 100 chars, file name only (no / \ or : characters)
+    "logo": "logo.png",                       // optional, string, max 100 chars &mdash; a bare file name (no / \ or : characters) or an absolute http/https URL
     "isOwner": true,                          // optional, boolean, default false &mdash; false requires ownerName/ownerEmail
     "ownerName": "Asha Rao",                  // conditional, string, max 150 chars &mdash; required when isOwner=false
     "ownerEmail": "asha@acme.example",        // conditional, string, valid email, max 150 chars &mdash; required when isOwner=false
     "isDefault": true,                        // optional, boolean, default false &mdash; caller's first org is always forced default regardless of this value
-    "legalDocumentPath": "gst.pdf",           // optional, string, max 255 chars, file name only (no / \ or : characters)
+    "legalDocumentPath": "gst.pdf",           // optional, string, max 255 chars &mdash; a bare file name (no / \ or : characters) or an absolute http/https URL
     "legalDocumentType": "GST",               // optional, string, max 50 chars
-    "identityProofPath": null,                // optional, string, max 255 chars, file name only (no / \ or : characters)
+    "identityProofPath": null,                // optional, string, max 255 chars &mdash; a bare file name (no / \ or : characters) or an absolute http/https URL
     "identityProofType": null                 // optional, string, max 50 chars
   },
   "uploadLogoFileName": "logo.png",           // optional, string, max 255 chars &mdash; see "Uploading the logo/documents" below
@@ -301,6 +301,7 @@
   </tbody>
 </table>
 <p class="small">Also rejected regardless of extension: a name over 200 characters, one containing a path separator (<code>/</code> or <code>\</code>), <code>..</code>, a control character, or a second, disguised extension (e.g. <code>invoice.php.jpg</code>).</p>
+<p><code>logo</code> / <code>legalDocumentPath</code> / <code>identityProofPath</code> may instead be set directly to an absolute <code>http://</code> or <code>https://</code> URL &mdash; in that case the matching <code>uploadXFileName</code> field is not needed.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -341,7 +342,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including <code>regDate</code> not in UTC, a <code>logo</code>/document value that isn't a file name, or an <code>uploadXFileName</code> over 255 chars), or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including <code>regDate</code> not in UTC, a <code>logo</code>/document value that's neither a bare file name nor an http/https URL, or an <code>uploadXFileName</code> over 255 chars), or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created-or-owns 10 non-deleted organizations.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
@@ -396,14 +397,14 @@
     "stateId": 26,                            // required, integer, > 0
     "countryId": 1,                          // required, integer, > 0
     "pincode": "560001",                      // required, string, max 10 chars
-    "logo": "org/acme/logo-v2.png",           // optional, string, max 100 chars, file name only (no / \ or : characters)
+    "logo": "logo-v2.png",                    // optional, string, max 100 chars &mdash; a bare file name (no / \ or : characters) or an absolute http/https URL
     "isOwner": true,                          // optional, boolean &mdash; ignored once the org has an accepted owner
     "ownerName": "Asha Rao",                  // conditional, string, max 150 chars &mdash; required when isOwner=false; ignored once the org has an accepted owner
     "ownerEmail": "asha@acme.example",        // conditional, string, valid email, max 150 chars &mdash; required when isOwner=false; ignored once the org has an accepted owner
     "isDefault": false,                       // optional, boolean, default false &mdash; always honored exactly as sent
-    "legalDocumentPath": "gst.pdf",           // optional, string, max 255 chars, file name only (no / \ or : characters)
+    "legalDocumentPath": "gst.pdf",           // optional, string, max 255 chars &mdash; a bare file name (no / \ or : characters) or an absolute http/https URL
     "legalDocumentType": "GST",               // optional, string, max 50 chars
-    "identityProofPath": "pan.pdf",           // optional, string, max 255 chars, file name only (no / \ or : characters)
+    "identityProofPath": "pan.pdf",           // optional, string, max 255 chars &mdash; a bare file name (no / \ or : characters) or an absolute http/https URL
     "identityProofType": "PAN"                // optional, string, max 50 chars
   },
   "uploadLogoFileName": "logo-v2.png",        // optional, string, max 255 chars &mdash; see "Uploading the logo/documents" below
@@ -421,6 +422,7 @@
   </tbody>
 </table>
 <p class="small">Also rejected regardless of extension: a name over 200 characters, one containing a path separator (<code>/</code> or <code>\</code>), <code>..</code>, a control character, or a second, disguised extension (e.g. <code>invoice.php.jpg</code>).</p>
+<p><code>logo</code> / <code>legalDocumentPath</code> / <code>identityProofPath</code> may instead be set directly to an absolute <code>http://</code> or <code>https://</code> URL &mdash; in that case the matching <code>uploadXFileName</code> field is not needed.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -449,7 +451,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails (including <code>regDate</code> not in UTC, a <code>logo</code>/document value that isn't a file name, or an <code>uploadXFileName</code> over 255 chars), <code>orgId &le; 0</code>, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails (including <code>regDate</code> not in UTC, a <code>logo</code>/document value that's neither a bare file name nor an http/https URL, or an <code>uploadXFileName</code> over 255 chars), <code>orgId &le; 0</code>, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The organization exists but the caller neither created nor owns it.</td></tr>
@@ -988,7 +990,7 @@
     "stateId": 26,                                 // required, integer, > 0 &mdash; must reference an existing record
     "countryId": 1,                               // required, integer, > 0 &mdash; must reference an existing record
     "pincode": "560001",                           // required, string, max 10 chars
-    "logo": "inst/acme-engg/logo.png",             // optional, string, max 100 chars, file name only (no / \ or : characters)
+    "logo": "logo.png",                            // optional, string, max 500 chars &mdash; a bare file name (no / \ or : characters) or an absolute http/https URL
     "isDefault": true                              // optional, boolean, default false &mdash; caller's first institute is always forced default regardless of this value
   },
   "uploadLogoFileName": "logo.png"                 // optional, string, max 255 chars &mdash; see "Uploading the logo" below
@@ -998,6 +1000,7 @@
 <h4>Uploading the logo</h4>
 <p>Sending <code>uploadLogoFileName</code> returns a presigned S3 upload in the response, resolved <strong>after</strong> the institute is created &mdash; an unsupported/unsafe file name still leaves the institute created; only <code>logoUploadPresign</code> is withheld and the call fails with <span class="status-err">400</span> <code>INVALID_INPUT</code> instead. Set <code>postDTO.logo</code> to the same file name, then <code>POST</code> the raw file bytes plus every field in <code>logoUploadPresign.post.fields</code> directly to <code>logoUploadPresign.post.url</code> (as multipart form fields, file field last). Allowed extensions (case-insensitive): <code>jpg</code>, <code>jpeg</code>, <code>png</code>, <code>gif</code>, <code>webp</code>, <code>bmp</code>; max size 10&nbsp;MB (<code>10485760</code> bytes).</p>
 <p class="small">Also rejected regardless of extension: a name over 200 characters, one containing a path separator (<code>/</code> or <code>\</code>), <code>..</code>, a control character, or a second, disguised extension (e.g. <code>invoice.php.jpg</code>).</p>
+<p><code>logo</code> may instead be set directly to an absolute <code>http://</code> or <code>https://</code> URL &mdash; in that case <code>uploadLogoFileName</code> is not needed.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -1030,7 +1033,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including a <code>logo</code> value that isn't a file name, or <code>uploadLogoFileName</code> over 255 chars), or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including a <code>logo</code> value that's neither a bare file name nor an http/https URL, or <code>uploadLogoFileName</code> over 255 chars), or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>instTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record; or <code>uploadLogoFileName</code> has an unsupported/unsafe value (see "Uploading the logo" above) &mdash; the institute is still created, only the presign is withheld.</td></tr>
     <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>The caller already created 20 non-deleted institutes.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
@@ -1115,7 +1118,7 @@
     "stateId": 26,                                 // required, integer, > 0
     "countryId": 1,                               // required, integer, > 0
     "pincode": "560001",                           // required, string, max 10 chars
-    "logo": "inst/acme-engg/logo.png",             // optional, string, max 100 chars, file name only (no / \ or : characters)
+    "logo": "logo-v2.png",                          // optional, string, max 500 chars &mdash; a bare file name (no / \ or : characters) or an absolute http/https URL
     "isDefault": false                             // optional, boolean, default false &mdash; always honored exactly as sent
   },
   "uploadLogoFileName": "logo-v2.png"              // optional, string, max 255 chars &mdash; see "Uploading the logo" below
@@ -1124,6 +1127,7 @@
 <h4>Uploading the logo</h4>
 <p>Sending <code>uploadLogoFileName</code> returns a presigned S3 upload in the response. Unlike <a href="#inst-post">Create institute</a>, this is resolved <strong>before</strong> the update is written: an unsupported/unsafe file name fails the whole request with <span class="status-err">400</span> <code>INVALID_INPUT</code> and the institute is <strong>not</strong> updated at all. Set <code>putDTO.logo</code> to the same file name, then <code>POST</code> the raw file bytes plus every field in <code>logoUploadPresign.post.fields</code> directly to <code>logoUploadPresign.post.url</code> (as multipart form fields, file field last). Allowed extensions (case-insensitive): <code>jpg</code>, <code>jpeg</code>, <code>png</code>, <code>gif</code>, <code>webp</code>, <code>bmp</code>; max size 10&nbsp;MB (<code>10485760</code> bytes).</p>
 <p class="small">Also rejected regardless of extension: a name over 200 characters, one containing a path separator (<code>/</code> or <code>\</code>), <code>..</code>, a control character, or a second, disguised extension (e.g. <code>invoice.php.jpg</code>).</p>
+<p><code>logo</code> may instead be set directly to an absolute <code>http://</code> or <code>https://</code> URL &mdash; in that case <code>uploadLogoFileName</code> is not needed.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -1144,7 +1148,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including a <code>logo</code> value that isn't a file name, or <code>uploadLogoFileName</code> over 255 chars), <code>instId &le; 0</code>, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including a <code>logo</code> value that's neither a bare file name nor an http/https URL, or <code>uploadLogoFileName</code> over 255 chars), <code>instId &le; 0</code>, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>instTypeId</code> / <code>districtId</code> / <code>stateId</code> / <code>countryId</code> doesn't reference an existing record; or <code>uploadLogoFileName</code> has an unsupported/unsafe value (see "Uploading the logo" above) &mdash; nothing is updated.</td></tr>
@@ -1813,20 +1817,19 @@
 
 <!-- ========================= List institute products ========================= -->
 <h3 id="product-list"><span class="method">GET</span> <code>/product/list</code></h3>
-<p>Returns a paged list of an institute's product (SaaS) subscriptions, optionally filtered by plan status. The caller must hold any membership role on the institute.</p>
+<p>Returns a paged list of the caller's product (SaaS) subscriptions across every institute they belong to (any membership role), optionally filtered by plan status.</p>
 
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/product/list?product={product}&amp;instId={instId}</code></td></tr>
-    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/product/list?product={product}&amp;instId={instId}</code></td></tr>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/product/list?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/product/list?product={product}</code></td></tr>
   </tbody>
 </table>
 <table>
   <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>instId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0.</td></tr>
     <tr><td><code>planStatus</code></td><td>string</td><td class="opt">no</td><td>Case-insensitive exact match. One of <code>Active</code>, <code>Trial</code>, <code>Renew</code>, <code>Expired</code>. Omit for all statuses.</td></tr>
     <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. A value &le; 0 is ignored.</td></tr>
     <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>10</code>. A value &le; 0 is ignored; above <code>200</code> is rejected.</td></tr>
@@ -1835,7 +1838,6 @@
 
 <h4>Sample request</h4>
 <pre><code>GET /product/list?product=account
-    &amp;instId=456          // required, integer, > 0
     &amp;planStatus=Active   // optional, string &mdash; one of Active, Trial, Renew, Expired
     &amp;pageNumber=1        // optional, integer, default 1
     &amp;pageSize=10         // optional, integer, default 10, max 200</code></pre>
@@ -1878,13 +1880,12 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>instId</code> missing, <code>&le; 0</code>, or not an integer; or <code>pageSize</code> above <code>200</code>.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageSize</code> above <code>200</code>, or a value that isn't an integer.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The institute exists, isn't deleted, and is active, but the caller has no membership row on it.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institute doesn't exist, is deleted, or is deactivated.</td></tr>
   </tbody>
 </table>
+<p>An empty <code>records</code> list (not an error) is returned when the caller belongs to no institute, or none of theirs have a product subscription matching <code>planStatus</code>.</p>
 
 <!-- ========================= List products available for trial ========================= -->
 <hr>

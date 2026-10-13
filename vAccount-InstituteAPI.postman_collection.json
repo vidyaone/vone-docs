@@ -514,7 +514,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}product/list?product={{product}}&instId={{instId}}&planStatus=Active&pageNumber=1&pageSize=10"
+            "url": "{{baseUrl}}product/list?product={{product}}&planStatus=Active&pageNumber=1&pageSize=10"
           },
           "response": []
         },
