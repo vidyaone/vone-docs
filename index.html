@@ -69,6 +69,18 @@
   ul.files a:hover { border-radius: 10px; background: #1c2030; }
   ul.files .name { font-size: 0.98rem; font-weight: 600; color: var(--accent); }
   ul.files .meta { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
+  ul.files li.group-heading {
+    background: transparent;
+    border: none;
+    margin: 20px 0 8px;
+    padding: 0 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  ul.files li.group-heading:first-child { margin-top: 0; }
   .state { color: var(--muted); padding: 20px 0; }
   .state.error { color: var(--err); }
   footer {
@@ -118,26 +130,49 @@
     return base;
   }
 
+  function prefixFromPath(path) {
+    var base = path.split("/").pop().replace(/\.html?$/i, "");
+    var idx = base.indexOf("-");
+    return idx === -1 ? base : base.slice(0, idx);
+  }
+
   function render(filter) {
     filter = (filter || "").toLowerCase().trim();
     listEl.innerHTML = "";
     var shown = 0;
+    var groups = {};
+    var order = [];
     allFiles.forEach(function (f) {
       if (filter && f.path.toLowerCase().indexOf(filter) === -1) return;
       shown++;
-      var li = document.createElement("li");
-      var a = document.createElement("a");
-      a.href = f.path;
-      var name = document.createElement("span");
-      name.className = "name";
-      name.textContent = titleFromPath(f.path);
-      var meta = document.createElement("span");
-      meta.className = "meta";
-      meta.textContent = f.path + (f.size ? "  ·  " + Math.round(f.size / 1024) + " KB" : "");
-      a.appendChild(name);
-      a.appendChild(meta);
-      li.appendChild(a);
-      listEl.appendChild(li);
+      var prefix = prefixFromPath(f.path);
+      if (!groups[prefix]) {
+        groups[prefix] = [];
+        order.push(prefix);
+      }
+      groups[prefix].push(f);
+    });
+    order.sort(function (a, b) { return a.localeCompare(b); });
+    order.forEach(function (prefix) {
+      var heading = document.createElement("li");
+      heading.className = "group-heading";
+      heading.textContent = prefix;
+      listEl.appendChild(heading);
+      groups[prefix].forEach(function (f) {
+        var li = document.createElement("li");
+        var a = document.createElement("a");
+        a.href = f.path;
+        var name = document.createElement("span");
+        name.className = "name";
+        name.textContent = titleFromPath(f.path);
+        var meta = document.createElement("span");
+        meta.className = "meta";
+        meta.textContent = f.path + (f.size ? "  ·  " + Math.round(f.size / 1024) + " KB" : "");
+        a.appendChild(name);
+        a.appendChild(meta);
+        li.appendChild(a);
+        listEl.appendChild(li);
+      });
     });
     countEl.textContent = shown + " of " + allFiles.length + " page" + (allFiles.length === 1 ? "" : "s");
   }

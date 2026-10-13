@@ -1,0 +1,301 @@
+{
+  "info": {
+    "name": "vWebsite-AdminAPI",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api-vweb.vidyaone.com/test/admin/",
+      "description": "Testing environment (appsettings.Testing.json → App:BaseUrl). This collection targets Testing only."
+    },
+    {
+      "key": "product",
+      "value": "vweb",
+      "description": "Calling product identifier — the identifier of whichever client app is calling this API (e.g. vweb). Not stored in this project's own config; supplied by each calling client app. Prefix with test- to run in test mode (e.g. test-vweb)."
+    }
+  ],
+  "item": [
+    {
+      "name": "DataJson",
+      "item": [
+        {
+          "name": "Get data file",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}data?product={{product}}&file=data_home.json",
+              "host": ["{{baseUrl}}data"],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "file", "value": "data_home.json" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Save data file",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}data?product={{product}}",
+              "host": ["{{baseUrl}}data"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"file\": \"data_home.json\",\n  \"data\": {\n    \"hero\": { \"title\": \"Welcome\", \"image\": \"hero.png\" },\n    \"sections\": [ { \"type\": \"text\", \"body\": \"About us\" } ]\n  },\n  \"upload_files\": [\n    { \"file_name\": \"hero.png\" }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Module",
+      "item": [
+        {
+          "name": "List modules",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}module?product={{product}}",
+              "host": ["{{baseUrl}}module"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get module status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}module/status?product={{product}}&moduleName=data_home",
+              "host": ["{{baseUrl}}module/status"],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "moduleName", "value": "data_home" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Save module statuses",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}module?product={{product}}",
+              "host": ["{{baseUrl}}module"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  { \"moduleName\": \"data_home\",  \"status\": true  },\n  { \"moduleName\": \"data_about\", \"status\": false },\n  { \"moduleName\": \"data_blog\" }\n]",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Page",
+      "item": [
+        {
+          "name": "List pages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}page?product={{product}}",
+              "host": ["{{baseUrl}}page"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get page status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}page/status?product={{product}}&pageName=about",
+              "host": ["{{baseUrl}}page/status"],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "pageName", "value": "about" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Save page statuses",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}page?product={{product}}",
+              "host": ["{{baseUrl}}page"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  { \"pageName\": \"about\",   \"status\": true  },\n  { \"pageName\": \"contact\", \"status\": false }\n]",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Onboard",
+      "item": [
+        {
+          "name": "Get domain onboard status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}onboard/domain?product={{product}}",
+              "host": ["{{baseUrl}}onboard/domain"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set domain onboard status",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}onboard/domain?product={{product}}",
+              "host": ["{{baseUrl}}onboard/domain"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isSetupDomain\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get module onboard status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}onboard/module?product={{product}}",
+              "host": ["{{baseUrl}}onboard/module"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set module onboard status",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}onboard/module?product={{product}}",
+              "host": ["{{baseUrl}}onboard/module"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isSetupModule\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get template onboard status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}onboard/template?product={{product}}",
+              "host": ["{{baseUrl}}onboard/template"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set template onboard status",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}onboard/template?product={{product}}",
+              "host": ["{{baseUrl}}onboard/template"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isSetupTemplate\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
