@@ -168,7 +168,7 @@
     <tr><td class="status-ok">200</td><td>—</td><td>Success.</td></tr>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A request field fails validation (see each endpoint), or the body is missing / not valid JSON.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> is missing from the query string.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>imageFileName</code> has an unsupported or unsafe value (see <a href="#notice-post">Create notice</a>).</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadImageFileName</code> has an unsupported or unsafe value (see <a href="#notice-post">Create notice</a>).</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The notice doesn't exist for the calling institution (missing or already deleted).</td></tr>
     <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record was removed while the request was being processed.</td></tr>
@@ -184,7 +184,7 @@
 <!-- ========================= List notices ========================= -->
 <details id="notice-get">
 <summary><span class="method">GET</span> <code>/notice</code></summary>
-<p>Returns every active, non-deleted notice for the calling institution, most recently published first. Not paged.</p>
+<p>Returns every active, non-deleted notice for the calling institution, most recently published first. Not paged. Reads from the <code>vw_plg_notice_list</code> read model.</p>
 
 <h4>Request</h4>
 <table>
@@ -207,14 +207,20 @@
   "data": [
     {
       "noticeId": 501,
+      "instSaaSId": 321,
       "title": "Annual Sports Day",
-      "imageSrc": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/vWebsite/plugin_cdn/notice/inst_321/3f2a1b4c5d6e7f8091a2b3c4d5e6f708.jpg",
+      "shortDescription": "Join us for the annual sports day on the school grounds.",
+      "imageSrc": "sports-day.jpg",
       "publishDate": "2026-11-01",
       "expiryDate": "2026-11-15",
-      "noticeStatus": true
+      "publishState": "Live",
+      "isActive": true,
+      "createdAt": "2026-10-10T08:00:00+00:00",
+      "updatedAt": "2026-10-10T08:00:00+00:00"
     }
   ]
 }</code></pre>
+<p><code>shortDescription</code> is the first 150 characters of the notice's full description. <code>publishState</code> is computed from <code>publishDate</code>/<code>expiryDate</code> against the current UTC date — <code>"Scheduled"</code> (publish date is in the future), <code>"Live"</code>, or <code>"Expired"</code> (expiry date has passed) — never stored. <code>isActive</code> is always <code>true</code> in current practice: no route in this API deactivates a notice.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
@@ -227,7 +233,7 @@
 <!-- ========================= Get notice (edit) ========================= -->
 <details id="notice-edit">
 <summary><span class="method">GET</span> <code>/notice/edit</code></summary>
-<p>Returns one notice in a flat, editable shape that can be sent straight back to <a href="#notice-put">Update notice</a>.</p>
+<p>Returns one notice in a flat, editable shape that can be sent straight back to <a href="#notice-put">Update notice</a>. Reads the table directly (not a view).</p>
 
 <h4>Request</h4>
 <table>
@@ -255,17 +261,14 @@
   "message": null,
   "errors": null,
   "data": {
+    "noticeId": 501,
     "title": "Annual Sports Day",
     "description": "Join us for the annual sports day on the school grounds.",
-    "imageFileName": null,
+    "imageSrc": "sports-day.jpg",
     "publishDate": "2026-11-01",
-    "expiryDate": "2026-11-15",
-    "noticeStatus": true,
-    "noticeId": 501,
-    "imageSrc": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/vWebsite/plugin_cdn/notice/inst_321/3f2a1b4c5d6e7f8091a2b3c4d5e6f708.jpg"
+    "expiryDate": "2026-11-15"
   }
 }</code></pre>
-<p><code>imageFileName</code> is always <code>null</code> in this response — it's only ever a request field (see <a href="#notice-post">Create notice</a>); the current image is reflected in <code>imageSrc</code>.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
@@ -280,7 +283,7 @@
 <!-- ========================= Get notice (view) ========================= -->
 <details id="notice-view">
 <summary><span class="method">GET</span> <code>/notice/view</code></summary>
-<p>Returns one notice in a detailed, read-only shape, including audit info.</p>
+<p>Returns one notice in a detailed, read-only shape, including audit info. Reads from the <code>vw_plg_notice_view</code> read model.</p>
 
 <h4>Request</h4>
 <table>
@@ -308,20 +311,19 @@
   "message": null,
   "errors": null,
   "data": {
+    "noticeId": 501,
     "title": "Annual Sports Day",
     "description": "Join us for the annual sports day on the school grounds.",
-    "imageFileName": null,
+    "imageSrc": "sports-day.jpg",
     "publishDate": "2026-11-01",
     "expiryDate": "2026-11-15",
-    "noticeStatus": true,
-    "noticeId": 501,
-    "imageSrc": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/vWebsite/plugin_cdn/notice/inst_321/3f2a1b4c5d6e7f8091a2b3c4d5e6f708.jpg",
+    "publishState": "Live",
     "instSaaSId": 321,
     "creatorUserId": 42,
-    "audit": { "isActive": true, "createdAt": "2026-10-10T08:00:00+00:00", "updatedAt": "2026-10-10T08:00:00+00:00" }
+    "audit": { "isActive": true, "inactiveAt": null, "createdAt": "2026-10-10T08:00:00+00:00", "updatedAt": "2026-10-10T08:00:00+00:00" }
   }
 }</code></pre>
-<p><code>imageFileName</code> is always <code>null</code> in this response, the same as <a href="#notice-edit">Get notice (edit)</a>.</p>
+<p><code>publishState</code> is computed the same way as in <a href="#notice-get">List notices</a>. <code>audit.isActive</code> is always <code>true</code> and <code>audit.inactiveAt</code> is always <code>null</code> in current practice: no route in this API deactivates a notice.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
@@ -349,23 +351,26 @@
 
 <h4>Sample request body</h4>
 <pre><code>{
-  "title": "Annual Sports Day",                                             // required, string, max 200 chars
-  "description": "Join us for the annual sports day on the school grounds.", // required, string
-  "imageFileName": "sports-day.jpg",                                        // optional, string, max 255 chars &mdash; requesting an image upload slot; see "Uploading the image" below
-  "publishDate": "2026-11-01",                                              // required, string, date (yyyy-MM-dd)
-  "expiryDate": "2026-11-15",                                               // optional, string, date (yyyy-MM-dd) &mdash; must be on or after publishDate
-  "noticeStatus": true                                                      // optional, boolean, default true
+  "notice": {
+    "title": "Annual Sports Day",                                             // required, string, max 200 chars
+    "description": "Join us for the annual sports day on the school grounds.", // required, string
+    "imageSrc": "sports-day.jpg",                                             // optional, string, max 500 chars &mdash; a plain file name only, never a URL or a path; see "Uploading an image" below &mdash; independent of uploadImageFileName, never required to match it
+    "publishDate": "2026-11-01",                                              // required, string, date (yyyy-MM-dd)
+    "expiryDate": "2026-11-15"                                                // optional, string, date (yyyy-MM-dd) &mdash; must be on or after publishDate
+  },
+  "uploadImageFileName": "sports-day-raw.jpg"                                 // optional, string, max 255 chars &mdash; requests an image upload slot; see "Uploading an image" below
 }</code></pre>
 
-<h4>Uploading the image</h4>
-<p>Sending <code>imageFileName</code> returns a presigned S3 upload in the response, resolved <strong>before</strong> the notice is created &mdash; an unsupported or unsafe file name fails the whole request with <span class="status-err">400</span> <code>INVALID_INPUT</code> and <strong>no notice is created</strong>. On success, the notice's <code>imageSrc</code> is already set to the final URL (shown as <code>data.imagePresign.publicUrl</code> below) &mdash; no second call is needed to record it. <code>POST</code> the raw file bytes plus every field in <code>data.imagePresign.post.fields</code> directly to <code>data.imagePresign.post.url</code> (as multipart form fields, file field last) within <code>expiresIn</code> seconds.</p>
+<h4>Uploading an image</h4>
+<p><code>imageSrc</code> and <code>uploadImageFileName</code> are unrelated fields &mdash; <code>imageSrc</code> is stored exactly as sent, and this API never requires it to match anything the upload flow produces.</p>
+<p>Sending <code>uploadImageFileName</code> returns a presigned S3 upload in the response, resolved <strong>after</strong> the notice is already created &mdash; an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code>, but <strong>the notice has already been created</strong> by that point (<code>data.noticeId</code> in the error is not returned, but the record exists &mdash; look it up via <a href="#notice-get">List notices</a> or <a href="#notice-view">Get notice (view)</a> if this happens). On success, <code>POST</code> the raw file bytes plus every field in <code>data.imagePresign.post.fields</code> directly to <code>data.imagePresign.post.url</code> (as multipart form fields, file field last) within <code>expiresIn</code> seconds. Re-uploading the same file name for the same institution overwrites the previous object at that key.</p>
 <table>
   <thead><tr><th>Allowed extensions (case-insensitive)</th><th>Max size</th></tr></thead>
   <tbody>
     <tr><td><code>jpg</code>, <code>jpeg</code>, <code>png</code>, <code>gif</code>, <code>webp</code>, <code>bmp</code></td><td>10 MB (<code>10485760</code> bytes)</td></tr>
   </tbody>
 </table>
-<p class="small">Also rejected regardless of extension: a name over 200 characters, one containing a path separator (<code>/</code> or <code>\</code>), <code>..</code>, a control character, or a second, disguised extension (e.g. <code>invoice.php.jpg</code>).</p>
+<p class="small">Also rejected regardless of extension: a name over 200 characters (the 255-character limit above only guards the field's own length &mdash; a name of 201&ndash;255 characters passes that check but still fails here with <code>INVALID_INPUT</code>), one containing a path separator (<code>/</code> or <code>\</code>), <code>..</code>, a control character, or a second, disguised extension (e.g. <code>invoice.php.jpg</code>).</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -376,12 +381,11 @@
   "data": {
     "noticeId": 501,
     "imagePresign": {
-      "key": "vWebsite/plugin_cdn/notice/inst_321/3f2a1b4c5d6e7f8091a2b3c4d5e6f708.jpg",
-      "publicUrl": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/vWebsite/plugin_cdn/notice/inst_321/3f2a1b4c5d6e7f8091a2b3c4d5e6f708.jpg",
+      "key": "vWebsite/plugin_cdn/notice/inst_321/sports-day-raw.jpg",
       "post": {
         "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/",
         "fields": {
-          "key": "vWebsite/plugin_cdn/notice/inst_321/3f2a1b4c5d6e7f8091a2b3c4d5e6f708.jpg",
+          "key": "vWebsite/plugin_cdn/notice/inst_321/sports-day-raw.jpg",
           "x-amz-server-side-encryption": "AES256",
           "x-amz-credential": "ASIAEXAMPLE/20261012/ap-south-1/s3/aws4_request",
           "x-amz-algorithm": "AWS4-HMAC-SHA256",
@@ -396,14 +400,14 @@
     }
   }
 }</code></pre>
-<p><code>imagePresign</code> is <code>null</code> unless <code>imageFileName</code> was sent.</p>
+<p><code>imagePresign</code> is <code>null</code> unless <code>uploadImageFileName</code> was sent.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>imageFileName</code> has an unsupported or unsafe value (see "Uploading the image" above) &mdash; the notice is <strong>not</strong> created.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading an image" above) &mdash; the notice is still created; only the upload slot fails.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again creates a second, separate notice &mdash; no duplicate detection is performed.</p>
@@ -422,21 +426,23 @@
     <tr><td>Production</td><td><code>PUT https://api-vweb.vidyaone.com/plugin/notice/notice?product={product}</code></td></tr>
   </tbody>
 </table>
-<p>Same fields as <a href="#notice-post">Create notice</a>, plus <code>noticeId</code>. Omitting <code>imageFileName</code> leaves the notice's current image untouched; sending it replaces the image the same way as create.</p>
+<p>Same shape as <a href="#notice-post">Create notice</a>, plus <code>notice.noticeId</code>.</p>
 
 <h4>Sample request body</h4>
 <pre><code>{
-  "noticeId": 501,                                                          // required, integer, > 0 &mdash; must belong to the caller's institution
-  "title": "Annual Sports Day (Updated)",                                    // required, string, max 200 chars
-  "description": "Join us for the annual sports day &mdash; now with a new venue.", // required, string
-  "imageFileName": "sports-day-v2.jpg",                                     // optional, string, max 255 chars &mdash; see "Uploading the image" below; omit to leave the current image untouched
-  "publishDate": "2026-11-01",                                              // required, string, date (yyyy-MM-dd)
-  "expiryDate": "2026-11-20",                                               // optional, string, date (yyyy-MM-dd) &mdash; must be on or after publishDate
-  "noticeStatus": true                                                      // optional, boolean, default true
+  "notice": {
+    "noticeId": 501,                                                           // required, integer, > 0 &mdash; must belong to the caller's institution
+    "title": "Annual Sports Day (Updated)",                                    // required, string, max 200 chars
+    "description": "Join us for the annual sports day &mdash; now with a new venue.", // required, string
+    "imageSrc": "sports-day-v2.jpg",                                          // optional, string, max 500 chars &mdash; a plain file name only, never a URL or a path; see "Uploading an image" on Create notice &mdash; independent of uploadImageFileName
+    "publishDate": "2026-11-01",                                              // required, string, date (yyyy-MM-dd)
+    "expiryDate": "2026-11-20"                                                // optional, string, date (yyyy-MM-dd) &mdash; must be on or after publishDate
+  },
+  "uploadImageFileName": "sports-day-v2-raw.jpg"                              // optional, string, max 255 chars &mdash; see "Uploading an image" on Create notice
 }</code></pre>
 
-<h4>Uploading the image</h4>
-<p>Sending <code>imageFileName</code> returns a presigned S3 upload in the response, resolved <strong>before</strong> the update is written &mdash; an unsupported or unsafe file name fails the whole request with <span class="status-err">400</span> <code>INVALID_INPUT</code> and <strong>nothing is updated</strong>. On success, the notice's <code>imageSrc</code> is already set to the new final URL. <code>POST</code> the raw file bytes plus every field in <code>data.imagePresign.post.fields</code> directly to <code>data.imagePresign.post.url</code> (as multipart form fields, file field last) within <code>expiresIn</code> seconds.</p>
+<h4>Uploading an image</h4>
+<p>Same rules as <a href="#notice-post">Create notice</a>'s "Uploading an image" &mdash; <code>imageSrc</code> and <code>uploadImageFileName</code> are unrelated. Sending <code>uploadImageFileName</code> returns a presigned S3 upload, resolved <strong>after</strong> the update is already written &mdash; an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code>, but <strong>the update has already been applied</strong> by that point.</p>
 <table>
   <thead><tr><th>Allowed extensions (case-insensitive)</th><th>Max size</th></tr></thead>
   <tbody>
@@ -454,8 +460,7 @@
   "data": {
     "updated": true,
     "imagePresign": {
-      "key": "vWebsite/plugin_cdn/notice/inst_321/9c8b7a6d5e4f3021.jpg",
-      "publicUrl": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/vWebsite/plugin_cdn/notice/inst_321/9c8b7a6d5e4f3021.jpg",
+      "key": "vWebsite/plugin_cdn/notice/inst_321/sports-day-v2-raw.jpg",
       "post": { "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/", "fields": { "...": "..." } },
       "expiresIn": 120,
       "maxFileSize": 10485760,
@@ -463,15 +468,15 @@
     }
   }
 }</code></pre>
-<p><code>imagePresign</code> is <code>null</code> unless <code>imageFileName</code> was sent.</p>
+<p><code>imagePresign</code> is <code>null</code> unless <code>uploadImageFileName</code> was sent.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails, <code>noticeId</code> missing or not &gt; 0, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails, <code>notice.noticeId</code> missing or not &gt; 0, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No matching notice for this institution.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>imageFileName</code> has an unsupported or unsafe value (see "Uploading the image" above) &mdash; nothing is updated.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading an image" above) &mdash; the update is still applied; only the upload slot fails.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the notice in the same final state.</p>

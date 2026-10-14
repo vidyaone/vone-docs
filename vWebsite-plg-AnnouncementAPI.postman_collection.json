@@ -1,0 +1,104 @@
+{
+  "info": {
+    "_postman_id": "d4b1e3a2-7c5f-4b9a-9f2e-6a3c8d1f4e07",
+    "name": "vWebsite-plg-AnnouncementAPI",
+    "description": "Testing environment only. Covers the Announcement resource — see vWebsite-plg-AnnouncementAPI.html for the full field reference, error codes, and status behavior. Authentication is handled automatically by the Postman Interceptor Chrome extension once you're logged into the product in Chrome — see the HTML guide's Postman setup section.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api-vweb.vidyaone.com/test/plugin/announcement/",
+      "description": "Testing environment (appsettings.Testing.json → App:BaseUrl). This collection targets Testing only."
+    },
+    {
+      "key": "product",
+      "value": "scl-website",
+      "description": "Calling product identifier — the identifier of whichever client app is calling this API. Not stored in this project's own config; supplied by each calling client app."
+    },
+    {
+      "key": "announcementId",
+      "value": "801",
+      "description": "Sample announcement id — replace with one you created via 'Create announcement'."
+    }
+  ],
+  "item": [
+    {
+      "name": "Announcement",
+      "item": [
+        {
+          "name": "Create announcement",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": "{{baseUrl}}announcement?product={{product}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"announcement\": {\n    \"title\": \"Admissions Open for 2026-27\",\n    \"description\": \"We are now accepting admission applications for the 2026-27 academic year. Apply before the last date to secure your seat.\",\n    \"imageSrc\": \"admissions-2026.jpg\",\n    \"publishDate\": \"2026-11-01\",\n    \"expiryDate\": \"2026-12-15\"\n  },\n  \"uploadImageFileName\": \"admissions-2026-raw.jpg\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update announcement",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": "{{baseUrl}}announcement?product={{product}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"announcement\": {\n    \"announcementId\": {{announcementId}},\n    \"title\": \"Admissions Open for 2026-27 (Extended)\",\n    \"description\": \"We are now accepting admission applications for the 2026-27 academic year — deadline extended.\",\n    \"imageSrc\": \"admissions-2026-v2.jpg\",\n    \"publishDate\": \"2026-11-01\",\n    \"expiryDate\": \"2026-12-31\"\n  },\n  \"uploadImageFileName\": \"admissions-2026-v2-raw.jpg\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get announcement (edit)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}announcement/edit?product={{product}}&announcementId={{announcementId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Get announcement (view)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}announcement/view?product={{product}}&announcementId={{announcementId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "List announcements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}announcement?product={{product}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete announcement",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": "{{baseUrl}}announcement?product={{product}}&announcementId={{announcementId}}"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

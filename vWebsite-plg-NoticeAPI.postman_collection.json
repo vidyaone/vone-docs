@@ -37,7 +37,7 @@
             "url": "{{baseUrl}}notice?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Annual Sports Day\",\n  \"description\": \"Join us for the annual sports day on the school grounds.\",\n  \"imageFileName\": \"sports-day.jpg\",\n  \"publishDate\": \"2026-11-01\",\n  \"expiryDate\": \"2026-11-15\",\n  \"noticeStatus\": true\n}",
+              "raw": "{\n  \"notice\": {\n    \"title\": \"Annual Sports Day\",\n    \"description\": \"Join us for the annual sports day on the school grounds.\",\n    \"imageSrc\": \"sports-day.jpg\",\n    \"publishDate\": \"2026-11-01\",\n    \"expiryDate\": \"2026-11-15\"\n  },\n  \"uploadImageFileName\": \"sports-day-raw.jpg\"\n}",
               "options": { "raw": { "language": "json" } }
             }
           },
@@ -54,7 +54,7 @@
             "url": "{{baseUrl}}notice?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"noticeId\": {{noticeId}},\n  \"title\": \"Annual Sports Day (Updated)\",\n  \"description\": \"Join us for the annual sports day — now with a new venue.\",\n  \"imageFileName\": \"sports-day-v2.jpg\",\n  \"publishDate\": \"2026-11-01\",\n  \"expiryDate\": \"2026-11-20\",\n  \"noticeStatus\": true\n}",
+              "raw": "{\n  \"notice\": {\n    \"noticeId\": {{noticeId}},\n    \"title\": \"Annual Sports Day (Updated)\",\n    \"description\": \"Join us for the annual sports day — now with a new venue.\",\n    \"imageSrc\": \"sports-day-v2.jpg\",\n    \"publishDate\": \"2026-11-01\",\n    \"expiryDate\": \"2026-11-20\"\n  },\n  \"uploadImageFileName\": \"sports-day-v2-raw.jpg\"\n}",
               "options": { "raw": { "language": "json" } }
             }
           },
