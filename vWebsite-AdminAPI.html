@@ -194,6 +194,7 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required — missing or invalid session.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The requested file, module, or page does not exist for this institution. Not used by <a href="#onboard">Onboard</a> — its <code>GET</code> routes default to <code>false</code> instead.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>Unique-constraint conflict.</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record (e.g. the institution) does not exist.</td></tr>
     <tr><td class="status-err">499</td><td>—</td><td>Client disconnected mid-request. No body.</td></tr>
     <tr><td class="status-err">502</td><td><code>EXTERNAL_SERVICE_ERROR</code></td><td>The file storage backend failed in a way the caller did nothing to cause (access denied, metadata lookup, read, or write failure).</td></tr>
     <tr><td class="status-err">500</td><td><code>INTERNAL_ERROR</code></td><td>Unhandled failure. Message is generic in Production.</td></tr>
@@ -427,10 +428,11 @@
   <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Empty array, an item with empty <code>moduleName</code>, or institution/caller not resolved.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>Body is not a JSON array, or is malformed.</td></tr>
-    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>Body is not a JSON array, is malformed, or a submitted value fails a database check constraint.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or a required database column was left null.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>Unique conflict on module name for this institution.</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>The institution referenced by this request does not exist.</td></tr>
   </tbody>
 </table>
 <p class="note"><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again leaves exactly one row per name in the same final status and returns <span class="status-ok">200 OK</span> <code>data: true</code> — same final state. The response does not distinguish rows that were created from rows that were updated.</p>
@@ -581,7 +583,7 @@
 
 <h4>Sample request body</h4>
 <pre><code>{
-  "isSetupDomain": true   // required, boolean
+  "isSetupDomain": true   // optional, boolean, default false
 }</code></pre>
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
@@ -592,8 +594,9 @@
   <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Institution not resolved.</td></tr>
-    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or a required database column was left null.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>The institution referenced by this request does not exist.</td></tr>
   </tbody>
 </table>
 <p class="note"><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again leaves <code>isSetupDomain</code> at the same final value and returns <span class="status-ok">200 OK</span> <code>data: true</code> — same final state.</p>
@@ -638,7 +641,7 @@
 
 <h4>Sample request body</h4>
 <pre><code>{
-  "isSetupModule": true   // required, boolean
+  "isSetupModule": true   // optional, boolean, default false
 }</code></pre>
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
@@ -688,7 +691,7 @@
 
 <h4>Sample request body</h4>
 <pre><code>{
-  "isSetupTemplate": true   // required, boolean
+  "isSetupTemplate": true   // optional, boolean, default false
 }</code></pre>
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>

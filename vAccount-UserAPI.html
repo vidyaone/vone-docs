@@ -419,7 +419,7 @@ Location: https://account.vidyaone.com?saascode=K7QK2M9F1A       // normal mode<
     "qualification": "M.Sc.",                                  // optional, string, max 150 chars
     "dateOfJoining": "2022-06-01",                             // optional, string, date (YYYY-MM-DD)
     "employmentType": "Full-time",                            // optional, string, max 50 chars
-    "socialLinks": [                                          // optional, array, max 50 items &mdash; the caller's complete list; a link not included here is removed
+    "socialLinks": [                                          // optional, array or null, max 50 items &mdash; the caller's complete list; null or [] removes all links; a link not included here is removed
       {
         "socialLinkId": 7,                                     // required, integer, 0 = new link, > 0 = update one of the caller's existing links
         "platform": "LinkedIn",                                // required, string, max 50 chars, unique within this array (case-insensitive)

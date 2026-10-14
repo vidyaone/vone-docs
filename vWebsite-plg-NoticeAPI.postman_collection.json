@@ -1,0 +1,104 @@
+{
+  "info": {
+    "_postman_id": "f3a9c9c0-9b8a-4a63-8b6b-4e7d2d6e9a1b",
+    "name": "vWebsite-plg-NoticeAPI",
+    "description": "Testing environment only. Covers the Notice resource — see vWebsite-plg-NoticeAPI.html for the full field reference, error codes, and status behavior. Authentication is handled automatically by the Postman Interceptor Chrome extension once you're logged into the product in Chrome — see the HTML guide's Postman setup section.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api-vweb.vidyaone.com/test/plugin/notice/",
+      "description": "Testing environment (appsettings.Testing.json → App:BaseUrl). This collection targets Testing only."
+    },
+    {
+      "key": "product",
+      "value": "scl-website",
+      "description": "Calling product identifier — the identifier of whichever client app is calling this API. Not stored in this project's own config; supplied by each calling client app."
+    },
+    {
+      "key": "noticeId",
+      "value": "501",
+      "description": "Sample notice id — replace with one you created via 'Create notice'."
+    }
+  ],
+  "item": [
+    {
+      "name": "Notice",
+      "item": [
+        {
+          "name": "Create notice",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": "{{baseUrl}}notice?product={{product}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Annual Sports Day\",\n  \"description\": \"Join us for the annual sports day on the school grounds.\",\n  \"imageFileName\": \"sports-day.jpg\",\n  \"publishDate\": \"2026-11-01\",\n  \"expiryDate\": \"2026-11-15\",\n  \"noticeStatus\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update notice",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": "{{baseUrl}}notice?product={{product}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"noticeId\": {{noticeId}},\n  \"title\": \"Annual Sports Day (Updated)\",\n  \"description\": \"Join us for the annual sports day — now with a new venue.\",\n  \"imageFileName\": \"sports-day-v2.jpg\",\n  \"publishDate\": \"2026-11-01\",\n  \"expiryDate\": \"2026-11-20\",\n  \"noticeStatus\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get notice (edit)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}notice/edit?product={{product}}&noticeId={{noticeId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Get notice (view)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}notice/view?product={{product}}&noticeId={{noticeId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "List notices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}notice?product={{product}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete notice",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": "{{baseUrl}}notice?product={{product}}&noticeId={{noticeId}}"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

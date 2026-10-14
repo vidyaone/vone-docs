@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>vWebsite-plg-NoticeAPI — Developer Guide</title>
+<style>
+  :root{
+    --accent:#0b6bcb;
+    --ink:#1c1e21;
+    --muted:#5b6470;
+    --line:#dfe3e8;
+    --bg:#fdfdfd;
+    --ok:#0a7d33;
+    --err:#b42318;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.65;
+    font-size:15px;
+  }
+  main{max-width:900px;margin:0 auto;padding:32px 24px 140px}
+  h1{font-size:24px;margin:28px 0 4px;color:var(--ink)}
+  h2{font-size:19px;margin:52px 0 14px;padding-top:14px;border-top:1px solid var(--line);color:var(--ink)}
+  h4{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:18px 0 6px}
+  p{margin:8px 0}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:13px}
+  pre{background:#f6f7f8;border:1px solid var(--line);border-radius:4px;padding:12px 14px;overflow-x:auto;max-width:100%;font-size:13px;line-height:1.5}
+  pre code{font-size:13px}
+  table{border-collapse:collapse;width:100%;max-width:100%;margin:10px 0;font-size:14px;overflow-x:auto;display:block}
+  table thead,table tbody{display:table;width:100%;table-layout:fixed}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+  th{font-weight:700}
+  td.req{color:var(--accent);font-weight:600;white-space:nowrap}
+  td.opt{color:var(--muted);white-space:nowrap}
+  .status-ok{color:var(--ok);font-weight:700}
+  .status-err{color:var(--err);font-weight:700}
+  .method{font-family:ui-monospace,monospace;font-weight:700}
+  .small{font-size:13px;color:var(--muted)}
+  nav.top{
+    position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);
+    padding:10px 24px;display:flex;flex-wrap:wrap;gap:4px 18px;align-items:baseline;
+  }
+  nav.top strong{color:var(--ink);white-space:nowrap;margin-right:6px}
+  nav.top a{white-space:nowrap;font-size:14px}
+  nav.top a.download{font-weight:700;margin-left:auto}
+  nav.top .menu{position:relative;padding-bottom:8px;margin-bottom:-8px}
+  nav.top .submenu{
+    display:none;position:absolute;top:100%;left:0;margin:0;padding:6px 0;
+    list-style:none;min-width:210px;background:#fff;border:1px solid var(--line);z-index:20;
+  }
+  nav.top .menu:hover .submenu,
+  nav.top .menu:focus-within .submenu{display:block}
+  nav.top .submenu li{margin:0}
+  nav.top .submenu a{display:block;padding:5px 14px;font-size:13px;white-space:nowrap}
+  details{margin:36px 0 0}
+  section details:first-of-type{margin-top:18px}
+  summary{font-size:16px;font-weight:700;color:var(--accent);cursor:pointer;margin:0}
+  summary::marker{color:var(--accent)}
+  details[open] summary{margin-bottom:8px}
+  ul.tight{margin:6px 0;padding-left:20px}
+  ul.tight li{margin:3px 0}
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <strong>vWebsite-plg-NoticeAPI</strong>
+  <a href="https://vidyaone.github.io/vone-docs/">Home</a>
+  <a href="#postman-setup">Postman setup</a>
+  <a href="#base-urls">Base URLs</a>
+  <a href="#common-rules">Common rules</a>
+  <div class="menu">
+    <a href="#notice">Notice</a>
+    <ul class="submenu">
+      <li><a href="#notice-get"><code>GET /notice</code></a></li>
+      <li><a href="#notice-edit"><code>GET /notice/edit</code></a></li>
+      <li><a href="#notice-view"><code>GET /notice/view</code></a></li>
+      <li><a href="#notice-post"><code>POST /notice</code></a></li>
+      <li><a href="#notice-put"><code>PUT /notice</code></a></li>
+      <li><a href="#notice-delete"><code>DELETE /notice</code></a></li>
+    </ul>
+  </div>
+  <a class="download" href="vWebsite-plg-NoticeAPI.postman_collection.json" download>&#8595; Postman collection</a>
+</nav>
+
+<main>
+<h1>vWebsite-plg-NoticeAPI — Developer Guide</h1>
+<p class="small">Documents the <strong>Notice</strong> resource.</p>
+
+<section id="postman-setup">
+<h2>Postman setup guide</h2>
+<ol class="tight">
+  <li>Use Postman for web (<a href="https://web.postman.co">web.postman.co</a>), not the desktop app.</li>
+  <li>Install the <a href="https://chromewebstore.google.com/detail/postman-interceptor/aicmkgpgakddgnaphhhpliifpcfhicfo">Postman Interceptor</a> Chrome extension — it lets Postman's web app read cookies from your Chrome session.</li>
+  <li>Enable Interceptor, then log into the product normally in Chrome. Once logged in, your session is available to Postman automatically — you don't need to set any auth header or cookie by hand.</li>
+  <li>Download the collection from the link in the navbar above and import it into Postman, then send requests — it's pre-configured for Testing.</li>
+</ol>
+</section>
+
+<section id="base-urls">
+<h2>Base URLs</h2>
+<table>
+  <thead><tr><th>Environment</th><th>Base URL</th><th>Source</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>https://api-vweb.vidyaone.com/test/plugin/notice/</code></td><td><code>appsettings.Testing.json</code> → <code>App:BaseUrl</code></td></tr>
+    <tr><td>Production</td><td><code>https://api-vweb.vidyaone.com/plugin/notice/</code></td><td><code>appsettings.json</code> → <code>App:BaseUrl</code></td></tr>
+    <tr><td>Local (Development)</td><td><code>http://localhost:65083/</code></td><td><code>Properties/launchSettings.json</code> → <code>applicationUrl</code> (no <code>App:BaseUrl</code> override for this environment; routes are hit directly off the root, with no <code>/plugin/notice/</code> prefix)</td></tr>
+  </tbody>
+</table>
+<p class="small">Concatenate the base URL with the route shown in each endpoint below (except Local, which has no path prefix). There is no version segment.</p>
+</section>
+
+<section id="common-rules">
+<h2>Common request &amp; response rules</h2>
+
+<h4>Authentication</h4>
+<p>Authentication required on every route documented in this guide.</p>
+
+<h4>Headers required on every request</h4>
+<table>
+  <thead><tr><th>Header</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>Content-Type: application/json</code></td><td class="req">writes only</td><td>Required on any request that carries a body.</td></tr>
+    <tr><td><code>Idempotency-Key</code></td><td class="req">mutating requests</td><td>A UUID the caller generates per request. Required on every <code>POST</code> / <code>PUT</code> / <code>DELETE</code> below. See the Idempotency line under each endpoint for what happens if you resend the same key/body.</td></tr>
+  </tbody>
+</table>
+
+<h4>Common query parameter</h4>
+<table>
+  <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>product</code></td><td>string</td><td class="req">yes</td><td>Calling client-app identifier, e.g. <code>scl-website</code>. Required on every route below.</td></tr>
+  </tbody>
+</table>
+
+<h4>Response envelope</h4>
+<p>Every response — success or failure — uses the same JSON shape:</p>
+<pre><code>{
+  "success": true | false,
+  "message": "human-readable string" | null,
+  "errors":  [ { "code": "...", "message": "...", "field": "..." } ] | null,
+  "data":    { ... } | [ ... ] | true | false | null
+}</code></pre>
+<p><strong>Success example</strong>:</p>
+<pre><code>{ "success": true, "message": null, "errors": null, "data": { "noticeId": 501, "imagePresign": null } }</code></pre>
+<p><strong>Error example</strong>:</p>
+<pre><code>{
+  "success": false,
+  "message": "Validation failed.",
+  "errors": [ { "code": "VALIDATION_FAILED", "message": "title is required and must be at most 200 characters.", "field": "Notice.Title" } ],
+  "data": null
+}</code></pre>
+<p>Each entry in <code>errors[]</code> has a machine-readable <code>code</code> — switch on <code>code</code>, not on <code>message</code> text.</p>
+<p>JSON bodies accept numeric ids and numbers sent either as numbers or as quoted strings (<code>"noticeId": 501</code> and <code>"noticeId": "501"</code> are equivalent).</p>
+
+<h4>Status &amp; error codes used in this guide</h4>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-ok">200</td><td>—</td><td>Success.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A request field fails validation (see each endpoint), or the body is missing / not valid JSON.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> is missing from the query string.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>imageFileName</code> has an unsupported or unsafe value (see <a href="#notice-post">Create notice</a>).</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The notice doesn't exist for the calling institution (missing or already deleted).</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record was removed while the request was being processed.</td></tr>
+    <tr><td class="status-err">500</td><td><code>INTERNAL_ERROR</code></td><td>Unexpected server error.</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="notice">
+<h2>Notice</h2>
+<p>All routes below act only on notices belonging to the caller's own institution.</p>
+
+<!-- ========================= List notices ========================= -->
+<details id="notice-get">
+<summary><span class="method">GET</span> <code>/notice</code></summary>
+<p>Returns every active, non-deleted notice for the calling institution, most recently published first. Not paged.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/notice/notice?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/notice/notice?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /notice?product=scl-website</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": [
+    {
+      "noticeId": 501,
+      "title": "Annual Sports Day",
+      "imageSrc": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/vWebsite/plugin_cdn/notice/inst_321/3f2a1b4c5d6e7f8091a2b3c4d5e6f708.jpg",
+      "publishDate": "2026-11-01",
+      "expiryDate": "2026-11-15",
+      "noticeStatus": true
+    }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+
+</details>
+<!-- ========================= Get notice (edit) ========================= -->
+<details id="notice-edit">
+<summary><span class="method">GET</span> <code>/notice/edit</code></summary>
+<p>Returns one notice in a flat, editable shape that can be sent straight back to <a href="#notice-put">Update notice</a>.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/notice/notice/edit?product={product}&amp;noticeId={noticeId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/notice/notice/edit?product={product}&amp;noticeId={noticeId}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>noticeId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0.</td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /notice/edit?product=scl-website
+    &amp;noticeId=501    // required, integer, > 0</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "title": "Annual Sports Day",
+    "description": "Join us for the annual sports day on the school grounds.",
+    "imageFileName": null,
+    "publishDate": "2026-11-01",
+    "expiryDate": "2026-11-15",
+    "noticeStatus": true,
+    "noticeId": 501,
+    "imageSrc": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/vWebsite/plugin_cdn/notice/inst_321/3f2a1b4c5d6e7f8091a2b3c4d5e6f708.jpg"
+  }
+}</code></pre>
+<p><code>imageFileName</code> is always <code>null</code> in this response — it's only ever a request field (see <a href="#notice-post">Create notice</a>); the current image is reflected in <code>imageSrc</code>.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>noticeId</code> missing or not &gt; 0.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No matching notice for this institution.</td></tr>
+  </tbody>
+</table>
+
+</details>
+<!-- ========================= Get notice (view) ========================= -->
+<details id="notice-view">
+<summary><span class="method">GET</span> <code>/notice/view</code></summary>
+<p>Returns one notice in a detailed, read-only shape, including audit info.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/notice/notice/view?product={product}&amp;noticeId={noticeId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/notice/notice/view?product={product}&amp;noticeId={noticeId}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>noticeId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0.</td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /notice/view?product=scl-website
+    &amp;noticeId=501    // required, integer, > 0</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "title": "Annual Sports Day",
+    "description": "Join us for the annual sports day on the school grounds.",
+    "imageFileName": null,
+    "publishDate": "2026-11-01",
+    "expiryDate": "2026-11-15",
+    "noticeStatus": true,
+    "noticeId": 501,
+    "imageSrc": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/vWebsite/plugin_cdn/notice/inst_321/3f2a1b4c5d6e7f8091a2b3c4d5e6f708.jpg",
+    "instSaaSId": 321,
+    "creatorUserId": 42,
+    "audit": { "isActive": true, "createdAt": "2026-10-10T08:00:00+00:00", "updatedAt": "2026-10-10T08:00:00+00:00" }
+  }
+}</code></pre>
+<p><code>imageFileName</code> is always <code>null</code> in this response, the same as <a href="#notice-edit">Get notice (edit)</a>.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>noticeId</code> missing or not &gt; 0.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No matching notice for this institution.</td></tr>
+  </tbody>
+</table>
+
+</details>
+<!-- ========================= Create notice ========================= -->
+<details id="notice-post">
+<summary><span class="method">POST</span> <code>/notice</code></summary>
+<p>Creates a new notice for the calling institution.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/plugin/notice/notice?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/plugin/notice/notice?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request body</h4>
+<pre><code>{
+  "title": "Annual Sports Day",                                             // required, string, max 200 chars
+  "description": "Join us for the annual sports day on the school grounds.", // required, string
+  "imageFileName": "sports-day.jpg",                                        // optional, string, max 255 chars &mdash; requesting an image upload slot; see "Uploading the image" below
+  "publishDate": "2026-11-01",                                              // required, string, date (yyyy-MM-dd)
+  "expiryDate": "2026-11-15",                                               // optional, string, date (yyyy-MM-dd) &mdash; must be on or after publishDate
+  "noticeStatus": true                                                      // optional, boolean, default true
+}</code></pre>
+
+<h4>Uploading the image</h4>
+<p>Sending <code>imageFileName</code> returns a presigned S3 upload in the response, resolved <strong>before</strong> the notice is created &mdash; an unsupported or unsafe file name fails the whole request with <span class="status-err">400</span> <code>INVALID_INPUT</code> and <strong>no notice is created</strong>. On success, the notice's <code>imageSrc</code> is already set to the final URL (shown as <code>data.imagePresign.publicUrl</code> below) &mdash; no second call is needed to record it. <code>POST</code> the raw file bytes plus every field in <code>data.imagePresign.post.fields</code> directly to <code>data.imagePresign.post.url</code> (as multipart form fields, file field last) within <code>expiresIn</code> seconds.</p>
+<table>
+  <thead><tr><th>Allowed extensions (case-insensitive)</th><th>Max size</th></tr></thead>
+  <tbody>
+    <tr><td><code>jpg</code>, <code>jpeg</code>, <code>png</code>, <code>gif</code>, <code>webp</code>, <code>bmp</code></td><td>10 MB (<code>10485760</code> bytes)</td></tr>
+  </tbody>
+</table>
+<p class="small">Also rejected regardless of extension: a name over 200 characters, one containing a path separator (<code>/</code> or <code>\</code>), <code>..</code>, a control character, or a second, disguised extension (e.g. <code>invoice.php.jpg</code>).</p>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "noticeId": 501,
+    "imagePresign": {
+      "key": "vWebsite/plugin_cdn/notice/inst_321/3f2a1b4c5d6e7f8091a2b3c4d5e6f708.jpg",
+      "publicUrl": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/vWebsite/plugin_cdn/notice/inst_321/3f2a1b4c5d6e7f8091a2b3c4d5e6f708.jpg",
+      "post": {
+        "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/",
+        "fields": {
+          "key": "vWebsite/plugin_cdn/notice/inst_321/3f2a1b4c5d6e7f8091a2b3c4d5e6f708.jpg",
+          "x-amz-server-side-encryption": "AES256",
+          "x-amz-credential": "ASIAEXAMPLE/20261012/ap-south-1/s3/aws4_request",
+          "x-amz-algorithm": "AWS4-HMAC-SHA256",
+          "x-amz-date": "20261012T000000Z",
+          "policy": "eyJleHBpcmF0aW9uIjoiMjAyNi0xMC0xMlQwMDowMjowMFoi...",
+          "x-amz-signature": "a1b2c3d4e5f6..."
+        }
+      },
+      "expiresIn": 120,
+      "maxFileSize": 10485760,
+      "contentTypePrefix": "image/"
+    }
+  }
+}</code></pre>
+<p><code>imagePresign</code> is <code>null</code> unless <code>imageFileName</code> was sent.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>imageFileName</code> has an unsupported or unsafe value (see "Uploading the image" above) &mdash; the notice is <strong>not</strong> created.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again creates a second, separate notice &mdash; no duplicate detection is performed.</p>
+
+</details>
+<!-- ========================= Update notice ========================= -->
+<details id="notice-put">
+<summary><span class="method">PUT</span> <code>/notice</code></summary>
+<p>Updates a notice belonging to the calling institution. Every writable field is overwritten with the value sent &mdash; there is no partial update.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>PUT https://api-vweb.vidyaone.com/test/plugin/notice/notice?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>PUT https://api-vweb.vidyaone.com/plugin/notice/notice?product={product}</code></td></tr>
+  </tbody>
+</table>
+<p>Same fields as <a href="#notice-post">Create notice</a>, plus <code>noticeId</code>. Omitting <code>imageFileName</code> leaves the notice's current image untouched; sending it replaces the image the same way as create.</p>
+
+<h4>Sample request body</h4>
+<pre><code>{
+  "noticeId": 501,                                                          // required, integer, > 0 &mdash; must belong to the caller's institution
+  "title": "Annual Sports Day (Updated)",                                    // required, string, max 200 chars
+  "description": "Join us for the annual sports day &mdash; now with a new venue.", // required, string
+  "imageFileName": "sports-day-v2.jpg",                                     // optional, string, max 255 chars &mdash; see "Uploading the image" below; omit to leave the current image untouched
+  "publishDate": "2026-11-01",                                              // required, string, date (yyyy-MM-dd)
+  "expiryDate": "2026-11-20",                                               // optional, string, date (yyyy-MM-dd) &mdash; must be on or after publishDate
+  "noticeStatus": true                                                      // optional, boolean, default true
+}</code></pre>
+
+<h4>Uploading the image</h4>
+<p>Sending <code>imageFileName</code> returns a presigned S3 upload in the response, resolved <strong>before</strong> the update is written &mdash; an unsupported or unsafe file name fails the whole request with <span class="status-err">400</span> <code>INVALID_INPUT</code> and <strong>nothing is updated</strong>. On success, the notice's <code>imageSrc</code> is already set to the new final URL. <code>POST</code> the raw file bytes plus every field in <code>data.imagePresign.post.fields</code> directly to <code>data.imagePresign.post.url</code> (as multipart form fields, file field last) within <code>expiresIn</code> seconds.</p>
+<table>
+  <thead><tr><th>Allowed extensions (case-insensitive)</th><th>Max size</th></tr></thead>
+  <tbody>
+    <tr><td><code>jpg</code>, <code>jpeg</code>, <code>png</code>, <code>gif</code>, <code>webp</code>, <code>bmp</code></td><td>10 MB (<code>10485760</code> bytes)</td></tr>
+  </tbody>
+</table>
+<p class="small">Also rejected regardless of extension: a name over 200 characters, one containing a path separator (<code>/</code> or <code>\</code>), <code>..</code>, a control character, or a second, disguised extension (e.g. <code>invoice.php.jpg</code>).</p>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "updated": true,
+    "imagePresign": {
+      "key": "vWebsite/plugin_cdn/notice/inst_321/9c8b7a6d5e4f3021.jpg",
+      "publicUrl": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/vWebsite/plugin_cdn/notice/inst_321/9c8b7a6d5e4f3021.jpg",
+      "post": { "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/", "fields": { "...": "..." } },
+      "expiresIn": 120,
+      "maxFileSize": 10485760,
+      "contentTypePrefix": "image/"
+    }
+  }
+}</code></pre>
+<p><code>imagePresign</code> is <code>null</code> unless <code>imageFileName</code> was sent.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails, <code>noticeId</code> missing or not &gt; 0, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No matching notice for this institution.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>imageFileName</code> has an unsupported or unsafe value (see "Uploading the image" above) &mdash; nothing is updated.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the notice in the same final state.</p>
+
+</details>
+<!-- ========================= Delete notice ========================= -->
+<details id="notice-delete">
+<summary><span class="method">DELETE</span> <code>/notice</code></summary>
+<p>Soft-deletes a notice belonging to the calling institution.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>DELETE https://api-vweb.vidyaone.com/test/plugin/notice/notice?product={product}&amp;noticeId={noticeId}</code></td></tr>
+    <tr><td>Production</td><td><code>DELETE https://api-vweb.vidyaone.com/plugin/notice/notice?product={product}&amp;noticeId={noticeId}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>noticeId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0.</td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>DELETE /notice?product=scl-website
+    &amp;noticeId=501    // required, integer, > 0</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{ "success": true, "message": null, "errors": null, "data": true }</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>noticeId</code> missing or not &gt; 0.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No matching notice for this institution (missing or already deleted).</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
+
+</details>
+</section>
+
+</main>
+</body>
+</html>

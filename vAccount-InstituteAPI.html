@@ -27,7 +27,6 @@
   main{max-width:900px;margin:0 auto;padding:32px 24px 140px}
   h1{font-size:24px;margin:28px 0 4px;color:var(--ink)}
   h2{font-size:19px;margin:52px 0 14px;padding-top:14px;border-top:1px solid var(--line);color:var(--ink)}
-  h3{font-size:16px;margin:36px 0 8px;color:var(--ink)}
   h4{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:18px 0 6px}
   p{margin:8px 0}
   a{color:var(--accent);text-decoration:none}
@@ -61,7 +60,11 @@
   nav.top .menu:focus-within .submenu{display:block}
   nav.top .submenu li{margin:0}
   nav.top .submenu a{display:block;padding:5px 14px;font-size:13px;white-space:nowrap}
-  hr{border:none;border-top:1px solid var(--line);margin:36px 0}
+  details{margin:36px 0 0}
+  section details:first-of-type{margin-top:18px}
+  summary{font-size:16px;font-weight:700;color:var(--accent);cursor:pointer;margin:0}
+  summary::marker{color:var(--accent)}
+  details[open] summary{margin-bottom:8px}
   ul.tight{margin:6px 0;padding-left:20px}
   ul.tight li{margin:3px 0}
 </style>
@@ -246,7 +249,8 @@
 <p>Most routes below act only on organizations the caller created or owns. <a href="#org-view">Get organization</a> is the one exception — any authenticated caller can read any organization, with the response shape depending on their relationship to it. A caller may create-or-own at most 10 non-deleted organizations.</p>
 
 <!-- ========================= Create organization ========================= -->
-<h3 id="org-post"><span class="method">POST</span> <code>/org</code></h3>
+<details id="org-post">
+<summary><span class="method">POST</span> <code>/org</code></summary>
 <p>Creates a new organization for the caller.</p>
 
 <h4>Request</h4>
@@ -352,9 +356,10 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful create returns <span class="status-err">409 Conflict</span> rather than the original success.</p>
 
+</details>
 <!-- ========================= Update organization ========================= -->
-<hr>
-<h3 id="org-put"><span class="method">PUT</span> <code>/org</code></h3>
+<details id="org-put">
+<summary><span class="method">PUT</span> <code>/org</code></summary>
 <p>Updates an organization the caller created or owns, including its KYC data.</p>
 
 <h4>Request</h4>
@@ -463,9 +468,10 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the organization in the same final state.</p>
 
+</details>
 <!-- ========================= Get organization (edit) ========================= -->
-<hr>
-<h3 id="org-edit"><span class="method">GET</span> <code>/org/edit</code></h3>
+<details id="org-edit">
+<summary><span class="method">GET</span> <code>/org/edit</code></summary>
 <p>Returns one organization in a flat, editable shape that can be sent straight back to <a href="#org-put">Update organization</a>.</p>
 
 <h4>Request</h4>
@@ -532,9 +538,10 @@
   </tbody>
 </table>
 
+</details>
 <!-- ========================= Set default organization ========================= -->
-<hr>
-<h3 id="org-default"><span class="method">PUT</span> <code>/org/default</code></h3>
+<details id="org-default">
+<summary><span class="method">PUT</span> <code>/org/default</code></summary>
 <p>Makes one organization the caller's default and clears the flag on their other organizations. Only the organization's creator or owner can set it as their default.</p>
 
 <h4>Request</h4>
@@ -566,9 +573,10 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the organization as the caller's default.</p>
 
+</details>
 <!-- ========================= Activate organization ========================= -->
-<hr>
-<h3 id="org-activate"><span class="method">PUT</span> <code>/org/activate</code></h3>
+<details id="org-activate">
+<summary><span class="method">PUT</span> <code>/org/activate</code></summary>
 <p>Re-activates one of the caller's deactivated organizations. The caller must be its creator or owner.</p>
 
 <h4>Request</h4>
@@ -600,9 +608,10 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
 
+</details>
 <!-- ========================= Deactivate organization ========================= -->
-<hr>
-<h3 id="org-deactive"><span class="method">PUT</span> <code>/org/deactive</code></h3>
+<details id="org-deactive">
+<summary><span class="method">PUT</span> <code>/org/deactive</code></summary>
 <p>Deactivates one of the caller's organizations. The caller must be its creator or owner.</p>
 
 <h4>Request</h4>
@@ -636,9 +645,10 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
 
+</details>
 <!-- ========================= Delete organization ========================= -->
-<hr>
-<h3 id="org-delete"><span class="method">DELETE</span> <code>/org</code></h3>
+<details id="org-delete">
+<summary><span class="method">DELETE</span> <code>/org</code></summary>
 <p>Deletes one of the caller's organizations. The caller must be its creator or owner. There is no restore endpoint.</p>
 
 <h4>Request</h4>
@@ -672,9 +682,10 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
 
+</details>
 <!-- ========================= Organization options ========================= -->
-<hr>
-<h3 id="org-options"><span class="method">GET</span> <code>/org/options</code></h3>
+<details id="org-options">
+<summary><span class="method">GET</span> <code>/org/options</code></summary>
 <p>Returns the caller's active organizations as <code>{ id, name }</code> pairs, for populating a picker.</p>
 
 <h4>Request</h4>
@@ -703,9 +714,10 @@
   </tbody>
 </table>
 
+</details>
 <!-- ========================= List my organizations ========================= -->
-<hr>
-<h3 id="org-list"><span class="method">GET</span> <code>/org/list/owner</code></h3>
+<details id="org-list">
+<summary><span class="method">GET</span> <code>/org/list/owner</code></summary>
 <p>Returns a paged list of organizations the caller created or owns, optionally filtered by org type, name and registration number. The caller's default organization is returned first. <code>totalInst</code> counts the organization's non-deleted institutes; <code>totalUser</code> counts distinct non-deleted users across them, deactivated users included.</p>
 
 <h4>Request</h4>
@@ -782,9 +794,10 @@
   </tbody>
 </table>
 
+</details>
 <!-- ========================= List shared organizations ========================= -->
-<hr>
-<h3 id="org-list-shared"><span class="method">GET</span> <code>/org/list/shared</code></h3>
+<details id="org-list-shared">
+<summary><span class="method">GET</span> <code>/org/list/shared</code></summary>
 <p>Returns a paged list of organizations the caller has institute-level access to, excluding any they created or own themselves (those are returned by <a href="#org-list">List my organizations</a> instead), optionally filtered by org type, name and registration number. The caller's default organization, if it is in this list, is returned first.</p>
 
 <h4>Request</h4>
@@ -852,9 +865,10 @@
   </tbody>
 </table>
 
+</details>
 <!-- ========================= Get organization ========================= -->
-<hr>
-<h3 id="org-view"><span class="method">GET</span> <code>/org/view</code></h3>
+<details id="org-view">
+<summary><span class="method">GET</span> <code>/org/view</code></summary>
 <p>Returns one organization for read-only display. Any authenticated caller can look up any <code>orgId</code>; the response shape depends on whether the caller created or owns it.</p>
 
 <h4>Request</h4>
@@ -948,6 +962,7 @@
   </tbody>
 </table>
 
+</details>
 </section>
 
 <section id="institute">
@@ -955,7 +970,8 @@
 <p><code>PUT /</code>, <code>PUT /activate</code>, <code>PUT /deactive</code>, <code>PUT /changeorg</code>, <code>DELETE /</code>, and <code>GET /edit</code> act only on institutes the caller created. <code>PUT /default</code> works on any institute the caller is a member of, and <code>POST /trial</code> requires the caller to be an Admin of the institute. <a href="#inst-view">Get institute</a> is the one exception — any authenticated caller can read any institute, with the response shape depending on their relationship to it. <a href="#inst-list">List my institutes</a> is broader than the write routes too — it also includes institutes the caller was granted admin access to, without having created them. A caller may create at most 20 non-deleted institutes.</p>
 
 <!-- ========================= Create institute ========================= -->
-<h3 id="inst-post"><span class="method">POST</span> <code>/</code></h3>
+<details id="inst-post">
+<summary><span class="method">POST</span> <code>/</code></summary>
 <p>Creates a new institute under an organization the caller created or owns.</p>
 
 <h4>Request</h4>
@@ -1045,9 +1061,10 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful create returns <span class="status-err">409 Conflict</span> rather than the original success.</p>
 
+</details>
 <!-- ========================= Start institute trial ========================= -->
-<hr>
-<h3 id="inst-trial"><span class="method">POST</span> <code>/trial</code></h3>
+<details id="inst-trial">
+<summary><span class="method">POST</span> <code>/trial</code></summary>
 <p>Starts a trial for an existing institute on a different product, adding a new SaaS/plan row for it.</p>
 
 <h4>Request</h4>
@@ -1082,9 +1099,10 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">409 Conflict</span> rather than the original success.</p>
 
+</details>
 <!-- ========================= Update institute ========================= -->
-<hr>
-<h3 id="inst-put"><span class="method">PUT</span> <code>/</code></h3>
+<details id="inst-put">
+<summary><span class="method">PUT</span> <code>/</code></summary>
 <p>Updates an institute's own details. Its org and product can never be changed here.</p>
 
 <h4>Request</h4>
@@ -1159,9 +1177,10 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the institute in the same final state.</p>
 
+</details>
 <!-- ========================= Set default institute ========================= -->
-<hr>
-<h3 id="inst-default"><span class="method">PUT</span> <code>/default</code></h3>
+<details id="inst-default">
+<summary><span class="method">PUT</span> <code>/default</code></summary>
 <p>Makes one institute the caller's default and clears the flag on their other institutes.</p>
 
 <h4>Request</h4>
@@ -1192,9 +1211,10 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the institute as the caller's default.</p>
 
+</details>
 <!-- ========================= Activate institute ========================= -->
-<hr>
-<h3 id="inst-activate"><span class="method">PUT</span> <code>/activate</code></h3>
+<details id="inst-activate">
+<summary><span class="method">PUT</span> <code>/activate</code></summary>
 <p>Re-activates one of the caller's deactivated institutes.</p>
 
 <h4>Request</h4>
@@ -1227,9 +1247,10 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
 
+</details>
 <!-- ========================= Deactivate institute ========================= -->
-<hr>
-<h3 id="inst-deactive"><span class="method">PUT</span> <code>/deactive</code></h3>
+<details id="inst-deactive">
+<summary><span class="method">PUT</span> <code>/deactive</code></summary>
 <p>Deactivates one of the caller's institutes.</p>
 
 <h4>Request</h4>
@@ -1262,9 +1283,10 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
 
+</details>
 <!-- ========================= Change institute org ========================= -->
-<hr>
-<h3 id="inst-changeorg"><span class="method">PUT</span> <code>/changeorg</code></h3>
+<details id="inst-changeorg">
+<summary><span class="method">PUT</span> <code>/changeorg</code></summary>
 <p>Moves an institute the caller created into a different organization the caller also created or owns.</p>
 
 <h4>Request</h4>
@@ -1298,9 +1320,10 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the institute in the same org.</p>
 
+</details>
 <!-- ========================= Delete institute ========================= -->
-<hr>
-<h3 id="inst-delete"><span class="method">DELETE</span> <code>/</code></h3>
+<details id="inst-delete">
+<summary><span class="method">DELETE</span> <code>/</code></summary>
 <p>Deletes one of the caller's institutes. There is no restore endpoint.</p>
 
 <h4>Request</h4>
@@ -1333,9 +1356,10 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
 
+</details>
 <!-- ========================= Institute options ========================= -->
-<hr>
-<h3 id="inst-options"><span class="method">GET</span> <code>/options</code></h3>
+<details id="inst-options">
+<summary><span class="method">GET</span> <code>/options</code></summary>
 <p>Returns the caller's active institutes as <code>{ id, name }</code> pairs, for populating a picker.</p>
 
 <h4>Request</h4>
@@ -1363,9 +1387,10 @@
   </tbody>
 </table>
 
+</details>
 <!-- ========================= List my institutes ========================= -->
-<hr>
-<h3 id="inst-list"><span class="method">GET</span> <code>/list/admin</code></h3>
+<details id="inst-list">
+<summary><span class="method">GET</span> <code>/list/admin</code></summary>
 <p>Returns a paged list of institutes the caller created, or was granted admin access to, optionally filtered by org, institute type, name and registration number. The caller's default institute is returned first. <code>role</code> is the caller's role on the institute; <code>products</code> lists the institute's product subscriptions with their plan. <code>totalSaas</code> counts the institute's non-deleted product subscriptions; <code>totalUser</code> counts its distinct non-deleted users, deactivated users included.</p>
 
 <h4>Request</h4>
@@ -1409,6 +1434,7 @@
         "instTypeId": 1,
         "instTypeName": "Engineering College",
         "instName": "Acme Engineering College",
+        "orgId": 123,
         "orgName": "Acme Institute",
         "regNo": "COL-2024-0011",
         "email": "info@acme-engg.example",
@@ -1434,9 +1460,12 @@
         "products": [
           {
             "instSaaSId": 789,
+            "instId": 456,
             "instCode": "INSTA1B2C3",
             "instSaaSCode": "SAASX7Y8Z9",
+            "instTypeId": 1,
             "instName": "Acme Engineering College",
+            "orgId": 123,
             "orgName": "Acme Institute",
             "productId": 1,
             "productName": "vWebsite",
@@ -1472,9 +1501,10 @@
   </tbody>
 </table>
 
+</details>
 <!-- ========================= List shared institutes ========================= -->
-<hr>
-<h3 id="inst-list-shared"><span class="method">GET</span> <code>/list/shared</code></h3>
+<details id="inst-list-shared">
+<summary><span class="method">GET</span> <code>/list/shared</code></summary>
 <p>Returns a paged list of institutes the caller is a member of, excluding any they created or administer (those are returned by <a href="#inst-list">List my institutes</a> instead), optionally filtered by org, institute type, name and registration number. The caller's default institute, if it is in this list, is returned first.</p>
 
 <h4>Request</h4>
@@ -1518,6 +1548,7 @@
         "instTypeId": 2,
         "instTypeName": "Arts College",
         "instName": "Beacon Arts College",
+        "orgId": 301,
         "email": "info@beacon-arts.example",
         "website": "https://beacon-arts.example",
         "phoneCode": "+91",
@@ -1532,11 +1563,14 @@
         "role": "Admin",
         "products": [
           {
-            "instSaaSId": 789,
-            "instCode": "INSTA1B2C3",
-            "instSaaSCode": "SAASX7Y8Z9",
-            "instName": "Acme Engineering College",
-            "orgName": "Acme Institute",
+            "instSaaSId": 802,
+            "instId": 480,
+            "instCode": "INSTD4E5F6",
+            "instSaaSCode": "SAASP1Q2R3",
+            "instTypeId": 2,
+            "instName": "Beacon Arts College",
+            "orgId": 301,
+            "orgName": "Beacon Education Trust",
             "productId": 1,
             "productName": "vWebsite",
             "productCode": "WEB",
@@ -1572,9 +1606,10 @@
   </tbody>
 </table>
 
+</details>
 <!-- ========================= Get institute (edit) ========================= -->
-<hr>
-<h3 id="inst-edit"><span class="method">GET</span> <code>/edit</code></h3>
+<details id="inst-edit">
+<summary><span class="method">GET</span> <code>/edit</code></summary>
 <p>Returns one institute in a flat, editable shape that can be sent straight back to <a href="#inst-put">Update institute</a>.</p>
 
 <h4>Request</h4>
@@ -1632,9 +1667,10 @@
   </tbody>
 </table>
 
+</details>
 <!-- ========================= Get institute ========================= -->
-<hr>
-<h3 id="inst-view"><span class="method">GET</span> <code>/view</code></h3>
+<details id="inst-view">
+<summary><span class="method">GET</span> <code>/view</code></summary>
 <p>Returns one institute for read-only display, including its parent organization's detail. Any authenticated caller can look up any <code>instId</code>; the response shape depends on whether the caller created it or holds admin access to it.</p>
 
 <h4>Request</h4>
@@ -1660,6 +1696,7 @@
     "instId": 456,
     "instCode": "INSTA1B2C3",
     "instName": "Acme Engineering College",
+    "instTypeId": 1,
     "instTypeName": "Engineering College",
     "regNo": "COL-2024-0011",
     "email": "info@acme-engg.example",
@@ -1677,9 +1714,12 @@
     "products": [
       {
         "instSaaSId": 789,
+        "instId": 456,
         "instCode": "INSTA1B2C3",
         "instSaaSCode": "SAASX7Y8Z9",
+        "instTypeId": 1,
         "instName": "Acme Engineering College",
+        "orgId": 123,
         "orgName": "Acme Institute",
         "productId": 1,
         "productName": "vWebsite",
@@ -1741,6 +1781,7 @@
     "instId": 456,
     "instCode": "INSTA1B2C3",
     "instName": "Acme Engineering College",
+    "instTypeId": 1,
     "instTypeName": "Engineering College",
     "regNo": "COL-2024-0011",
     "email": "info@acme-engg.example",
@@ -1758,9 +1799,12 @@
     "products": [
       {
         "instSaaSId": 789,
+        "instId": 456,
         "instCode": "INSTA1B2C3",
         "instSaaSCode": "SAASX7Y8Z9",
+        "instTypeId": 1,
         "instName": "Acme Engineering College",
+        "orgId": 123,
         "orgName": "Acme Institute",
         "productId": 1,
         "productName": "vWebsite",
@@ -1809,6 +1853,7 @@
   </tbody>
 </table>
 
+</details>
 </section>
 
 <section id="product">
@@ -1816,7 +1861,8 @@
 <p>An institute's product (SaaS) subscriptions, and what else it can still try, scoped by <code>instId</code>. <a href="#product-list">List institute products</a> is open to any member of the institute; <a href="#product-list-trial">List products available for trial</a> requires the caller to be an Admin of it.</p>
 
 <!-- ========================= List institute products ========================= -->
-<h3 id="product-list"><span class="method">GET</span> <code>/product/list</code></h3>
+<details id="product-list">
+<summary><span class="method">GET</span> <code>/product/list</code></summary>
 <p>Returns a paged list of the caller's product (SaaS) subscriptions across every institute they belong to (any membership role), optionally filtered by plan status.</p>
 
 <h4>Request</h4>
@@ -1850,9 +1896,12 @@
     "records": [
       {
         "instSaaSId": 789,
+        "instId": 456,
         "instCode": "INSTA1B2C3",
         "instSaaSCode": "SAASX7Y8Z9",
+        "instTypeId": 1,
         "instName": "Acme Engineering College",
+        "orgId": 123,
         "orgName": "Acme Institute",
         "productId": 1,
         "productName": "vWebsite",
@@ -1887,9 +1936,10 @@
 </table>
 <p>An empty <code>records</code> list (not an error) is returned when the caller belongs to no institute, or none of theirs have a product subscription matching <code>planStatus</code>.</p>
 
+</details>
 <!-- ========================= List products available for trial ========================= -->
-<hr>
-<h3 id="product-list-trial"><span class="method">GET</span> <code>/product/list/trial</code></h3>
+<details id="product-list-trial">
+<summary><span class="method">GET</span> <code>/product/list/trial</code></summary>
 <p>Returns the products this institute can still start a trial on — matching the institute's type, with no existing subscription yet. Not paginated. The caller must be an Admin of the institute — the same rule <a href="#inst-trial">Start institute trial</a> enforces.</p>
 
 <h4>Request</h4>
@@ -1940,6 +1990,7 @@
   </tbody>
 </table>
 
+</details>
 </section>
 
 <section id="onboard">
@@ -1947,7 +1998,8 @@
 <p>Scoped to the authenticated institute for the given <code>product</code> — <code>instId</code>/<code>userId</code> are resolved from the session automatically, never sent by the caller.</p>
 
 <!-- ========================= Onboard status ========================= -->
-<h3 id="onboard-status"><span class="method">GET</span> <code>/onboard/status</code></h3>
+<details id="onboard-status">
+<summary><span class="method">GET</span> <code>/onboard/status</code></summary>
 <p>Reports whether onboarding is complete for the authenticated institute.</p>
 
 <h4>Request</h4>
@@ -1971,9 +2023,10 @@
   </tbody>
 </table>
 
+</details>
 <!-- ========================= Onboard by user ========================= -->
-<hr>
-<h3 id="onboard-byuser"><span class="method">PUT</span> <code>/onboard/byuser</code></h3>
+<details id="onboard-byuser">
+<summary><span class="method">PUT</span> <code>/onboard/byuser</code></summary>
 <p>Marks the authenticated institute as onboarded by the user.</p>
 
 <h4>Request</h4>
@@ -1998,9 +2051,10 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> again returns <span class="status-ok">200 OK</span> and leaves the institute in the same onboarded state.</p>
 
+</details>
 <!-- ========================= Onboard by support ========================= -->
-<hr>
-<h3 id="onboard-bysupport"><span class="method">PUT</span> <code>/onboard/bysupport</code></h3>
+<details id="onboard-bysupport">
+<summary><span class="method">PUT</span> <code>/onboard/bysupport</code></summary>
 <p>Marks the authenticated institute as onboarded by the support team.</p>
 
 <h4>Request</h4>
@@ -2025,6 +2079,7 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> again returns <span class="status-ok">200 OK</span> and leaves the institute in the same onboarded state.</p>
 
+</details>
 </section>
 
 <section id="organization-type">
@@ -2032,7 +2087,8 @@
 <p>Shared reference data, not scoped to the caller. Used to populate <code>orgTypeId</code> on <a href="#org-post">Create organization</a> / <a href="#org-put">Update organization</a>.</p>
 
 <!-- ========================= List organization types ========================= -->
-<h3 id="orgtype-list"><span class="method">GET</span> <code>/orgtype/list</code></h3>
+<details id="orgtype-list">
+<summary><span class="method">GET</span> <code>/orgtype/list</code></summary>
 <p>Returns a paged list of organization types.</p>
 
 <h4>Request</h4>
@@ -2075,9 +2131,10 @@
   </tbody>
 </table>
 
+</details>
 <!-- ========================= Organization type options ========================= -->
-<hr>
-<h3 id="orgtype-options"><span class="method">GET</span> <code>/orgtype/options</code></h3>
+<details id="orgtype-options">
+<summary><span class="method">GET</span> <code>/orgtype/options</code></summary>
 <p>Returns all organization types as <code>{ id, name }</code> pairs, for populating a picker.</p>
 
 <h4>Request</h4>
@@ -2106,6 +2163,7 @@
   </tbody>
 </table>
 
+</details>
 </section>
 
 <section id="institute-type">
@@ -2113,7 +2171,8 @@
 <p>Shared reference data, not scoped to the caller.</p>
 
 <!-- ========================= List institute types ========================= -->
-<h3 id="insttype-list"><span class="method">GET</span> <code>/insttype/list</code></h3>
+<details id="insttype-list">
+<summary><span class="method">GET</span> <code>/insttype/list</code></summary>
 <p>Returns a paged list of institute types.</p>
 
 <h4>Request</h4>
@@ -2156,9 +2215,10 @@
   </tbody>
 </table>
 
+</details>
 <!-- ========================= Institute type options ========================= -->
-<hr>
-<h3 id="insttype-options"><span class="method">GET</span> <code>/insttype/options</code></h3>
+<details id="insttype-options">
+<summary><span class="method">GET</span> <code>/insttype/options</code></summary>
 <p>Returns all institute types as <code>{ id, name }</code> pairs, for populating a picker.</p>
 
 <h4>Request</h4>
@@ -2187,6 +2247,7 @@
   </tbody>
 </table>
 
+</details>
 </section>
 
 <section id="role">
@@ -2194,7 +2255,8 @@
 <p>Shared reference data, not scoped to the caller.</p>
 
 <!-- ========================= Access role options ========================= -->
-<h3 id="role-options"><span class="method">GET</span> <code>/role/options</code></h3>
+<details id="role-options">
+<summary><span class="method">GET</span> <code>/role/options</code></summary>
 <p>Returns access roles as <code>{ id, name }</code> pairs, for populating a picker.</p>
 
 <h4>Request</h4>
@@ -2227,6 +2289,7 @@
   </tbody>
 </table>
 
+</details>
 </section>
 </main>
 </body>
