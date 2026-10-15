@@ -184,19 +184,28 @@
 <!-- ========================= List notices ========================= -->
 <details id="notice-get">
 <summary><span class="method">GET</span> <code>/notice</code></summary>
-<p>Returns every active, non-deleted notice for the calling institution, most recently published first. Not paged. Reads from the <code>vw_plg_notice_list</code> read model.</p>
+<p>Returns a page of active, non-deleted notices for the calling institution, most recently published first. Reads from the <code>vw_plg_notice_list</code> read model.</p>
 
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/notice?product={product}</code></td></tr>
-    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/notice?product={product}</code></td></tr>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/notice?product={product}&amp;pageNumber={pageNumber}&amp;pageSize={pageSize}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/notice?product={product}&amp;pageNumber={pageNumber}&amp;pageSize={pageSize}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. Must be &gt; 0. A value past the last page is clamped back onto the last page.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. Must be &gt; 0 and &le; <code>200</code>.</td></tr>
   </tbody>
 </table>
 
 <h4>Sample request</h4>
-<pre><code>GET /notice?product=scl-website</code></pre>
+<pre><code>GET /notice?product=scl-website
+    &amp;pageNumber=1    // optional, integer, default 1, > 0
+    &amp;pageSize=50     // optional, integer, default 50, > 0, max 200</code></pre>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -204,26 +213,37 @@
   "success": true,
   "message": null,
   "errors": null,
-  "data": [
-    {
-      "noticeId": 501,
-      "instSaaSId": 321,
-      "title": "Annual Sports Day",
-      "shortDescription": "Join us for the annual sports day on the school grounds.",
-      "imageSrc": "sports-day.jpg",
-      "publishDate": "2026-11-01",
-      "expiryDate": "2026-11-15",
-      "publishState": "Live",
-      "isActive": true,
-      "createdAt": "2026-10-10T08:00:00+00:00",
-      "updatedAt": "2026-10-10T08:00:00+00:00"
+  "data": {
+    "records": [
+      {
+        "noticeId": 501,
+        "instSaaSId": 321,
+        "title": "Annual Sports Day",
+        "shortDescription": "Join us for the annual sports day on the school grounds.",
+        "imageSrc": "sports-day.jpg",
+        "publishDate": "2026-11-01",
+        "expiryDate": "2026-11-15",
+        "publishState": "Live",
+        "isActive": true,
+        "createdAt": "2026-10-10T08:00:00+00:00",
+        "updatedAt": "2026-10-10T08:00:00+00:00"
+      }
+    ],
+    "metaData": {
+      "totalCount": 1,
+      "pageSize": 50,
+      "currentPage": 1,
+      "totalPages": 1,
+      "hasNext": false,
+      "hasPrevious": false
     }
-  ]
+  }
 }</code></pre>
 <p><code>shortDescription</code> is the first 150 characters of the notice's full description. <code>publishState</code> is computed from <code>publishDate</code>/<code>expiryDate</code> against the current UTC date — <code>"Scheduled"</code> (publish date is in the future), <code>"Live"</code>, or <code>"Expired"</code> (expiry date has passed) — never stored. <code>isActive</code> is always <code>true</code> in current practice: no route in this API deactivates a notice.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageNumber</code> not &gt; 0, or <code>pageSize</code> not &gt; 0 or over <code>200</code>.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
   </tbody>
@@ -381,11 +401,11 @@
   "data": {
     "noticeId": 501,
     "imagePresign": {
-      "key": "vWebsite/plugin_cdn/notice/inst_321/sports-day-raw.jpg",
+      "key": "vWebsite/plugin_cdn/notice/SAASX7Y8Z9/sports-day-raw.jpg",
       "post": {
         "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/",
         "fields": {
-          "key": "vWebsite/plugin_cdn/notice/inst_321/sports-day-raw.jpg",
+          "key": "vWebsite/plugin_cdn/notice/SAASX7Y8Z9/sports-day-raw.jpg",
           "x-amz-server-side-encryption": "AES256",
           "x-amz-credential": "ASIAEXAMPLE/20261012/ap-south-1/s3/aws4_request",
           "x-amz-algorithm": "AWS4-HMAC-SHA256",
@@ -460,7 +480,7 @@
   "data": {
     "updated": true,
     "imagePresign": {
-      "key": "vWebsite/plugin_cdn/notice/inst_321/sports-day-v2-raw.jpg",
+      "key": "vWebsite/plugin_cdn/notice/SAASX7Y8Z9/sports-day-v2-raw.jpg",
       "post": { "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/", "fields": { "...": "..." } },
       "expiresIn": 120,
       "maxFileSize": 10485760,

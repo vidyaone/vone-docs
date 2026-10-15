@@ -83,7 +83,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}announcement?product={{product}}"
+            "url": "{{baseUrl}}announcement?product={{product}}&pageNumber=1&pageSize=50"
           },
           "response": []
         },

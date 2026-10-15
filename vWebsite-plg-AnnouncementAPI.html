@@ -183,19 +183,28 @@
 <!-- ========================= List announcements ========================= -->
 <details id="announcement-get">
 <summary><span class="method">GET</span> <code>/announcement</code></summary>
-<p>Returns every active, non-deleted announcement for the calling institution, most recently published first. Not paged. Reads from the <code>vw_plg_announcement_list</code> read model.</p>
+<p>Returns a page of active, non-deleted announcements for the calling institution, most recently published first. Reads from the <code>vw_plg_announcement_list</code> read model.</p>
 
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/announcement?product={product}</code></td></tr>
-    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/announcement?product={product}</code></td></tr>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/announcement?product={product}&amp;pageNumber={pageNumber}&amp;pageSize={pageSize}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/announcement?product={product}&amp;pageNumber={pageNumber}&amp;pageSize={pageSize}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no, default 1</td><td>A value &le; 0 (or omitted) is treated as not provided — the default is used, not rejected. Requesting a page past the last page returns the last page instead.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no, default 50</td><td>A value &le; 0 (or omitted) is treated as not provided — the default is used, not rejected. A value &gt; 200 fails with <span class="status-err">400</span> <code>VALIDATION_FAILED</code>.</td></tr>
   </tbody>
 </table>
 
 <h4>Sample request</h4>
-<pre><code>GET /announcement?product=scl-website</code></pre>
+<pre><code>GET /announcement?product=scl-website
+    &amp;pageNumber=1    // optional, integer, default 1 &mdash; &le;0 is ignored (default used), not rejected
+    &amp;pageSize=50     // optional, integer, default 50, max 200 &mdash; &le;0 is ignored (default used); &gt;200 fails validation</code></pre>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -203,26 +212,37 @@
   "success": true,
   "message": null,
   "errors": null,
-  "data": [
-    {
-      "announcementId": 801,
-      "instSaaSId": 321,
-      "title": "Admissions Open for 2026-27",
-      "shortDescription": "We are now accepting admission applications for the 2026-27 academic year. Apply before the last date to secure your seat.",
-      "imageSrc": "admissions-2026.jpg",
-      "publishDate": "2026-11-01",
-      "expiryDate": "2026-12-15",
-      "publishState": "Live",
-      "isActive": true,
-      "createdAt": "2026-10-10T08:00:00+00:00",
-      "updatedAt": "2026-10-10T08:00:00+00:00"
+  "data": {
+    "records": [
+      {
+        "announcementId": 801,
+        "instSaaSId": 321,
+        "title": "Admissions Open for 2026-27",
+        "shortDescription": "We are now accepting admission applications for the 2026-27 academic year. Apply before the last date to secure your seat.",
+        "imageSrc": "admissions-2026.jpg",
+        "publishDate": "2026-11-01",
+        "expiryDate": "2026-12-15",
+        "publishState": "Live",
+        "isActive": true,
+        "createdAt": "2026-10-10T08:00:00+00:00",
+        "updatedAt": "2026-10-10T08:00:00+00:00"
+      }
+    ],
+    "metaData": {
+      "totalCount": 1,
+      "pageSize": 50,
+      "currentPage": 1,
+      "totalPages": 1,
+      "hasNext": false,
+      "hasPrevious": false
     }
-  ]
+  }
 }</code></pre>
 <p><code>shortDescription</code> is the first 150 characters of the announcement's full description. <code>publishState</code> is computed from <code>publishDate</code>/<code>expiryDate</code> against the current date — <code>"Scheduled"</code> (publish date is in the future), <code>"Live"</code>, or <code>"Expired"</code> (expiry date has passed) — never stored. <code>isActive</code> is always <code>true</code> in current practice: no route in this API deactivates an announcement.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageSize</code> &gt; 200.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
   </tbody>
@@ -380,11 +400,11 @@
   "data": {
     "announcementId": 801,
     "imagePresign": {
-      "key": "vWebsite/plugin_cdn/announcement/inst_321/admissions-2026-raw.jpg",
+      "key": "vWebsite/plugin_cdn/announcement/5a5roCjQmv/admissions-2026-raw.jpg",
       "post": {
         "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/",
         "fields": {
-          "key": "vWebsite/plugin_cdn/announcement/inst_321/admissions-2026-raw.jpg",
+          "key": "vWebsite/plugin_cdn/announcement/5a5roCjQmv/admissions-2026-raw.jpg",
           "x-amz-server-side-encryption": "AES256",
           "x-amz-credential": "ASIAEXAMPLE/20261014/ap-south-1/s3/aws4_request",
           "x-amz-algorithm": "AWS4-HMAC-SHA256",
@@ -459,7 +479,7 @@
   "data": {
     "updated": true,
     "imagePresign": {
-      "key": "vWebsite/plugin_cdn/announcement/inst_321/admissions-2026-v2-raw.jpg",
+      "key": "vWebsite/plugin_cdn/announcement/5a5roCjQmv/admissions-2026-v2-raw.jpg",
       "post": { "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/", "fields": { "...": "..." } },
       "expiresIn": 120,
       "maxFileSize": 10485760,
