@@ -110,8 +110,8 @@
 <table>
   <thead><tr><th>Environment</th><th>Base URL</th><th>Source</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>https://api-vweb.vidyaone.com/test/plugin/notice/</code></td><td><code>appsettings.Testing.json</code> → <code>App:BaseUrl</code></td></tr>
-    <tr><td>Production</td><td><code>https://api-vweb.vidyaone.com/plugin/notice/</code></td><td><code>appsettings.json</code> → <code>App:BaseUrl</code></td></tr>
+    <tr><td>Testing</td><td><code>https://api-vweb.vidyaone.com/test/plugin/</code></td><td><code>appsettings.Testing.json</code> → <code>App:BaseUrl</code></td></tr>
+    <tr><td>Production</td><td><code>https://api-vweb.vidyaone.com/plugin/</code></td><td><code>appsettings.json</code> → <code>App:BaseUrl</code></td></tr>
     <tr><td>Local (Development)</td><td><code>http://localhost:65083/</code></td><td><code>Properties/launchSettings.json</code> → <code>applicationUrl</code> (no <code>App:BaseUrl</code> override for this environment; routes are hit directly off the root, with no <code>/plugin/notice/</code> prefix)</td></tr>
   </tbody>
 </table>
@@ -190,8 +190,8 @@
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/notice/notice?product={product}</code></td></tr>
-    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/notice/notice?product={product}</code></td></tr>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/notice?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/notice?product={product}</code></td></tr>
   </tbody>
 </table>
 
@@ -239,8 +239,8 @@
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/notice/notice/edit?product={product}&amp;noticeId={noticeId}</code></td></tr>
-    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/notice/notice/edit?product={product}&amp;noticeId={noticeId}</code></td></tr>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/notice/edit?product={product}&amp;noticeId={noticeId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/notice/edit?product={product}&amp;noticeId={noticeId}</code></td></tr>
   </tbody>
 </table>
 <table>
@@ -289,8 +289,8 @@
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/notice/notice/view?product={product}&amp;noticeId={noticeId}</code></td></tr>
-    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/notice/notice/view?product={product}&amp;noticeId={noticeId}</code></td></tr>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/notice/view?product={product}&amp;noticeId={noticeId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/notice/view?product={product}&amp;noticeId={noticeId}</code></td></tr>
   </tbody>
 </table>
 <table>
@@ -344,8 +344,8 @@
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/plugin/notice/notice?product={product}</code></td></tr>
-    <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/plugin/notice/notice?product={product}</code></td></tr>
+    <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/plugin/notice?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/plugin/notice?product={product}</code></td></tr>
   </tbody>
 </table>
 
@@ -422,8 +422,8 @@
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>PUT https://api-vweb.vidyaone.com/test/plugin/notice/notice?product={product}</code></td></tr>
-    <tr><td>Production</td><td><code>PUT https://api-vweb.vidyaone.com/plugin/notice/notice?product={product}</code></td></tr>
+    <tr><td>Testing</td><td><code>PUT https://api-vweb.vidyaone.com/test/plugin/notice?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>PUT https://api-vweb.vidyaone.com/plugin/notice?product={product}</code></td></tr>
   </tbody>
 </table>
 <p>Same shape as <a href="#notice-post">Create notice</a>, plus <code>notice.noticeId</code>.</p>
@@ -491,8 +491,8 @@
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>DELETE https://api-vweb.vidyaone.com/test/plugin/notice/notice?product={product}&amp;noticeId={noticeId}</code></td></tr>
-    <tr><td>Production</td><td><code>DELETE https://api-vweb.vidyaone.com/plugin/notice/notice?product={product}&amp;noticeId={noticeId}</code></td></tr>
+    <tr><td>Testing</td><td><code>DELETE https://api-vweb.vidyaone.com/test/plugin/notice?product={product}&amp;noticeId={noticeId}</code></td></tr>
+    <tr><td>Production</td><td><code>DELETE https://api-vweb.vidyaone.com/plugin/notice?product={product}&amp;noticeId={noticeId}</code></td></tr>
   </tbody>
 </table>
 <table>

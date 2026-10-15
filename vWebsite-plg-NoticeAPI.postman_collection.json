@@ -8,7 +8,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "https://api-vweb.vidyaone.com/test/plugin/notice/",
+      "value": "https://api-vweb.vidyaone.com/test/plugin/",
       "description": "Testing environment (appsettings.Testing.json → App:BaseUrl). This collection targets Testing only."
     },
     {

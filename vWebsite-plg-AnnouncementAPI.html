@@ -110,12 +110,12 @@
 <table>
   <thead><tr><th>Environment</th><th>Base URL</th><th>Source</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>https://api-vweb.vidyaone.com/test/plugin/announcement/</code></td><td><code>appsettings.Testing.json</code> → <code>App:BaseUrl</code></td></tr>
-    <tr><td>Production</td><td><code>https://api-vweb.vidyaone.com/plugin/announcement/</code></td><td><code>appsettings.json</code> → <code>App:BaseUrl</code></td></tr>
-    <tr><td>Local (Development)</td><td><code>http://localhost:65083/</code></td><td><code>Properties/launchSettings.json</code> → <code>applicationUrl</code> (no <code>App:BaseUrl</code> override for this environment; routes are hit directly off the root, with no <code>/plugin/announcement/</code> prefix)</td></tr>
+    <tr><td>Testing</td><td><code>https://api-vweb.vidyaone.com/test/plugin/</code></td><td><code>appsettings.Testing.json</code> → <code>App:BaseUrl</code></td></tr>
+    <tr><td>Production</td><td><code>https://api-vweb.vidyaone.com/plugin/</code></td><td><code>appsettings.json</code> → <code>App:BaseUrl</code></td></tr>
+    <tr><td>Local (Development)</td><td><code>http://localhost:65083/</code></td><td><code>Properties/launchSettings.json</code> → <code>applicationUrl</code> (no <code>App:BaseUrl</code> override for this environment)</td></tr>
   </tbody>
 </table>
-<p class="small">Concatenate the base URL with the route shown in each endpoint below (except Local, which has no path prefix). There is no version segment.</p>
+<p class="small">Concatenate the base URL with the route shown in each endpoint below. There is no version segment.</p>
 </section>
 
 <section id="common-rules">
@@ -189,8 +189,8 @@
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/announcement/announcement?product={product}</code></td></tr>
-    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/announcement/announcement?product={product}</code></td></tr>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/announcement?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/announcement?product={product}</code></td></tr>
   </tbody>
 </table>
 
@@ -238,8 +238,8 @@
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/announcement/announcement/edit?product={product}&amp;announcementId={announcementId}</code></td></tr>
-    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/announcement/announcement/edit?product={product}&amp;announcementId={announcementId}</code></td></tr>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/announcement/edit?product={product}&amp;announcementId={announcementId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/announcement/edit?product={product}&amp;announcementId={announcementId}</code></td></tr>
   </tbody>
 </table>
 <table>
@@ -288,8 +288,8 @@
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/announcement/announcement/view?product={product}&amp;announcementId={announcementId}</code></td></tr>
-    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/announcement/announcement/view?product={product}&amp;announcementId={announcementId}</code></td></tr>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/announcement/view?product={product}&amp;announcementId={announcementId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/announcement/view?product={product}&amp;announcementId={announcementId}</code></td></tr>
   </tbody>
 </table>
 <table>
@@ -343,8 +343,8 @@
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/plugin/announcement/announcement?product={product}</code></td></tr>
-    <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/plugin/announcement/announcement?product={product}</code></td></tr>
+    <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/plugin/announcement?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/plugin/announcement?product={product}</code></td></tr>
   </tbody>
 </table>
 
@@ -421,8 +421,8 @@
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>PUT https://api-vweb.vidyaone.com/test/plugin/announcement/announcement?product={product}</code></td></tr>
-    <tr><td>Production</td><td><code>PUT https://api-vweb.vidyaone.com/plugin/announcement/announcement?product={product}</code></td></tr>
+    <tr><td>Testing</td><td><code>PUT https://api-vweb.vidyaone.com/test/plugin/announcement?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>PUT https://api-vweb.vidyaone.com/plugin/announcement?product={product}</code></td></tr>
   </tbody>
 </table>
 <p>Same shape as <a href="#announcement-post">Create announcement</a>, plus <code>announcement.announcementId</code>.</p>
@@ -490,8 +490,8 @@
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>DELETE https://api-vweb.vidyaone.com/test/plugin/announcement/announcement?product={product}&amp;announcementId={announcementId}</code></td></tr>
-    <tr><td>Production</td><td><code>DELETE https://api-vweb.vidyaone.com/plugin/announcement/announcement?product={product}&amp;announcementId={announcementId}</code></td></tr>
+    <tr><td>Testing</td><td><code>DELETE https://api-vweb.vidyaone.com/test/plugin/announcement?product={product}&amp;announcementId={announcementId}</code></td></tr>
+    <tr><td>Production</td><td><code>DELETE https://api-vweb.vidyaone.com/plugin/announcement?product={product}&amp;announcementId={announcementId}</code></td></tr>
   </tbody>
 </table>
 <table>
