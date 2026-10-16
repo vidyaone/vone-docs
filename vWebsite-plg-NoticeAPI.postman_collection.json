@@ -37,7 +37,7 @@
             "url": "{{baseUrl}}notice?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"notice\": {\n    \"title\": \"Annual Sports Day\",\n    \"description\": \"Join us for the annual sports day on the school grounds.\",\n    \"imageSrc\": \"sports-day.jpg\",\n    \"publishDate\": \"2026-11-01\",\n    \"expiryDate\": \"2026-11-15\"\n  },\n  \"uploadImageFileName\": \"sports-day-raw.jpg\"\n}",
+              "raw": "{\n  \"notice\": {\n    \"title\": \"Annual Sports Day\",\n    \"description\": \"Join us for the annual sports day on the school grounds.\",\n    \"imageSrc\": \"sports-day.jpg\",\n    \"publishDate\": \"2026-11-01T09:00:00Z\",\n    \"expiryDate\": \"2026-11-15T23:59:00Z\"\n  },\n  \"uploadImageFileName\": \"sports-day-raw.jpg\"\n}",
               "options": { "raw": { "language": "json" } }
             }
           },
@@ -54,7 +54,7 @@
             "url": "{{baseUrl}}notice?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"notice\": {\n    \"noticeId\": {{noticeId}},\n    \"title\": \"Annual Sports Day (Updated)\",\n    \"description\": \"Join us for the annual sports day — now with a new venue.\",\n    \"imageSrc\": \"sports-day-v2.jpg\",\n    \"publishDate\": \"2026-11-01\",\n    \"expiryDate\": \"2026-11-20\"\n  },\n  \"uploadImageFileName\": \"sports-day-v2-raw.jpg\"\n}",
+              "raw": "{\n  \"notice\": {\n    \"noticeId\": {{noticeId}},\n    \"title\": \"Annual Sports Day (Updated)\",\n    \"description\": \"Join us for the annual sports day — now with a new venue.\",\n    \"imageSrc\": \"sports-day-v2.jpg\",\n    \"publishDate\": \"2026-11-01T09:00:00Z\",\n    \"expiryDate\": \"2026-11-20T23:59:00Z\"\n  },\n  \"uploadImageFileName\": \"sports-day-v2-raw.jpg\"\n}",
               "options": { "raw": { "language": "json" } }
             }
           },
@@ -83,7 +83,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}notice?product={{product}}&pageNumber=1&pageSize=50"
+            "url": "{{baseUrl}}notice?product={{product}}&pageNumber=1&pageSize=50&createdDate=2026-10-16T00:00:00Z&publishDate=2026-11-01T00:00:00Z&publishState=Live&hasImage=true"
           },
           "response": []
         },

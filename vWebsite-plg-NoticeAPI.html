@@ -190,8 +190,8 @@
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/notice?product={product}&amp;pageNumber={pageNumber}&amp;pageSize={pageSize}</code></td></tr>
-    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/notice?product={product}&amp;pageNumber={pageNumber}&amp;pageSize={pageSize}</code></td></tr>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/notice?product={product}&amp;pageNumber={pageNumber}&amp;pageSize={pageSize}&amp;createdDate={createdDate}&amp;publishDate={publishDate}&amp;publishState={publishState}&amp;hasImage={hasImage}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/notice?product={product}&amp;pageNumber={pageNumber}&amp;pageSize={pageSize}&amp;createdDate={createdDate}&amp;publishDate={publishDate}&amp;publishState={publishState}&amp;hasImage={hasImage}</code></td></tr>
   </tbody>
 </table>
 <table>
@@ -199,13 +199,21 @@
   <tbody>
     <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. Must be &gt; 0. A value past the last page is clamped back onto the last page.</td></tr>
     <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. Must be &gt; 0 and &le; <code>200</code>.</td></tr>
+    <tr><td><code>createdDate</code></td><td>string, date-time</td><td class="opt">no</td><td>ISO-8601 date-time, UTC only (offset <code>+00:00</code> or <code>Z</code>) — any other offset fails validation. Matches notices <strong>created</strong> on the same UTC calendar day as this value (time-of-day is ignored).</td></tr>
+    <tr><td><code>publishDate</code></td><td>string, date-time</td><td class="opt">no</td><td>ISO-8601 date-time, UTC only (offset <code>+00:00</code> or <code>Z</code>). Matches notices whose <code>publishDate</code> falls on the same UTC calendar day as this value (time-of-day is ignored).</td></tr>
+    <tr><td><code>publishState</code></td><td>string</td><td class="opt">no</td><td>Exact match (case-sensitive), one of <code>Scheduled</code>, <code>Live</code>, <code>Expired</code>.</td></tr>
+    <tr><td><code>hasImage</code></td><td>boolean</td><td class="opt">no</td><td><code>true</code> returns only notices with a non-empty <code>imageSrc</code>; <code>false</code> returns only those without.</td></tr>
   </tbody>
 </table>
 
 <h4>Sample request</h4>
 <pre><code>GET /notice?product=scl-website
-    &amp;pageNumber=1    // optional, integer, default 1, > 0
-    &amp;pageSize=50     // optional, integer, default 50, > 0, max 200</code></pre>
+    &amp;pageNumber=1                      // optional, integer, default 1, > 0
+    &amp;pageSize=50                       // optional, integer, default 50, > 0, max 200
+    &amp;createdDate=2026-10-16T00:00:00Z  // optional, string, ISO-8601 date-time, UTC only — matches notices created the same UTC calendar day
+    &amp;publishDate=2026-11-01T00:00:00Z  // optional, string, ISO-8601 date-time, UTC only — matches notices published the same UTC calendar day
+    &amp;publishState=Live                 // optional, string, one of Scheduled | Live | Expired
+    &amp;hasImage=true                     // optional, boolean</code></pre>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -221,8 +229,8 @@
         "title": "Annual Sports Day",
         "shortDescription": "Join us for the annual sports day on the school grounds.",
         "imageSrc": "sports-day.jpg",
-        "publishDate": "2026-11-01",
-        "expiryDate": "2026-11-15",
+        "publishDate": "2026-11-01T09:00:00+00:00",
+        "expiryDate": "2026-11-15T23:59:00+00:00",
         "publishState": "Live",
         "isActive": true,
         "createdAt": "2026-10-10T08:00:00+00:00",
@@ -239,11 +247,11 @@
     }
   }
 }</code></pre>
-<p><code>shortDescription</code> is the first 150 characters of the notice's full description. <code>publishState</code> is computed from <code>publishDate</code>/<code>expiryDate</code> against the current UTC date — <code>"Scheduled"</code> (publish date is in the future), <code>"Live"</code>, or <code>"Expired"</code> (expiry date has passed) — never stored. <code>isActive</code> is always <code>true</code> in current practice: no route in this API deactivates a notice.</p>
+<p><code>shortDescription</code> is the first 150 characters of the notice's full description. <code>publishDate</code>/<code>expiryDate</code> are full ISO-8601 date-times, always UTC. <code>publishState</code> is computed from <code>publishDate</code>/<code>expiryDate</code> against the current UTC date-time — <code>"Scheduled"</code> (publish date-time is in the future), <code>"Live"</code>, or <code>"Expired"</code> (expiry date-time has passed) — never stored. <code>isActive</code> is always <code>true</code> in current practice: no route in this API deactivates a notice.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageNumber</code> not &gt; 0, or <code>pageSize</code> not &gt; 0 or over <code>200</code>.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageNumber</code> not &gt; 0, <code>pageSize</code> not &gt; 0 or over <code>200</code>, <code>createdDate</code>/<code>publishDate</code> not UTC (offset <code>+00:00</code>), or <code>publishState</code> not one of <code>Scheduled</code>, <code>Live</code>, <code>Expired</code>.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
   </tbody>
@@ -285,8 +293,8 @@
     "title": "Annual Sports Day",
     "description": "Join us for the annual sports day on the school grounds.",
     "imageSrc": "sports-day.jpg",
-    "publishDate": "2026-11-01",
-    "expiryDate": "2026-11-15"
+    "publishDate": "2026-11-01T09:00:00+00:00",
+    "expiryDate": "2026-11-15T23:59:00+00:00"
   }
 }</code></pre>
 <table>
@@ -335,8 +343,8 @@
     "title": "Annual Sports Day",
     "description": "Join us for the annual sports day on the school grounds.",
     "imageSrc": "sports-day.jpg",
-    "publishDate": "2026-11-01",
-    "expiryDate": "2026-11-15",
+    "publishDate": "2026-11-01T09:00:00+00:00",
+    "expiryDate": "2026-11-15T23:59:00+00:00",
     "publishState": "Live",
     "instSaaSId": 321,
     "creatorUserId": 42,
@@ -375,8 +383,8 @@
     "title": "Annual Sports Day",                                             // required, string, max 200 chars
     "description": "Join us for the annual sports day on the school grounds.", // required, string
     "imageSrc": "sports-day.jpg",                                             // optional, string, max 500 chars &mdash; a plain file name only, never a URL or a path; see "Uploading an image" below &mdash; independent of uploadImageFileName, never required to match it
-    "publishDate": "2026-11-01",                                              // required, string, date (yyyy-MM-dd)
-    "expiryDate": "2026-11-15"                                                // optional, string, date (yyyy-MM-dd) &mdash; must be on or after publishDate
+    "publishDate": "2026-11-01T09:00:00Z",                                    // required, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; any other offset fails validation
+    "expiryDate": "2026-11-15T23:59:00Z"                                      // optional, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; must be on or after publishDate
   },
   "uploadImageFileName": "sports-day-raw.jpg"                                 // optional, string, max 255 chars &mdash; requests an image upload slot; see "Uploading an image" below
 }</code></pre>
@@ -455,8 +463,8 @@
     "title": "Annual Sports Day (Updated)",                                    // required, string, max 200 chars
     "description": "Join us for the annual sports day &mdash; now with a new venue.", // required, string
     "imageSrc": "sports-day-v2.jpg",                                          // optional, string, max 500 chars &mdash; a plain file name only, never a URL or a path; see "Uploading an image" on Create notice &mdash; independent of uploadImageFileName
-    "publishDate": "2026-11-01",                                              // required, string, date (yyyy-MM-dd)
-    "expiryDate": "2026-11-20"                                                // optional, string, date (yyyy-MM-dd) &mdash; must be on or after publishDate
+    "publishDate": "2026-11-01T09:00:00Z",                                    // required, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; any other offset fails validation
+    "expiryDate": "2026-11-20T23:59:00Z"                                      // optional, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; must be on or after publishDate
   },
   "uploadImageFileName": "sports-day-v2-raw.jpg"                              // optional, string, max 255 chars &mdash; see "Uploading an image" on Create notice
 }</code></pre>
