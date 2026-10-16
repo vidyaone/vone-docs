@@ -183,14 +183,14 @@
 <!-- ========================= List announcements ========================= -->
 <details id="announcement-get">
 <summary><span class="method">GET</span> <code>/announcement</code></summary>
-<p>Returns a page of active, non-deleted announcements for the calling institution, most recently published first. Reads from the <code>vw_plg_announcement_list</code> read model.</p>
+<p>Returns a page of active, non-deleted announcements for the calling institution, most recently published first. <code>createdDate</code>, <code>publishDate</code>, <code>publishState</code> and <code>hasImage</code> are optional filters. Reads from the <code>vw_plg_announcement_list</code> read model.</p>
 
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/announcement?product={product}&amp;pageNumber={pageNumber}&amp;pageSize={pageSize}</code></td></tr>
-    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/announcement?product={product}&amp;pageNumber={pageNumber}&amp;pageSize={pageSize}</code></td></tr>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/announcement?product={product}&amp;pageNumber={pageNumber}&amp;pageSize={pageSize}&amp;createdDate={createdDate}&amp;publishDate={publishDate}&amp;publishState={publishState}&amp;hasImage={hasImage}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/announcement?product={product}&amp;pageNumber={pageNumber}&amp;pageSize={pageSize}&amp;createdDate={createdDate}&amp;publishDate={publishDate}&amp;publishState={publishState}&amp;hasImage={hasImage}</code></td></tr>
   </tbody>
 </table>
 <table>
@@ -198,13 +198,21 @@
   <tbody>
     <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no, default 1</td><td>A value &le; 0 (or omitted) is treated as not provided — the default is used, not rejected. Requesting a page past the last page returns the last page instead.</td></tr>
     <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no, default 50</td><td>A value &le; 0 (or omitted) is treated as not provided — the default is used, not rejected. A value &gt; 200 fails with <span class="status-err">400</span> <code>VALIDATION_FAILED</code>.</td></tr>
+    <tr><td><code>createdDate</code></td><td>string, date-time</td><td class="opt">no</td><td>ISO-8601, must be UTC (offset <code>+00:00</code>). Matches announcements created on the same UTC calendar day as this value (not an exact timestamp match).</td></tr>
+    <tr><td><code>publishDate</code></td><td>string, date-time</td><td class="opt">no</td><td>ISO-8601, must be UTC (offset <code>+00:00</code>). Matches announcements whose <code>publishDate</code> falls on the same UTC calendar day as this value (not an exact timestamp match).</td></tr>
+    <tr><td><code>publishState</code></td><td>string</td><td class="opt">no</td><td>Must be one of <code>Scheduled</code>, <code>Live</code>, <code>Expired</code> (exact match).</td></tr>
+    <tr><td><code>hasImage</code></td><td>boolean</td><td class="opt">no</td><td><code>true</code> returns only announcements with a non-empty <code>imageSrc</code>; <code>false</code> returns only those without.</td></tr>
   </tbody>
 </table>
 
 <h4>Sample request</h4>
 <pre><code>GET /announcement?product=scl-website
-    &amp;pageNumber=1    // optional, integer, default 1 &mdash; &le;0 is ignored (default used), not rejected
-    &amp;pageSize=50     // optional, integer, default 50, max 200 &mdash; &le;0 is ignored (default used); &gt;200 fails validation</code></pre>
+    &amp;pageNumber=1                          // optional, integer, default 1 &mdash; &le;0 is ignored (default used), not rejected
+    &amp;pageSize=50                           // optional, integer, default 50, max 200 &mdash; &le;0 is ignored (default used); &gt;200 fails validation
+    &amp;createdDate=2026-10-10T00:00:00Z      // optional, string, ISO-8601 date-time, UTC &mdash; matches same UTC calendar day
+    &amp;publishDate=2026-11-01T00:00:00Z      // optional, string, ISO-8601 date-time, UTC &mdash; matches same UTC calendar day
+    &amp;publishState=Live                     // optional, string &mdash; one of Scheduled, Live, Expired
+    &amp;hasImage=true                         // optional, boolean</code></pre>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -220,8 +228,8 @@
         "title": "Admissions Open for 2026-27",
         "shortDescription": "We are now accepting admission applications for the 2026-27 academic year. Apply before the last date to secure your seat.",
         "imageSrc": "admissions-2026.jpg",
-        "publishDate": "2026-11-01",
-        "expiryDate": "2026-12-15",
+        "publishDate": "2026-11-01T00:00:00+00:00",
+        "expiryDate": "2026-12-15T00:00:00+00:00",
         "publishState": "Live",
         "isActive": true,
         "createdAt": "2026-10-10T08:00:00+00:00",
@@ -243,6 +251,8 @@
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageSize</code> &gt; 200.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>createdDate</code> or <code>publishDate</code> given but not UTC (offset other than <code>+00:00</code>).</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>publishState</code> given but not one of <code>Scheduled</code>, <code>Live</code>, <code>Expired</code>.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
   </tbody>
@@ -284,8 +294,8 @@
     "title": "Admissions Open for 2026-27",
     "description": "We are now accepting admission applications for the 2026-27 academic year. Apply before the last date to secure your seat.",
     "imageSrc": "admissions-2026.jpg",
-    "publishDate": "2026-11-01",
-    "expiryDate": "2026-12-15"
+    "publishDate": "2026-11-01T00:00:00+00:00",
+    "expiryDate": "2026-12-15T00:00:00+00:00"
   }
 }</code></pre>
 <table>
@@ -334,8 +344,8 @@
     "title": "Admissions Open for 2026-27",
     "description": "We are now accepting admission applications for the 2026-27 academic year. Apply before the last date to secure your seat.",
     "imageSrc": "admissions-2026.jpg",
-    "publishDate": "2026-11-01",
-    "expiryDate": "2026-12-15",
+    "publishDate": "2026-11-01T00:00:00+00:00",
+    "expiryDate": "2026-12-15T00:00:00+00:00",
     "publishState": "Live",
     "instSaaSId": 321,
     "creatorUserId": 42,
@@ -374,8 +384,8 @@
     "title": "Admissions Open for 2026-27",                                   // required, string, max 200 chars
     "description": "We are now accepting admission applications for the 2026-27 academic year. Apply before the last date to secure your seat.", // required, string
     "imageSrc": "admissions-2026.jpg", // optional, string, max 500 chars &mdash; a bare, safe file name only (no URL, no path); see "Uploading an image" below &mdash; independent of uploadImageFileName, never required to match it
-    "publishDate": "2026-11-01",                                              // required, string, date (yyyy-MM-dd)
-    "expiryDate": "2026-12-15"                                                // optional, string, date (yyyy-MM-dd) &mdash; must be on or after publishDate
+    "publishDate": "2026-11-01T00:00:00Z",                                    // required, string, ISO-8601 date-time, must be UTC (offset +00:00)
+    "expiryDate": "2026-12-15T00:00:00Z"                                      // optional, string, ISO-8601 date-time, must be UTC (offset +00:00) &mdash; must be on or after publishDate
   },
   "uploadImageFileName": "admissions-2026-raw.jpg"                            // optional, string, max 255 chars &mdash; requests an image upload slot; see "Uploading an image" below
 }</code></pre>
@@ -454,8 +464,8 @@
     "title": "Admissions Open for 2026-27 (Extended)",                        // required, string, max 200 chars
     "description": "We are now accepting admission applications for the 2026-27 academic year &mdash; deadline extended.", // required, string
     "imageSrc": "admissions-2026-v2.jpg", // optional, string, max 500 chars &mdash; see "Uploading an image" on Create announcement &mdash; independent of uploadImageFileName
-    "publishDate": "2026-11-01",                                              // required, string, date (yyyy-MM-dd)
-    "expiryDate": "2026-12-31"                                                // optional, string, date (yyyy-MM-dd) &mdash; must be on or after publishDate
+    "publishDate": "2026-11-01T00:00:00Z",                                    // required, string, ISO-8601 date-time, must be UTC (offset +00:00)
+    "expiryDate": "2026-12-31T00:00:00Z"                                      // optional, string, ISO-8601 date-time, must be UTC (offset +00:00) &mdash; must be on or after publishDate
   },
   "uploadImageFileName": "admissions-2026-v2-raw.jpg"                         // optional, string, max 255 chars &mdash; see "Uploading an image" on Create announcement
 }</code></pre>

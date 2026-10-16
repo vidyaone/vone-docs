@@ -36,7 +36,7 @@
 <body>
 <div class="wrap">
   <h1>VIDYAOne — Global Notifications</h1>
-  <div class="meta">Cross-project · last updated 2026-10-15 · 39 items across 5 projects</div>
+  <div class="meta">Cross-project · last updated 2026-10-16 · 39 items across 5 projects</div>
   <div class="nav"><a href="#vAccount/vAccount-InstituteAPI">vAccount/vAccount-InstituteAPI</a> · <a href="#vAccount/vAccount-UserAPI">vAccount/vAccount-UserAPI</a> · <a href="#vWebsite/vWebsite-AdminAPI">vWebsite/vWebsite-AdminAPI</a> · <a href="#vWebsite/vWebsite-plg-AnnouncementAPI">vWebsite/vWebsite-plg-AnnouncementAPI</a> · <a href="#vWebsite/vWebsite-plg-NoticeAPI">vWebsite/vWebsite-plg-NoticeAPI</a></div>
   <table>
     <tr class="proj"><td colspan="6"><h2 id="vAccount/vAccount-InstituteAPI">vAccount/vAccount-InstituteAPI <span class="badge">32</span></h2></td></tr>
@@ -82,8 +82,8 @@
     <tr><td class=num>2</td><td><code>PAGE_STATUS_UPDATED</code></td><td>normal</td><td class=loc><code>PageCreateCommandHandler.cs:63</code> — every successful POST /page save, best-effort (publish failure logged, doesn't fail the request)</td><td>PageStatusUpdatedEventDTO: InstId=institution's SaaS id, EmailUserTo=caller's user id, EmailTo=empty</td><td>caller (user who made the change)</td></tr>
     <tr class="proj"><td colspan="6"><h2 id="vWebsite/vWebsite-plg-AnnouncementAPI">vWebsite/vWebsite-plg-AnnouncementAPI <span class="badge">2</span></h2></td></tr>
     <tr class="head"><th>#</th><th>Event</th><th>Queue</th><th>Trigger</th><th>Payload</th><th>Recipients</th></tr>
-    <tr><td class=num>1</td><td><code>ANNOUNCEMENT_CREATED</code></td><td>normal</td><td class=loc><code>AnnouncementCreateCommandHandler.cs:30</code> — every successful create, best-effort (publish failure logged, doesn't fail the request)</td><td>AnnouncementCreatedEventDTO: AnnouncementId=new announcement's id, EmailUserTo=creator's user id, EmailTo=empty</td><td>creator</td></tr>
-    <tr><td class=num>2</td><td><code>ANNOUNCEMENT_UPDATED</code></td><td>normal</td><td class=loc><code>AnnouncementUpdateCommandHandler.cs:36</code> — every successful update, best-effort (publish failure logged, doesn't fail the request)</td><td>AnnouncementUpdatedEventDTO: AnnouncementId=updated announcement's id, EmailUserTo=caller's user id, EmailTo=empty</td><td>caller (user who made the update)</td></tr>
+    <tr><td class=num>1</td><td><code>ANNOUNCEMENT_CREATED</code></td><td>normal</td><td class=loc><code>AnnouncementCreateCommandHandler.cs:32</code> — every successful create, best-effort (publish failure logged, doesn't fail the request)</td><td>AnnouncementCreatedEventDTO: AnnouncementId=new announcement's id, EmailUserTo=creator's user id, EmailTo=empty</td><td>creator</td></tr>
+    <tr><td class=num>2</td><td><code>ANNOUNCEMENT_UPDATED</code></td><td>normal</td><td class=loc><code>AnnouncementUpdateCommandHandler.cs:38</code> — every successful update, best-effort (publish failure logged, doesn't fail the request)</td><td>AnnouncementUpdatedEventDTO: AnnouncementId=updated announcement's id, EmailUserTo=caller's user id, EmailTo=empty</td><td>caller (user who made the update)</td></tr>
     <tr class="proj"><td colspan="6"><h2 id="vWebsite/vWebsite-plg-NoticeAPI">vWebsite/vWebsite-plg-NoticeAPI <span class="badge">2</span></h2></td></tr>
     <tr class="head"><th>#</th><th>Event</th><th>Queue</th><th>Trigger</th><th>Payload</th><th>Recipients</th></tr>
     <tr><td class=num>1</td><td><code>NOTICE_CREATED</code></td><td>normal</td><td class=loc><code>NoticeCreateCommandHandler.cs:31</code> — every successful create, best-effort (publish failure logged, doesn't fail the request)</td><td>NoticeCreatedEventDTO: NoticeId=new notice's id, EmailUserTo=creator's user id, EmailTo=empty</td><td>creator</td></tr>

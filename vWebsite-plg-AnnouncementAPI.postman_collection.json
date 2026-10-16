@@ -37,7 +37,7 @@
             "url": "{{baseUrl}}announcement?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"announcement\": {\n    \"title\": \"Admissions Open for 2026-27\",\n    \"description\": \"We are now accepting admission applications for the 2026-27 academic year. Apply before the last date to secure your seat.\",\n    \"imageSrc\": \"admissions-2026.jpg\",\n    \"publishDate\": \"2026-11-01\",\n    \"expiryDate\": \"2026-12-15\"\n  },\n  \"uploadImageFileName\": \"admissions-2026-raw.jpg\"\n}",
+              "raw": "{\n  \"announcement\": {\n    \"title\": \"Admissions Open for 2026-27\",\n    \"description\": \"We are now accepting admission applications for the 2026-27 academic year. Apply before the last date to secure your seat.\",\n    \"imageSrc\": \"admissions-2026.jpg\",\n    \"publishDate\": \"2026-11-01T00:00:00Z\",\n    \"expiryDate\": \"2026-12-15T00:00:00Z\"\n  },\n  \"uploadImageFileName\": \"admissions-2026-raw.jpg\"\n}",
               "options": { "raw": { "language": "json" } }
             }
           },
@@ -54,7 +54,7 @@
             "url": "{{baseUrl}}announcement?product={{product}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"announcement\": {\n    \"announcementId\": {{announcementId}},\n    \"title\": \"Admissions Open for 2026-27 (Extended)\",\n    \"description\": \"We are now accepting admission applications for the 2026-27 academic year — deadline extended.\",\n    \"imageSrc\": \"admissions-2026-v2.jpg\",\n    \"publishDate\": \"2026-11-01\",\n    \"expiryDate\": \"2026-12-31\"\n  },\n  \"uploadImageFileName\": \"admissions-2026-v2-raw.jpg\"\n}",
+              "raw": "{\n  \"announcement\": {\n    \"announcementId\": {{announcementId}},\n    \"title\": \"Admissions Open for 2026-27 (Extended)\",\n    \"description\": \"We are now accepting admission applications for the 2026-27 academic year — deadline extended.\",\n    \"imageSrc\": \"admissions-2026-v2.jpg\",\n    \"publishDate\": \"2026-11-01T00:00:00Z\",\n    \"expiryDate\": \"2026-12-31T00:00:00Z\"\n  },\n  \"uploadImageFileName\": \"admissions-2026-v2-raw.jpg\"\n}",
               "options": { "raw": { "language": "json" } }
             }
           },
@@ -83,7 +83,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}announcement?product={{product}}&pageNumber=1&pageSize=50"
+            "url": "{{baseUrl}}announcement?product={{product}}&pageNumber=1&pageSize=50&createdDate=2026-10-10T00:00:00Z&publishDate=2026-11-01T00:00:00Z&publishState=Live&hasImage=true"
           },
           "response": []
         },
