@@ -440,6 +440,8 @@
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again creates a second, separate announcement &mdash; no duplicate detection is performed.</p>
+<h4>Events</h4>
+<p>Fires <code>ANNOUNCEMENT_CREATED</code> after the announcement is saved.</p>
 
 </details>
 <!-- ========================= Update announcement ========================= -->
@@ -509,6 +511,8 @@
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the announcement in the same final state.</p>
+<h4>Events</h4>
+<p>Fires <code>ANNOUNCEMENT_UPDATED</code> after the announcement is saved.</p>
 
 </details>
 <!-- ========================= Delete announcement ========================= -->

@@ -237,7 +237,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>file</code> empty.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>file</code> empty, or institution not resolved.</td></tr>
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>file</code> fails the naming pattern, a path-traversal attempt is detected, the stored file is empty or exceeds 10 MB, or the stored content is not valid JSON.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
@@ -304,7 +304,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>file</code> empty or <code>data</code> is not an object/array.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>file</code> empty, <code>data</code> is not an object/array, or institution not resolved.</td></tr>
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>file</code> fails the naming pattern, <code>data</code> exceeds the depth/key/array limits, the serialized payload exceeds 5 MB, <code>data</code> is not serializable, or the request body is malformed.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
@@ -437,6 +437,8 @@
 </table>
 <p class="note"><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again leaves exactly one row per name in the same final status and returns <span class="status-ok">200 OK</span> <code>data: true</code> — same final state. The response does not distinguish rows that were created from rows that were updated.</p>
 <p class="note"><strong>Side effect.</strong> After a successful save, the institution's module-setup onboarding step (see <a href="#get-onboard-module">GET /onboard/module</a>) is marked complete, and the site is flagged as having unpublished changes. If either flag update fails, this request still returns <span class="status-ok">200 OK</span> (the modules are already saved).</p>
+<h4>Events</h4>
+<p>Fires <code>MODULE_STATUS_UPDATED</code> after the modules are saved.</p>
 </details>
 </section>
 
@@ -529,6 +531,8 @@
 <p class="small">Same set as <a href="#post-module">POST /module</a>.</p>
 <p class="note"><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again leaves exactly one row per name in the same final status and returns <span class="status-ok">200 OK</span> <code>data: true</code> — same final state. Created vs updated rows are not distinguished in the response.</p>
 <p class="note"><strong>Side effect.</strong> After a successful save, the institution's site is flagged as having unpublished changes. If that flag update fails, this request still returns <span class="status-ok">200 OK</span> (the pages are already saved).</p>
+<h4>Events</h4>
+<p>Fires <code>PAGE_STATUS_UPDATED</code> after the pages are saved.</p>
 </details>
 </section>
 
@@ -594,6 +598,7 @@
   <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Institution not resolved.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>A submitted value fails a database check constraint.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or a required database column was left null.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>The institution referenced by this request does not exist.</td></tr>

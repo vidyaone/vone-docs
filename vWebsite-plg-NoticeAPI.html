@@ -439,6 +439,8 @@
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again creates a second, separate notice &mdash; no duplicate detection is performed.</p>
+<h4>Events</h4>
+<p>Fires <code>NOTICE_CREATED</code> after the notice is saved.</p>
 
 </details>
 <!-- ========================= Update notice ========================= -->
@@ -508,6 +510,8 @@
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the notice in the same final state.</p>
+<h4>Events</h4>
+<p>Fires <code>NOTICE_UPDATED</code> after the notice is saved.</p>
 
 </details>
 <!-- ========================= Delete notice ========================= -->
