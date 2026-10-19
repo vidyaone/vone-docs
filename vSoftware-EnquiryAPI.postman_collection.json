@@ -1,0 +1,398 @@
+{
+  "info": {
+    "name": "vSoftware-EnquiryAPI",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api-vsof.vidyaone.com/test/enquiry/",
+      "description": "Testing base URL. Source: EnquiryAPI.Web/src/EnquiryAPI.Web/appsettings.Testing.json → App:BaseUrl"
+    },
+    {
+      "key": "product",
+      "value": "scl-software",
+      "description": "Product/subdomain identifier required on every request."
+    }
+  ],
+  "item": [
+    {
+      "name": "Status",
+      "item": [
+        {
+          "name": "POST /setting/status",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": {
+              "raw": "{{baseUrl}}setting/status?product={{product}}",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "status" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statusName\": \"Open\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PUT /setting/status",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": {
+              "raw": "{{baseUrl}}setting/status?product={{product}}",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "status" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statusId\": 101,\n  \"statusName\": \"Closed\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET /setting/status/edit",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}setting/status/edit?product={{product}}&statusId=101",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "status", "edit" ],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "statusId", "value": "101" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /setting/status/view",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}setting/status/view?product={{product}}&statusId=101",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "status", "view" ],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "statusId", "value": "101" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /setting/status/list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}setting/status/list?product={{product}}&isActive=true&name=Open&pageNumber=1&pageSize=10",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "status", "list" ],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "isActive", "value": "true" },
+                { "key": "name", "value": "Open" },
+                { "key": "pageNumber", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /setting/status/options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}setting/status/options?product={{product}}",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "status", "options" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            }
+          }
+        },
+        {
+          "name": "PUT /setting/status/activate",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": {
+              "raw": "{{baseUrl}}setting/status/activate?product={{product}}",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "status", "activate" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statusId\": 101\n}"
+            }
+          }
+        },
+        {
+          "name": "PUT /setting/status/deactivate",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": {
+              "raw": "{{baseUrl}}setting/status/deactivate?product={{product}}",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "status", "deactivate" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statusId\": 101\n}"
+            }
+          }
+        },
+        {
+          "name": "DELETE /setting/status",
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": {
+              "raw": "{{baseUrl}}setting/status?product={{product}}",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "status" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statusId\": 101\n}"
+            }
+          }
+        },
+        {
+          "name": "PUT /setting/status/default",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": {
+              "raw": "{{baseUrl}}setting/status/default?product={{product}}",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "status", "default" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statusId\": 101\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Source",
+      "item": [
+        {
+          "name": "POST /setting/source",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": {
+              "raw": "{{baseUrl}}setting/source?product={{product}}",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "source" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceName\": \"Website\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PUT /setting/source",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": {
+              "raw": "{{baseUrl}}setting/source?product={{product}}",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "source" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceId\": 201,\n  \"sourceName\": \"Walk-in\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET /setting/source/edit",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}setting/source/edit?product={{product}}&sourceId=201",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "source", "edit" ],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "sourceId", "value": "201" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /setting/source/view",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}setting/source/view?product={{product}}&sourceId=201",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "source", "view" ],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "sourceId", "value": "201" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /setting/source/list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}setting/source/list?product={{product}}&isActive=true&name=Website&pageNumber=1&pageSize=10",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "source", "list" ],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "isActive", "value": "true" },
+                { "key": "name", "value": "Website" },
+                { "key": "pageNumber", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /setting/source/options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}setting/source/options?product={{product}}",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "source", "options" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            }
+          }
+        },
+        {
+          "name": "PUT /setting/source/activate",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": {
+              "raw": "{{baseUrl}}setting/source/activate?product={{product}}",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "source", "activate" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceId\": 201\n}"
+            }
+          }
+        },
+        {
+          "name": "PUT /setting/source/deactivate",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": {
+              "raw": "{{baseUrl}}setting/source/deactivate?product={{product}}",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "source", "deactivate" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceId\": 201\n}"
+            }
+          }
+        },
+        {
+          "name": "DELETE /setting/source",
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": {
+              "raw": "{{baseUrl}}setting/source?product={{product}}",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "source" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceId\": 201\n}"
+            }
+          }
+        },
+        {
+          "name": "PUT /setting/source/default",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": {
+              "raw": "{{baseUrl}}setting/source/default?product={{product}}",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "source", "default" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceId\": 201\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Category",
+      "item": [
+        {
+          "name": "GET /setting/category/options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}setting/category/options?product={{product}}",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "category", "options" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Type",
+      "item": [
+        {
+          "name": "GET /setting/type/options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}setting/type/options?product={{product}}",
+              "host": [ "{{baseUrl}}setting" ],
+              "path": [ "type", "options" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
