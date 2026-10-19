@@ -27,7 +27,6 @@
   main{max-width:900px;margin:0 auto;padding:32px 24px 140px}
   h1{font-size:24px;margin:28px 0 4px;color:var(--ink)}
   h2{font-size:19px;margin:52px 0 14px;padding-top:14px;border-top:1px solid var(--line);color:var(--ink)}
-  h3{font-size:16px;margin:36px 0 8px;color:var(--ink)}
   h4{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:18px 0 6px}
   p{margin:8px 0}
   a{color:var(--accent);text-decoration:none}
@@ -61,9 +60,11 @@
   nav.top .menu:focus-within .submenu{display:block}
   nav.top .submenu li{margin:0}
   nav.top .submenu a{display:block;padding:5px 14px;font-size:13px;white-space:nowrap}
-  hr{border:none;border-top:1px solid var(--line);margin:36px 0}
   ul.tight{margin:6px 0;padding-left:20px}
   ul.tight li{margin:3px 0}
+  details{margin:30px 0}
+  details > summary{font-weight:700;color:var(--accent);font-size:16px;cursor:pointer;list-style-position:outside}
+  details[open] > summary{margin-bottom:8px}
 </style>
 </head>
 <body id="top">
@@ -184,8 +185,8 @@
 <h2>SaaS</h2>
 <p>Resolves the signed-in caller's institute / plan picture, or a lightweight identity card, for the SaaS context carried by the authentication cookie.</p>
 
-<!-- ========================= Get institute/plan detail ========================= -->
-<h3 id="saas-userinstdetail"><span class="method">GET</span> <code>/saas/userinstdetail</code></h3>
+<details id="saas-userinstdetail">
+<summary><span class="method">GET</span> <code>/saas/userinstdetail</code></summary>
 <p>Returns the caller's institute, plan and organisation detail. If the institute's plan has expired, responds with a redirect to the account app instead of the normal body.</p>
 
 <h4>Request</h4>
@@ -258,10 +259,10 @@ Location: https://account.vidyaone.com?saascode=K7QK2M9F1A       // normal mode<
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No institute/plan record exists for the caller's authenticated context.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Get user detail ========================= -->
-<hr>
-<h3 id="saas-userdetail"><span class="method">GET</span> <code>/saas/userdetail</code></h3>
+<details id="saas-userdetail">
+<summary><span class="method">GET</span> <code>/saas/userdetail</code></summary>
 <p>Returns a lightweight identity card for the signed-in caller — no institute or plan detail.</p>
 
 <h4>Request</h4>
@@ -289,11 +290,15 @@ Location: https://account.vidyaone.com?saascode=K7QK2M9F1A       // normal mode<
     "userRole": "Admin",
     "userEmail": "asha@example.com",
     "userPicture": "",
-    "token": "S3v1c...redacted"
+    "token": "S3v1c...redacted",
+    "lastLoginAt": "2026-10-19T08:15:00+00:00",
+    "defaultInstId": 5031,
+    "defaultInstName": "Sunrise Public School",
+    "activeProductCount": 2
   },
   "errors": null
 }</code></pre>
-<p class="small"><code>supportType</code> is always <code>"Self"</code> on this endpoint, regardless of the caller's actual plan.</p>
+<p class="small"><code>supportType</code> is always <code>"Self"</code> on this endpoint, regardless of the caller's actual plan. <code>lastLoginAt</code> is always present. <code>defaultInstId</code>/<code>defaultInstName</code> are <code>null</code> when the caller has no institute marked as default. <code>activeProductCount</code> counts active product subscriptions across every institute the caller belongs to as an active member of an active institute — not limited to <code>defaultInstId</code> — and is <code>0</code>, never <code>null</code>, when there are none.</p>
 
 <h4>Other responses</h4>
 <table>
@@ -304,14 +309,15 @@ Location: https://account.vidyaone.com?saascode=K7QK2M9F1A       // normal mode<
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No user record exists for the caller.</td></tr>
   </tbody>
 </table>
+</details>
 </section>
 
 <section id="user">
 <h2>User</h2>
 <p>Reads and writes the signed-in caller's own profile and social links. There is no way to read or change another user's profile.</p>
 
-<!-- ========================= Get profile (edit) ========================= -->
-<h3 id="user-edit"><span class="method">GET</span> <code>/user/edit</code></h3>
+<details id="user-edit">
+<summary><span class="method">GET</span> <code>/user/edit</code></summary>
 <p>Returns the caller's profile in the same shape <a href="#user-put">Update profile</a> accepts, so it can be sent straight back.</p>
 
 <h4>Request</h4>
@@ -375,10 +381,10 @@ Location: https://account.vidyaone.com?saascode=K7QK2M9F1A       // normal mode<
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No profile record exists for the caller.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Update profile ========================= -->
-<hr>
-<h3 id="user-put"><span class="method">PUT</span> <code>/user</code></h3>
+<details id="user-put">
+<summary><span class="method">PUT</span> <code>/user</code></summary>
 <p>Overwrites the caller's profile and replaces their social links. Every writable field is overwritten with the value sent — there is no partial update, so always send the complete object, including <code>socialLinks</code>. Optionally, in the same call, also issues a presigned S3 upload for a new profile picture — set <code>uploadProfilePictureFileName</code> and the response includes <code>uploadPresign</code>; set <code>putDTO.profileImageUrl</code> yourself to the resulting URL (the object key is deterministic from the sanitized file name you send, so you don't need to wait for the upload to finish to know it) and actually upload the file to S3 afterward using the returned presign.</p>
 
 <h4>Request</h4>
@@ -478,6 +484,7 @@ Location: https://account.vidyaone.com?saascode=K7QK2M9F1A       // normal mode<
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the profile in the same final state; if <code>uploadProfilePictureFileName</code> was set, a new presigned POST is issued each time (signature and <code>x-amz-date</code> differ) for the same <code>key</code> — safe to retry.</p>
+</details>
 
 </section>
 </main>
