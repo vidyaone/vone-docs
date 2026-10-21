@@ -740,7 +740,7 @@
 
 <details id="type-options">
 <summary>GET /enquiry/setting/type/options</summary>
-<p>Returns active enquiry types for dropdowns. Global reference data, shared across every institute. <code>id</code> is a string code, not a number. Ordered by the type's own sort order, then by name.</p>
+<p>Returns active enquiry types for dropdowns. Global reference data, shared across every institute. Ordered by the type's own sort order, then by name.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
@@ -754,8 +754,8 @@
   "success": true,
   "message": null,
   "data": [
-    { "id": "ECT-1", "name": "Phone Call" },
-    { "id": "ECT-2", "name": "Email" }
+    { "id": 1, "name": "Phone Call" },
+    { "id": 2, "name": "Email" }
   ],
   "errors": null
 }</code></pre>
