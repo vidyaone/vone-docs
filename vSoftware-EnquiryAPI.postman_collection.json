@@ -389,6 +389,24 @@
           }
         }
       ]
+    },
+    {
+      "name": "Position",
+      "item": [
+        {
+          "name": "GET /enquiry/setting/position/options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/setting/position/options?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
+              "path": [ "position", "options" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            }
+          }
+        }
+      ]
     }
   ]
 }

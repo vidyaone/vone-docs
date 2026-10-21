@@ -101,6 +101,11 @@
       <li><a href="#type-options">GET /enquiry/setting/type/options</a></li>
     </ul>
   </div>
+  <div class="menu"><a href="#position">Position</a>
+    <ul class="submenu">
+      <li><a href="#position-options">GET /enquiry/setting/position/options</a></li>
+    </ul>
+  </div>
   <span class="spacer"></span>
   <a class="dl" href="vSoftware-EnquiryAPI.postman_collection.json" download>Download Postman collection</a>
 </nav>
@@ -756,6 +761,34 @@
   "data": [
     { "id": 1, "name": "Phone Call" },
     { "id": 2, "name": "Email" }
+  ],
+  "errors": null
+}</code></pre>
+</details>
+
+</section>
+
+<section id="position">
+<h2>Position</h2>
+
+<details id="position-options">
+<summary>GET /enquiry/setting/position/options</summary>
+<p>Returns active enquiry positions for dropdowns. Global reference data, shared across every institute. Ordered by the position's own sort order, then by name.</p>
+<p><strong>Request</strong></p>
+<table>
+  <tr><th>Environment</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/position/options</code></td></tr>
+</table>
+<p><strong>Sample request</strong></p>
+<pre><code>GET /enquiry/setting/position/options?product=scl-software</code></pre>
+<p><strong>Response</strong></p>
+<p><span class="ok">200</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "data": [
+    { "id": 1, "name": "Manager" },
+    { "id": 2, "name": "Executive" }
   ],
   "errors": null
 }</code></pre>
