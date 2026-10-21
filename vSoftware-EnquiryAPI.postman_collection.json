@@ -6,7 +6,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "https://api-vsof.vidyaone.com/test/enquiry/",
+      "value": "https://api-vsof.vidyaone.com/test/",
       "description": "Testing base URL. Source: EnquiryAPI.Web/src/EnquiryAPI.Web/appsettings.Testing.json → App:BaseUrl"
     },
     {
@@ -20,13 +20,16 @@
       "name": "Status",
       "item": [
         {
-          "name": "POST /setting/status",
+          "name": "POST /enquiry/setting/status",
           "request": {
             "method": "POST",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "11111111-1111-4111-8111-111111111111" }
+            ],
             "url": {
-              "raw": "{{baseUrl}}setting/status?product={{product}}",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/status?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "status" ],
               "query": [ { "key": "product", "value": "{{product}}" } ]
             },
@@ -37,13 +40,16 @@
           }
         },
         {
-          "name": "PUT /setting/status",
+          "name": "PUT /enquiry/setting/status",
           "request": {
             "method": "PUT",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "22222222-2222-4222-8222-222222222222" }
+            ],
             "url": {
-              "raw": "{{baseUrl}}setting/status?product={{product}}",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/status?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "status" ],
               "query": [ { "key": "product", "value": "{{product}}" } ]
             },
@@ -54,13 +60,13 @@
           }
         },
         {
-          "name": "GET /setting/status/edit",
+          "name": "GET /enquiry/setting/status/edit",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}setting/status/edit?product={{product}}&statusId=101",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/status/edit?product={{product}}&statusId=101",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "status", "edit" ],
               "query": [
                 { "key": "product", "value": "{{product}}" },
@@ -70,13 +76,13 @@
           }
         },
         {
-          "name": "GET /setting/status/view",
+          "name": "GET /enquiry/setting/status/view",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}setting/status/view?product={{product}}&statusId=101",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/status/view?product={{product}}&statusId=101",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "status", "view" ],
               "query": [
                 { "key": "product", "value": "{{product}}" },
@@ -86,13 +92,13 @@
           }
         },
         {
-          "name": "GET /setting/status/list",
+          "name": "GET /enquiry/setting/status/list",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}setting/status/list?product={{product}}&isActive=true&name=Open&pageNumber=1&pageSize=10",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/status/list?product={{product}}&isActive=true&name=Open&pageNumber=1&pageSize=10",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "status", "list" ],
               "query": [
                 { "key": "product", "value": "{{product}}" },
@@ -105,26 +111,29 @@
           }
         },
         {
-          "name": "GET /setting/status/options",
+          "name": "GET /enquiry/setting/status/options",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}setting/status/options?product={{product}}",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/status/options?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "status", "options" ],
               "query": [ { "key": "product", "value": "{{product}}" } ]
             }
           }
         },
         {
-          "name": "PUT /setting/status/activate",
+          "name": "PUT /enquiry/setting/status/activate",
           "request": {
             "method": "PUT",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "33333333-3333-4333-8333-333333333333" }
+            ],
             "url": {
-              "raw": "{{baseUrl}}setting/status/activate?product={{product}}",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/status/activate?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "status", "activate" ],
               "query": [ { "key": "product", "value": "{{product}}" } ]
             },
@@ -135,13 +144,16 @@
           }
         },
         {
-          "name": "PUT /setting/status/deactivate",
+          "name": "PUT /enquiry/setting/status/deactivate",
           "request": {
             "method": "PUT",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "44444444-4444-4444-8444-444444444444" }
+            ],
             "url": {
-              "raw": "{{baseUrl}}setting/status/deactivate?product={{product}}",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/status/deactivate?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "status", "deactivate" ],
               "query": [ { "key": "product", "value": "{{product}}" } ]
             },
@@ -152,13 +164,16 @@
           }
         },
         {
-          "name": "DELETE /setting/status",
+          "name": "DELETE /enquiry/setting/status",
           "request": {
             "method": "DELETE",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "55555555-5555-4555-8555-555555555555" }
+            ],
             "url": {
-              "raw": "{{baseUrl}}setting/status?product={{product}}",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/status?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "status" ],
               "query": [ { "key": "product", "value": "{{product}}" } ]
             },
@@ -169,13 +184,16 @@
           }
         },
         {
-          "name": "PUT /setting/status/default",
+          "name": "PUT /enquiry/setting/status/default",
           "request": {
             "method": "PUT",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "66666666-6666-4666-8666-666666666666" }
+            ],
             "url": {
-              "raw": "{{baseUrl}}setting/status/default?product={{product}}",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/status/default?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "status", "default" ],
               "query": [ { "key": "product", "value": "{{product}}" } ]
             },
@@ -191,13 +209,16 @@
       "name": "Source",
       "item": [
         {
-          "name": "POST /setting/source",
+          "name": "POST /enquiry/setting/source",
           "request": {
             "method": "POST",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "77777777-7777-4777-8777-777777777777" }
+            ],
             "url": {
-              "raw": "{{baseUrl}}setting/source?product={{product}}",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/source?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "source" ],
               "query": [ { "key": "product", "value": "{{product}}" } ]
             },
@@ -208,13 +229,16 @@
           }
         },
         {
-          "name": "PUT /setting/source",
+          "name": "PUT /enquiry/setting/source",
           "request": {
             "method": "PUT",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "88888888-8888-4888-8888-888888888888" }
+            ],
             "url": {
-              "raw": "{{baseUrl}}setting/source?product={{product}}",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/source?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "source" ],
               "query": [ { "key": "product", "value": "{{product}}" } ]
             },
@@ -225,13 +249,13 @@
           }
         },
         {
-          "name": "GET /setting/source/edit",
+          "name": "GET /enquiry/setting/source/edit",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}setting/source/edit?product={{product}}&sourceId=201",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/source/edit?product={{product}}&sourceId=201",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "source", "edit" ],
               "query": [
                 { "key": "product", "value": "{{product}}" },
@@ -241,13 +265,13 @@
           }
         },
         {
-          "name": "GET /setting/source/view",
+          "name": "GET /enquiry/setting/source/view",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}setting/source/view?product={{product}}&sourceId=201",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/source/view?product={{product}}&sourceId=201",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "source", "view" ],
               "query": [
                 { "key": "product", "value": "{{product}}" },
@@ -257,13 +281,13 @@
           }
         },
         {
-          "name": "GET /setting/source/list",
+          "name": "GET /enquiry/setting/source/list",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}setting/source/list?product={{product}}&isActive=true&name=Website&pageNumber=1&pageSize=10",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/source/list?product={{product}}&isActive=true&name=Website&pageNumber=1&pageSize=10",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "source", "list" ],
               "query": [
                 { "key": "product", "value": "{{product}}" },
@@ -276,26 +300,29 @@
           }
         },
         {
-          "name": "GET /setting/source/options",
+          "name": "GET /enquiry/setting/source/options",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}setting/source/options?product={{product}}",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/source/options?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "source", "options" ],
               "query": [ { "key": "product", "value": "{{product}}" } ]
             }
           }
         },
         {
-          "name": "PUT /setting/source/activate",
+          "name": "PUT /enquiry/setting/source/activate",
           "request": {
             "method": "PUT",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "99999999-9999-4999-8999-999999999999" }
+            ],
             "url": {
-              "raw": "{{baseUrl}}setting/source/activate?product={{product}}",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/source/activate?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "source", "activate" ],
               "query": [ { "key": "product", "value": "{{product}}" } ]
             },
@@ -306,13 +333,16 @@
           }
         },
         {
-          "name": "PUT /setting/source/deactivate",
+          "name": "PUT /enquiry/setting/source/deactivate",
           "request": {
             "method": "PUT",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" }
+            ],
             "url": {
-              "raw": "{{baseUrl}}setting/source/deactivate?product={{product}}",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/source/deactivate?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "source", "deactivate" ],
               "query": [ { "key": "product", "value": "{{product}}" } ]
             },
@@ -323,13 +353,16 @@
           }
         },
         {
-          "name": "DELETE /setting/source",
+          "name": "DELETE /enquiry/setting/source",
           "request": {
             "method": "DELETE",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb" }
+            ],
             "url": {
-              "raw": "{{baseUrl}}setting/source?product={{product}}",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/source?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "source" ],
               "query": [ { "key": "product", "value": "{{product}}" } ]
             },
@@ -340,13 +373,16 @@
           }
         },
         {
-          "name": "PUT /setting/source/default",
+          "name": "PUT /enquiry/setting/source/default",
           "request": {
             "method": "PUT",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "cccccccc-cccc-4ccc-8ccc-cccccccccccc" }
+            ],
             "url": {
-              "raw": "{{baseUrl}}setting/source/default?product={{product}}",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/source/default?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "source", "default" ],
               "query": [ { "key": "product", "value": "{{product}}" } ]
             },
@@ -362,13 +398,13 @@
       "name": "Category",
       "item": [
         {
-          "name": "GET /setting/category/options",
+          "name": "GET /enquiry/setting/category/options",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}setting/category/options?product={{product}}",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/category/options?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "category", "options" ],
               "query": [ { "key": "product", "value": "{{product}}" } ]
             }
@@ -380,13 +416,13 @@
       "name": "Type",
       "item": [
         {
-          "name": "GET /setting/type/options",
+          "name": "GET /enquiry/setting/type/options",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}setting/type/options?product={{product}}",
-              "host": [ "{{baseUrl}}setting" ],
+              "raw": "{{baseUrl}}enquiry/setting/type/options?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "type", "options" ],
               "query": [ { "key": "product", "value": "{{product}}" } ]
             }

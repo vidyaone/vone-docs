@@ -222,7 +222,7 @@
 
 <h4>Sample request</h4>
 <pre><code>GET /data?product=vweb
-    &file=data_home.json   // required, string, matches ^(data_|config_)[A-Za-z0-9_-]+\.json$, max 255 chars</code></pre>
+    &file=data_home.json   // required, string, matches ^(data_|config_|plugin_)[A-Za-z0-9_-]+\.json$, max 255 chars</code></pre>
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
 <p><code>data</code> is the file's JSON content verbatim (object or array).</p>
@@ -262,7 +262,7 @@
 
 <h4>Sample request body</h4>
 <pre><code>{
-  "file": "data_home.json",                 // required, string, matches ^(data_|config_)[A-Za-z0-9_-]+\.json$, max 255 chars
+  "file": "data_home.json",                 // required, string, matches ^(data_|config_|plugin_)[A-Za-z0-9_-]+\.json$, max 255 chars
   "data": {                                  // required, JSON object or array — max nesting depth 20, max 1000 keys per object, max 10000 items per array, serialized size &le; 5 MB
     "hero": { "title": "Welcome", "image": "hero.png" },
     "sections": [ { "type": "text", "body": "About us" } ]

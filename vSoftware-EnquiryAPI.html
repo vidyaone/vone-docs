@@ -67,40 +67,40 @@
   <a href="#common-rules">Common rules</a>
   <div class="menu"><a href="#status">Status</a>
     <ul class="submenu">
-      <li><a href="#status-post">POST /setting/status</a></li>
-      <li><a href="#status-put">PUT /setting/status</a></li>
-      <li><a href="#status-edit">GET /setting/status/edit</a></li>
-      <li><a href="#status-view">GET /setting/status/view</a></li>
-      <li><a href="#status-list">GET /setting/status/list</a></li>
-      <li><a href="#status-options">GET /setting/status/options</a></li>
-      <li><a href="#status-activate">PUT /setting/status/activate</a></li>
-      <li><a href="#status-deactivate">PUT /setting/status/deactivate</a></li>
-      <li><a href="#status-delete">DELETE /setting/status</a></li>
-      <li><a href="#status-default">PUT /setting/status/default</a></li>
+      <li><a href="#status-post">POST /enquiry/setting/status</a></li>
+      <li><a href="#status-put">PUT /enquiry/setting/status</a></li>
+      <li><a href="#status-edit">GET /enquiry/setting/status/edit</a></li>
+      <li><a href="#status-view">GET /enquiry/setting/status/view</a></li>
+      <li><a href="#status-list">GET /enquiry/setting/status/list</a></li>
+      <li><a href="#status-options">GET /enquiry/setting/status/options</a></li>
+      <li><a href="#status-activate">PUT /enquiry/setting/status/activate</a></li>
+      <li><a href="#status-deactivate">PUT /enquiry/setting/status/deactivate</a></li>
+      <li><a href="#status-delete">DELETE /enquiry/setting/status</a></li>
+      <li><a href="#status-default">PUT /enquiry/setting/status/default</a></li>
     </ul>
   </div>
   <div class="menu"><a href="#source">Source</a>
     <ul class="submenu">
-      <li><a href="#source-post">POST /setting/source</a></li>
-      <li><a href="#source-put">PUT /setting/source</a></li>
-      <li><a href="#source-edit">GET /setting/source/edit</a></li>
-      <li><a href="#source-view">GET /setting/source/view</a></li>
-      <li><a href="#source-list">GET /setting/source/list</a></li>
-      <li><a href="#source-options">GET /setting/source/options</a></li>
-      <li><a href="#source-activate">PUT /setting/source/activate</a></li>
-      <li><a href="#source-deactivate">PUT /setting/source/deactivate</a></li>
-      <li><a href="#source-delete">DELETE /setting/source</a></li>
-      <li><a href="#source-default">PUT /setting/source/default</a></li>
+      <li><a href="#source-post">POST /enquiry/setting/source</a></li>
+      <li><a href="#source-put">PUT /enquiry/setting/source</a></li>
+      <li><a href="#source-edit">GET /enquiry/setting/source/edit</a></li>
+      <li><a href="#source-view">GET /enquiry/setting/source/view</a></li>
+      <li><a href="#source-list">GET /enquiry/setting/source/list</a></li>
+      <li><a href="#source-options">GET /enquiry/setting/source/options</a></li>
+      <li><a href="#source-activate">PUT /enquiry/setting/source/activate</a></li>
+      <li><a href="#source-deactivate">PUT /enquiry/setting/source/deactivate</a></li>
+      <li><a href="#source-delete">DELETE /enquiry/setting/source</a></li>
+      <li><a href="#source-default">PUT /enquiry/setting/source/default</a></li>
     </ul>
   </div>
   <div class="menu"><a href="#category">Category</a>
     <ul class="submenu">
-      <li><a href="#category-options">GET /setting/category/options</a></li>
+      <li><a href="#category-options">GET /enquiry/setting/category/options</a></li>
     </ul>
   </div>
   <div class="menu"><a href="#type">Type</a>
     <ul class="submenu">
-      <li><a href="#type-options">GET /setting/type/options</a></li>
+      <li><a href="#type-options">GET /enquiry/setting/type/options</a></li>
     </ul>
   </div>
   <span class="spacer"></span>
@@ -122,8 +122,8 @@
 <h2 id="base-urls">Base URLs</h2>
 <table>
   <tr><th>Environment</th><th>Base URL</th><th>Config file</th></tr>
-  <tr><td>Production</td><td><code>https://api-vsof.vidyaone.com/enquiry/</code></td><td><code>appsettings.json</code></td></tr>
-  <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/</code></td><td><code>appsettings.Testing.json</code></td></tr>
+  <tr><td>Production</td><td><code>https://api-vsof.vidyaone.com/</code></td><td><code>appsettings.json</code></td></tr>
+  <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/</code></td><td><code>appsettings.Testing.json</code></td></tr>
   <tr><td>Development (local)</td><td><code>http://localhost:5000/</code></td><td><code>appsettings.Development.json</code></td></tr>
 </table>
 
@@ -132,6 +132,7 @@
 <h3>Headers</h3>
 <ul>
   <li><code>Content-Type: application/json</code> on every request that sends a body (POST/PUT).</li>
+  <li><code>Idempotency-Key</code>: caller-generated UUID, required on every POST/PUT/DELETE. See each route below for what repeating the same request actually does.</li>
   <li><strong>Authentication required</strong> on every route below.</li>
 </ul>
 
@@ -184,16 +185,16 @@
 <h2>Status</h2>
 
 <details id="status-post">
-<summary>POST /setting/status</summary>
+<summary>POST /enquiry/setting/status</summary>
 <p>Creates an enquiry status for your institute.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/status?product=scl-software</code></td></tr>
 </table>
-<p>Headers: <code>Content-Type: application/json</code></p>
+<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
 <p><strong>Sample request</strong></p>
-<pre><code>POST /setting/status?product=scl-software</code></pre>
+<pre><code>POST /enquiry/setting/status?product=scl-software</code></pre>
 <pre><code>{
   "statusName": "Open"  // required, string, max 100 chars
 }</code></pre>
@@ -206,19 +207,20 @@
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>statusName</code> missing or over 100 characters.</td></tr>
   <tr><td class="err">409</td><td><code>DUPLICATE_RECORD</code></td><td>A status with this name (case-insensitive) already exists for your institute.</td></tr>
 </table>
+<p>Repeating the same request body returns <span class="err">409</span> <code>DUPLICATE_RECORD</code> once the first call has created the status — the name now already exists.</p>
 </details>
 
 <details id="status-put">
-<summary>PUT /setting/status</summary>
+<summary>PUT /enquiry/setting/status</summary>
 <p>Updates an enquiry status's name.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/status?product=scl-software</code></td></tr>
 </table>
-<p>Headers: <code>Content-Type: application/json</code></p>
+<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
 <p><strong>Sample request</strong></p>
-<pre><code>PUT /setting/status?product=scl-software</code></pre>
+<pre><code>PUT /enquiry/setting/status?product=scl-software</code></pre>
 <pre><code>{
   "statusId": 101,        // required, integer, > 0
   "statusName": "Closed"  // required, string, max 100 chars
@@ -232,10 +234,11 @@
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, already deleted, already deactivated, or changed by another request first.</td></tr>
   <tr><td class="err">409</td><td><code>DUPLICATE_RECORD</code></td><td>Another status already has this name for your institute.</td></tr>
 </table>
+<p>Repeating the same request body returns <span class="ok">200</span> again — updating to the same, unchanged name is not blocked.</p>
 </details>
 
 <details id="status-edit">
-<summary>GET /setting/status/edit</summary>
+<summary>GET /enquiry/setting/status/edit</summary>
 <p>Returns a status's editable fields.</p>
 <p><strong>Request</strong></p>
 <table>
@@ -243,7 +246,7 @@
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/status/edit</code></td></tr>
 </table>
 <p><strong>Sample request</strong></p>
-<pre><code>GET /setting/status/edit?product=scl-software
+<pre><code>GET /enquiry/setting/status/edit?product=scl-software
     &amp;statusId=101   // required, integer, &gt; 0</code></pre>
 <p><strong>Response</strong></p>
 <p><span class="ok">200</span></p>
@@ -266,7 +269,7 @@
 </details>
 
 <details id="status-view">
-<summary>GET /setting/status/view</summary>
+<summary>GET /enquiry/setting/status/view</summary>
 <p>Returns a status's full detail, including audit info. Works regardless of active/deleted state, as long as it belongs to your institute.</p>
 <p><strong>Request</strong></p>
 <table>
@@ -274,7 +277,7 @@
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/status/view</code></td></tr>
 </table>
 <p><strong>Sample request</strong></p>
-<pre><code>GET /setting/status/view?product=scl-software
+<pre><code>GET /enquiry/setting/status/view?product=scl-software
     &amp;statusId=101   // required, integer, &gt; 0</code></pre>
 <p><strong>Response</strong></p>
 <p><span class="ok">200</span></p>
@@ -302,7 +305,7 @@
 </details>
 
 <details id="status-list">
-<summary>GET /setting/status/list</summary>
+<summary>GET /enquiry/setting/status/list</summary>
 <p>Lists enquiry statuses for your institute, optionally filtered. Deleted statuses are never included. Results are ordered default-first, then by name.</p>
 <p><strong>Request</strong></p>
 <table>
@@ -310,7 +313,7 @@
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/status/list</code></td></tr>
 </table>
 <p><strong>Sample request</strong></p>
-<pre><code>GET /setting/status/list?product=scl-software
+<pre><code>GET /enquiry/setting/status/list?product=scl-software
     &amp;isActive=true    // optional, boolean — filter by active state; omit for both
     &amp;name=Open        // optional, string — case-insensitive "contains" match on statusName; omit for all
     &amp;pageNumber=1      // optional, integer, default 1
@@ -342,7 +345,7 @@
 </details>
 
 <details id="status-options">
-<summary>GET /setting/status/options</summary>
+<summary>GET /enquiry/setting/status/options</summary>
 <p>Returns active enquiry statuses for your institute, for dropdowns. Default-first, then by name.</p>
 <p><strong>Request</strong></p>
 <table>
@@ -350,7 +353,7 @@
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/status/options</code></td></tr>
 </table>
 <p><strong>Sample request</strong></p>
-<pre><code>GET /setting/status/options?product=scl-software</code></pre>
+<pre><code>GET /enquiry/setting/status/options?product=scl-software</code></pre>
 <p><strong>Response</strong></p>
 <p><span class="ok">200</span></p>
 <pre><code>{
@@ -365,16 +368,16 @@
 </details>
 
 <details id="status-activate">
-<summary>PUT /setting/status/activate</summary>
+<summary>PUT /enquiry/setting/status/activate</summary>
 <p>Re-activates a deactivated enquiry status.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/status/activate?product=scl-software</code></td></tr>
 </table>
-<p>Headers: <code>Content-Type: application/json</code></p>
+<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
 <p><strong>Sample request</strong></p>
-<pre><code>PUT /setting/status/activate?product=scl-software</code></pre>
+<pre><code>PUT /enquiry/setting/status/activate?product=scl-software</code></pre>
 <pre><code>{
   "statusId": 101  // required, integer, > 0
 }</code></pre>
@@ -386,19 +389,20 @@
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>statusId</code> missing or not &gt; 0.</td></tr>
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, deleted, already active, or changed by another request first.</td></tr>
 </table>
+<p>Repeating the same request returns <span class="err">404</span> <code>RECORD_NOT_FOUND</code> once the status is already active.</p>
 </details>
 
 <details id="status-deactivate">
-<summary>PUT /setting/status/deactivate</summary>
+<summary>PUT /enquiry/setting/status/deactivate</summary>
 <p>Deactivates an enquiry status. If it was the institute's default, it stops being the default.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/status/deactivate?product=scl-software</code></td></tr>
 </table>
-<p>Headers: <code>Content-Type: application/json</code></p>
+<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
 <p><strong>Sample request</strong></p>
-<pre><code>PUT /setting/status/deactivate?product=scl-software</code></pre>
+<pre><code>PUT /enquiry/setting/status/deactivate?product=scl-software</code></pre>
 <pre><code>{
   "statusId": 101  // required, integer, > 0
 }</code></pre>
@@ -410,19 +414,20 @@
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>statusId</code> missing or not &gt; 0.</td></tr>
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, deleted, already deactivated, or changed by another request first.</td></tr>
 </table>
+<p>Repeating the same request returns <span class="err">404</span> <code>RECORD_NOT_FOUND</code> once the status is already deactivated.</p>
 </details>
 
 <details id="status-delete">
-<summary>DELETE /setting/status</summary>
+<summary>DELETE /enquiry/setting/status</summary>
 <p>Soft-deletes an enquiry status. If it was the institute's default, it stops being the default.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/status?product=scl-software</code></td></tr>
 </table>
-<p>Headers: <code>Content-Type: application/json</code></p>
+<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
 <p><strong>Sample request</strong></p>
-<pre><code>DELETE /setting/status?product=scl-software</code></pre>
+<pre><code>DELETE /enquiry/setting/status?product=scl-software</code></pre>
 <pre><code>{
   "statusId": 101  // required, integer, > 0
 }</code></pre>
@@ -434,19 +439,20 @@
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>statusId</code> missing or not &gt; 0.</td></tr>
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, already deleted, or changed by another request first.</td></tr>
 </table>
+<p>Repeating the same request returns <span class="err">404</span> <code>RECORD_NOT_FOUND</code> once the status has already been deleted.</p>
 </details>
 
 <details id="status-default">
-<summary>PUT /setting/status/default</summary>
+<summary>PUT /enquiry/setting/status/default</summary>
 <p>Sets an enquiry status as your institute's default, clearing any previous default. The target must be active and not deleted.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/status/default?product=scl-software</code></td></tr>
 </table>
-<p>Headers: <code>Content-Type: application/json</code></p>
+<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
 <p><strong>Sample request</strong></p>
-<pre><code>PUT /setting/status/default?product=scl-software</code></pre>
+<pre><code>PUT /enquiry/setting/status/default?product=scl-software</code></pre>
 <pre><code>{
   "statusId": 101  // required, integer, > 0
 }</code></pre>
@@ -458,6 +464,7 @@
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>statusId</code> missing or not &gt; 0.</td></tr>
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, deleted, deactivated, or changed by another request first.</td></tr>
 </table>
+<p>Repeating the same request returns <span class="ok">200</span> again — setting a status that is already the default is not blocked.</p>
 </details>
 
 </section>
@@ -466,16 +473,16 @@
 <h2>Source</h2>
 
 <details id="source-post">
-<summary>POST /setting/source</summary>
+<summary>POST /enquiry/setting/source</summary>
 <p>Creates an enquiry source for your institute.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/source?product=scl-software</code></td></tr>
 </table>
-<p>Headers: <code>Content-Type: application/json</code></p>
+<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
 <p><strong>Sample request</strong></p>
-<pre><code>POST /setting/source?product=scl-software</code></pre>
+<pre><code>POST /enquiry/setting/source?product=scl-software</code></pre>
 <pre><code>{
   "sourceName": "Website"  // required, string, max 100 chars
 }</code></pre>
@@ -488,19 +495,20 @@
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>sourceName</code> missing or over 100 characters.</td></tr>
   <tr><td class="err">409</td><td><code>DUPLICATE_RECORD</code></td><td>A source with this name (case-insensitive) already exists for your institute.</td></tr>
 </table>
+<p>Repeating the same request body returns <span class="err">409</span> <code>DUPLICATE_RECORD</code> once the first call has created the source — the name now already exists.</p>
 </details>
 
 <details id="source-put">
-<summary>PUT /setting/source</summary>
+<summary>PUT /enquiry/setting/source</summary>
 <p>Updates an enquiry source's name.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/source?product=scl-software</code></td></tr>
 </table>
-<p>Headers: <code>Content-Type: application/json</code></p>
+<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
 <p><strong>Sample request</strong></p>
-<pre><code>PUT /setting/source?product=scl-software</code></pre>
+<pre><code>PUT /enquiry/setting/source?product=scl-software</code></pre>
 <pre><code>{
   "sourceId": 201,          // required, integer, > 0
   "sourceName": "Walk-in"   // required, string, max 100 chars
@@ -514,10 +522,11 @@
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, already deleted, already deactivated, or changed by another request first.</td></tr>
   <tr><td class="err">409</td><td><code>DUPLICATE_RECORD</code></td><td>Another source already has this name for your institute.</td></tr>
 </table>
+<p>Repeating the same request body returns <span class="ok">200</span> again — updating to the same, unchanged name is not blocked.</p>
 </details>
 
 <details id="source-edit">
-<summary>GET /setting/source/edit</summary>
+<summary>GET /enquiry/setting/source/edit</summary>
 <p>Returns a source's editable fields.</p>
 <p><strong>Request</strong></p>
 <table>
@@ -525,7 +534,7 @@
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/source/edit</code></td></tr>
 </table>
 <p><strong>Sample request</strong></p>
-<pre><code>GET /setting/source/edit?product=scl-software
+<pre><code>GET /enquiry/setting/source/edit?product=scl-software
     &amp;sourceId=201   // required, integer, &gt; 0</code></pre>
 <p><strong>Response</strong></p>
 <p><span class="ok">200</span></p>
@@ -548,7 +557,7 @@
 </details>
 
 <details id="source-view">
-<summary>GET /setting/source/view</summary>
+<summary>GET /enquiry/setting/source/view</summary>
 <p>Returns a source's full detail, including audit info. Works regardless of active/deleted state, as long as it belongs to your institute.</p>
 <p><strong>Request</strong></p>
 <table>
@@ -556,7 +565,7 @@
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/source/view</code></td></tr>
 </table>
 <p><strong>Sample request</strong></p>
-<pre><code>GET /setting/source/view?product=scl-software
+<pre><code>GET /enquiry/setting/source/view?product=scl-software
     &amp;sourceId=201   // required, integer, &gt; 0</code></pre>
 <p><strong>Response</strong></p>
 <p><span class="ok">200</span></p>
@@ -584,7 +593,7 @@
 </details>
 
 <details id="source-list">
-<summary>GET /setting/source/list</summary>
+<summary>GET /enquiry/setting/source/list</summary>
 <p>Lists enquiry sources for your institute, optionally filtered. Deleted sources are never included. Results are ordered default-first, then by name.</p>
 <p><strong>Request</strong></p>
 <table>
@@ -592,7 +601,7 @@
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/source/list</code></td></tr>
 </table>
 <p><strong>Sample request</strong></p>
-<pre><code>GET /setting/source/list?product=scl-software
+<pre><code>GET /enquiry/setting/source/list?product=scl-software
     &amp;isActive=true     // optional, boolean — filter by active state; omit for both
     &amp;name=Website      // optional, string — case-insensitive "contains" match on sourceName; omit for all
     &amp;pageNumber=1       // optional, integer, default 1
@@ -624,7 +633,7 @@
 </details>
 
 <details id="source-options">
-<summary>GET /setting/source/options</summary>
+<summary>GET /enquiry/setting/source/options</summary>
 <p>Returns active enquiry sources for your institute, for dropdowns. Default-first, then by name.</p>
 <p><strong>Request</strong></p>
 <table>
@@ -632,7 +641,7 @@
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/source/options</code></td></tr>
 </table>
 <p><strong>Sample request</strong></p>
-<pre><code>GET /setting/source/options?product=scl-software</code></pre>
+<pre><code>GET /enquiry/setting/source/options?product=scl-software</code></pre>
 <p><strong>Response</strong></p>
 <p><span class="ok">200</span></p>
 <pre><code>{
@@ -647,16 +656,16 @@
 </details>
 
 <details id="source-activate">
-<summary>PUT /setting/source/activate</summary>
+<summary>PUT /enquiry/setting/source/activate</summary>
 <p>Re-activates a deactivated enquiry source.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/source/activate?product=scl-software</code></td></tr>
 </table>
-<p>Headers: <code>Content-Type: application/json</code></p>
+<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
 <p><strong>Sample request</strong></p>
-<pre><code>PUT /setting/source/activate?product=scl-software</code></pre>
+<pre><code>PUT /enquiry/setting/source/activate?product=scl-software</code></pre>
 <pre><code>{
   "sourceId": 201  // required, integer, > 0
 }</code></pre>
@@ -668,19 +677,20 @@
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>sourceId</code> missing or not &gt; 0.</td></tr>
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, deleted, already active, or changed by another request first.</td></tr>
 </table>
+<p>Repeating the same request returns <span class="err">404</span> <code>RECORD_NOT_FOUND</code> once the source is already active.</p>
 </details>
 
 <details id="source-deactivate">
-<summary>PUT /setting/source/deactivate</summary>
+<summary>PUT /enquiry/setting/source/deactivate</summary>
 <p>Deactivates an enquiry source. If it was the institute's default, it stops being the default.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/source/deactivate?product=scl-software</code></td></tr>
 </table>
-<p>Headers: <code>Content-Type: application/json</code></p>
+<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
 <p><strong>Sample request</strong></p>
-<pre><code>PUT /setting/source/deactivate?product=scl-software</code></pre>
+<pre><code>PUT /enquiry/setting/source/deactivate?product=scl-software</code></pre>
 <pre><code>{
   "sourceId": 201  // required, integer, > 0
 }</code></pre>
@@ -692,19 +702,20 @@
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>sourceId</code> missing or not &gt; 0.</td></tr>
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, deleted, already deactivated, or changed by another request first.</td></tr>
 </table>
+<p>Repeating the same request returns <span class="err">404</span> <code>RECORD_NOT_FOUND</code> once the source is already deactivated.</p>
 </details>
 
 <details id="source-delete">
-<summary>DELETE /setting/source</summary>
+<summary>DELETE /enquiry/setting/source</summary>
 <p>Soft-deletes an enquiry source. If it was the institute's default, it stops being the default.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/source?product=scl-software</code></td></tr>
 </table>
-<p>Headers: <code>Content-Type: application/json</code></p>
+<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
 <p><strong>Sample request</strong></p>
-<pre><code>DELETE /setting/source?product=scl-software</code></pre>
+<pre><code>DELETE /enquiry/setting/source?product=scl-software</code></pre>
 <pre><code>{
   "sourceId": 201  // required, integer, > 0
 }</code></pre>
@@ -716,19 +727,20 @@
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>sourceId</code> missing or not &gt; 0.</td></tr>
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, already deleted, or changed by another request first.</td></tr>
 </table>
+<p>Repeating the same request returns <span class="err">404</span> <code>RECORD_NOT_FOUND</code> once the source has already been deleted.</p>
 </details>
 
 <details id="source-default">
-<summary>PUT /setting/source/default</summary>
+<summary>PUT /enquiry/setting/source/default</summary>
 <p>Sets an enquiry source as your institute's default, clearing any previous default. The target must be active and not deleted.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/source/default?product=scl-software</code></td></tr>
 </table>
-<p>Headers: <code>Content-Type: application/json</code></p>
+<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
 <p><strong>Sample request</strong></p>
-<pre><code>PUT /setting/source/default?product=scl-software</code></pre>
+<pre><code>PUT /enquiry/setting/source/default?product=scl-software</code></pre>
 <pre><code>{
   "sourceId": 201  // required, integer, > 0
 }</code></pre>
@@ -740,6 +752,7 @@
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>sourceId</code> missing or not &gt; 0.</td></tr>
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, deleted, deactivated, or changed by another request first.</td></tr>
 </table>
+<p>Repeating the same request returns <span class="ok">200</span> again — setting a source that is already the default is not blocked.</p>
 </details>
 
 </section>
@@ -748,7 +761,7 @@
 <h2>Category</h2>
 
 <details id="category-options">
-<summary>GET /setting/category/options</summary>
+<summary>GET /enquiry/setting/category/options</summary>
 <p>Returns active enquiry categories for dropdowns. Global reference data, shared across every institute. Ordered by the category's own sort order, then by name.</p>
 <p><strong>Request</strong></p>
 <table>
@@ -756,7 +769,7 @@
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/category/options</code></td></tr>
 </table>
 <p><strong>Sample request</strong></p>
-<pre><code>GET /setting/category/options?product=scl-software</code></pre>
+<pre><code>GET /enquiry/setting/category/options?product=scl-software</code></pre>
 <p><strong>Response</strong></p>
 <p><span class="ok">200</span></p>
 <pre><code>{
@@ -776,7 +789,7 @@
 <h2>Type</h2>
 
 <details id="type-options">
-<summary>GET /setting/type/options</summary>
+<summary>GET /enquiry/setting/type/options</summary>
 <p>Returns active enquiry types for dropdowns. Global reference data, shared across every institute. <code>id</code> is a string code, not a number. Ordered by the type's own sort order, then by name.</p>
 <p><strong>Request</strong></p>
 <table>
@@ -784,7 +797,7 @@
   <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/type/options</code></td></tr>
 </table>
 <p><strong>Sample request</strong></p>
-<pre><code>GET /setting/type/options?product=scl-software</code></pre>
+<pre><code>GET /enquiry/setting/type/options?product=scl-software</code></pre>
 <p><strong>Response</strong></p>
 <p><span class="ok">200</span></p>
 <pre><code>{
