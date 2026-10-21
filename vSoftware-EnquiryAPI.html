@@ -76,7 +76,6 @@
       <li><a href="#status-activate">PUT /enquiry/setting/status/activate</a></li>
       <li><a href="#status-deactivate">PUT /enquiry/setting/status/deactivate</a></li>
       <li><a href="#status-delete">DELETE /enquiry/setting/status</a></li>
-      <li><a href="#status-default">PUT /enquiry/setting/status/default</a></li>
     </ul>
   </div>
   <div class="menu"><a href="#source">Source</a>
@@ -90,7 +89,6 @@
       <li><a href="#source-activate">PUT /enquiry/setting/source/activate</a></li>
       <li><a href="#source-deactivate">PUT /enquiry/setting/source/deactivate</a></li>
       <li><a href="#source-delete">DELETE /enquiry/setting/source</a></li>
-      <li><a href="#source-default">PUT /enquiry/setting/source/default</a></li>
     </ul>
   </div>
   <div class="menu"><a href="#category">Category</a>
@@ -256,7 +254,7 @@
   "data": {
     "statusId": 101,
     "statusName": "Open",
-    "isDefault": true,
+    "isCommon": false,
     "isActive": true
   },
   "errors": null
@@ -270,7 +268,7 @@
 
 <details id="status-view">
 <summary>GET /enquiry/setting/status/view</summary>
-<p>Returns a status's full detail, including audit info. Works regardless of active/deleted state, as long as it belongs to your institute.</p>
+<p>Returns a status's full detail, including audit info and enquiry count. Includes shared (common) statuses in addition to your institute's own. Deleted statuses are not returned.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
@@ -287,7 +285,8 @@
   "data": {
     "statusId": 101,
     "statusName": "Open",
-    "isDefault": true,
+    "isCommon": false,
+    "enquiryCount": 5,
     "audit": {
       "isActive": true,
       "inactiveAt": null,
@@ -300,13 +299,13 @@
 <table>
   <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>statusId</code> missing or not &gt; 0.</td></tr>
-  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute.</td></tr>
+  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute (and not a shared/common status), or has been deleted.</td></tr>
 </table>
 </details>
 
 <details id="status-list">
 <summary>GET /enquiry/setting/status/list</summary>
-<p>Lists enquiry statuses for your institute, optionally filtered. Deleted statuses are never included. Results are ordered default-first, then by name.</p>
+<p>Lists enquiry statuses for your institute, plus any shared (common) statuses, optionally filtered. Deleted statuses are never included. Results are ordered by name.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
@@ -325,7 +324,7 @@
   "message": null,
   "data": {
     "records": [
-      { "statusId": 101, "statusName": "Open", "isDefault": true, "isActive": true }
+      { "statusId": 101, "statusName": "Open", "isCommon": false, "enquiryCount": 5, "isActive": true }
     ],
     "metaData": {
       "totalCount": 1,
@@ -346,7 +345,7 @@
 
 <details id="status-options">
 <summary>GET /enquiry/setting/status/options</summary>
-<p>Returns active enquiry statuses for your institute, for dropdowns. Default-first, then by name.</p>
+<p>Returns active enquiry statuses for your institute, plus any shared (common) statuses, for dropdowns. Ordered by name.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
@@ -394,7 +393,7 @@
 
 <details id="status-deactivate">
 <summary>PUT /enquiry/setting/status/deactivate</summary>
-<p>Deactivates an enquiry status. If it was the institute's default, it stops being the default.</p>
+<p>Deactivates an enquiry status.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
@@ -419,7 +418,7 @@
 
 <details id="status-delete">
 <summary>DELETE /enquiry/setting/status</summary>
-<p>Soft-deletes an enquiry status. If it was the institute's default, it stops being the default.</p>
+<p>Soft-deletes an enquiry status.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
@@ -440,31 +439,6 @@
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, already deleted, or changed by another request first.</td></tr>
 </table>
 <p>Repeating the same request returns <span class="err">404</span> <code>RECORD_NOT_FOUND</code> once the status has already been deleted.</p>
-</details>
-
-<details id="status-default">
-<summary>PUT /enquiry/setting/status/default</summary>
-<p>Sets an enquiry status as your institute's default, clearing any previous default. The target must be active and not deleted.</p>
-<p><strong>Request</strong></p>
-<table>
-  <tr><th>Environment</th><th>URL</th></tr>
-  <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/status/default?product=scl-software</code></td></tr>
-</table>
-<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
-<p><strong>Sample request</strong></p>
-<pre><code>PUT /enquiry/setting/status/default?product=scl-software</code></pre>
-<pre><code>{
-  "statusId": 101  // required, integer, > 0
-}</code></pre>
-<p><strong>Response</strong></p>
-<p><span class="ok">200</span></p>
-<pre><code>{ "success": true, "message": "Status set as default successfully.", "data": null, "errors": null }</code></pre>
-<table>
-  <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
-  <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>statusId</code> missing or not &gt; 0.</td></tr>
-  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, deleted, deactivated, or changed by another request first.</td></tr>
-</table>
-<p>Repeating the same request returns <span class="ok">200</span> again — setting a status that is already the default is not blocked.</p>
 </details>
 
 </section>
@@ -544,7 +518,7 @@
   "data": {
     "sourceId": 201,
     "sourceName": "Website",
-    "isDefault": true,
+    "isCommon": false,
     "isActive": true
   },
   "errors": null
@@ -558,7 +532,7 @@
 
 <details id="source-view">
 <summary>GET /enquiry/setting/source/view</summary>
-<p>Returns a source's full detail, including audit info. Works regardless of active/deleted state, as long as it belongs to your institute.</p>
+<p>Returns a source's full detail, including audit info and enquiry count. Includes shared (common) sources in addition to your institute's own. Deleted sources are not returned.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
@@ -575,7 +549,8 @@
   "data": {
     "sourceId": 201,
     "sourceName": "Website",
-    "isDefault": true,
+    "isCommon": false,
+    "enquiryCount": 5,
     "audit": {
       "isActive": true,
       "inactiveAt": null,
@@ -588,13 +563,13 @@
 <table>
   <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>sourceId</code> missing or not &gt; 0.</td></tr>
-  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute.</td></tr>
+  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute (and not a shared/common source), or has been deleted.</td></tr>
 </table>
 </details>
 
 <details id="source-list">
 <summary>GET /enquiry/setting/source/list</summary>
-<p>Lists enquiry sources for your institute, optionally filtered. Deleted sources are never included. Results are ordered default-first, then by name.</p>
+<p>Lists enquiry sources for your institute, plus any shared (common) sources, optionally filtered. Deleted sources are never included. Results are ordered by name.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
@@ -613,7 +588,7 @@
   "message": null,
   "data": {
     "records": [
-      { "sourceId": 201, "sourceName": "Website", "isDefault": true, "isActive": true }
+      { "sourceId": 201, "sourceName": "Website", "isCommon": false, "enquiryCount": 5, "isActive": true }
     ],
     "metaData": {
       "totalCount": 1,
@@ -634,7 +609,7 @@
 
 <details id="source-options">
 <summary>GET /enquiry/setting/source/options</summary>
-<p>Returns active enquiry sources for your institute, for dropdowns. Default-first, then by name.</p>
+<p>Returns active enquiry sources for your institute, plus any shared (common) sources, for dropdowns. Ordered by name.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
@@ -682,7 +657,7 @@
 
 <details id="source-deactivate">
 <summary>PUT /enquiry/setting/source/deactivate</summary>
-<p>Deactivates an enquiry source. If it was the institute's default, it stops being the default.</p>
+<p>Deactivates an enquiry source.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
@@ -707,7 +682,7 @@
 
 <details id="source-delete">
 <summary>DELETE /enquiry/setting/source</summary>
-<p>Soft-deletes an enquiry source. If it was the institute's default, it stops being the default.</p>
+<p>Soft-deletes an enquiry source.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
@@ -728,31 +703,6 @@
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, already deleted, or changed by another request first.</td></tr>
 </table>
 <p>Repeating the same request returns <span class="err">404</span> <code>RECORD_NOT_FOUND</code> once the source has already been deleted.</p>
-</details>
-
-<details id="source-default">
-<summary>PUT /enquiry/setting/source/default</summary>
-<p>Sets an enquiry source as your institute's default, clearing any previous default. The target must be active and not deleted.</p>
-<p><strong>Request</strong></p>
-<table>
-  <tr><th>Environment</th><th>URL</th></tr>
-  <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/source/default?product=scl-software</code></td></tr>
-</table>
-<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
-<p><strong>Sample request</strong></p>
-<pre><code>PUT /enquiry/setting/source/default?product=scl-software</code></pre>
-<pre><code>{
-  "sourceId": 201  // required, integer, > 0
-}</code></pre>
-<p><strong>Response</strong></p>
-<p><span class="ok">200</span></p>
-<pre><code>{ "success": true, "message": "Source set as default successfully.", "data": null, "errors": null }</code></pre>
-<table>
-  <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
-  <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>sourceId</code> missing or not &gt; 0.</td></tr>
-  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, deleted, deactivated, or changed by another request first.</td></tr>
-</table>
-<p>Repeating the same request returns <span class="ok">200</span> again — setting a source that is already the default is not blocked.</p>
 </details>
 
 </section>

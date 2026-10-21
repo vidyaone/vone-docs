@@ -182,26 +182,6 @@
               "raw": "{\n  \"statusId\": 101\n}"
             }
           }
-        },
-        {
-          "name": "PUT /enquiry/setting/status/default",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "66666666-6666-4666-8666-666666666666" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}enquiry/setting/status/default?product={{product}}",
-              "host": [ "{{baseUrl}}enquiry/setting" ],
-              "path": [ "status", "default" ],
-              "query": [ { "key": "product", "value": "{{product}}" } ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"statusId\": 101\n}"
-            }
-          }
         }
       ]
     },
@@ -364,26 +344,6 @@
               "raw": "{{baseUrl}}enquiry/setting/source?product={{product}}",
               "host": [ "{{baseUrl}}enquiry/setting" ],
               "path": [ "source" ],
-              "query": [ { "key": "product", "value": "{{product}}" } ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"sourceId\": 201\n}"
-            }
-          }
-        },
-        {
-          "name": "PUT /enquiry/setting/source/default",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "cccccccc-cccc-4ccc-8ccc-cccccccccccc" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}enquiry/setting/source/default?product={{product}}",
-              "host": [ "{{baseUrl}}enquiry/setting" ],
-              "path": [ "source", "default" ],
               "query": [ { "key": "product", "value": "{{product}}" } ]
             },
             "body": {
