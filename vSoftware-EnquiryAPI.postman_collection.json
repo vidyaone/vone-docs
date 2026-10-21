@@ -407,6 +407,146 @@
           }
         }
       ]
+    },
+    {
+      "name": "Enquiry",
+      "item": [
+        {
+          "name": "POST /enquiry/setting/enquiry",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "dddddddd-dddd-4ddd-8ddd-dddddddddddd" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/setting/enquiry?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
+              "path": [ "enquiry" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enqTypeId\": 1,\n  \"enqCategoryId\": 2,\n  \"statusId\": 101,\n  \"sourceId\": 201,\n  \"emailAddress\": \"parent@example.com\",\n  \"details\": \"Interested in Grade 3 admission for next year.\",\n  \"phoneCode\": \"+91\",\n  \"phone\": \"9876543210\",\n  \"isWhatsapp\": true,\n  \"fullAddress\": \"12 MG Road, Bengaluru\",\n  \"stateId\": 14,\n  \"districtId\": 212,\n  \"postCode\": \"560001\",\n  \"parentDetail\": {\n    \"studentName\": \"Aarav Shah\",\n    \"studentDob\": \"2015-06-12\",\n    \"appliedClassId\": 3,\n    \"guardianName\": \"Raj Shah\",\n    \"relationToGuardianId\": 1\n  },\n  \"studentDetail\": null,\n  \"applicantDetail\": null,\n  \"supplierDetail\": null,\n  \"otherDetail\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "PUT /enquiry/setting/enquiry",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/setting/enquiry?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
+              "path": [ "enquiry" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enquiryId\": 301,\n  \"enqTypeId\": 1,\n  \"enqCategoryId\": 2,\n  \"sourceId\": 201,\n  \"emailAddress\": \"parent@example.com\",\n  \"details\": \"Follow-up call done.\",\n  \"phoneCode\": \"+91\",\n  \"phone\": \"9876543210\",\n  \"isWhatsapp\": true,\n  \"fullAddress\": \"12 MG Road, Bengaluru\",\n  \"stateId\": 14,\n  \"districtId\": 212,\n  \"postCode\": \"560001\",\n  \"parentDetail\": {\n    \"studentName\": \"Aarav Shah\",\n    \"studentDob\": \"2015-06-12\",\n    \"appliedClassId\": 3,\n    \"guardianName\": \"Raj Shah\",\n    \"relationToGuardianId\": 1\n  },\n  \"studentDetail\": null,\n  \"applicantDetail\": null,\n  \"supplierDetail\": null,\n  \"otherDetail\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "GET /enquiry/setting/enquiry/edit",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/setting/enquiry/edit?product={{product}}&enquiryId=301",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
+              "path": [ "enquiry", "edit" ],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "enquiryId", "value": "301" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /enquiry/setting/enquiry/view",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/setting/enquiry/view?product={{product}}&enquiryId=301",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
+              "path": [ "enquiry", "view" ],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "enquiryId", "value": "301" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /enquiry/setting/enquiry/list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/setting/enquiry/list?product={{product}}&statusId=101&sourceId=201&categoryId=2&typeId=1&name=Shah&phone=98765&pageNumber=1&pageSize=10",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
+              "path": [ "enquiry", "list" ],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "statusId", "value": "101" },
+                { "key": "sourceId", "value": "201" },
+                { "key": "categoryId", "value": "2" },
+                { "key": "typeId", "value": "1" },
+                { "key": "name", "value": "Shah" },
+                { "key": "phone", "value": "98765" },
+                { "key": "pageNumber", "value": "1" },
+                { "key": "pageSize", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /enquiry/setting/enquiry/status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "ffffffff-ffff-4fff-8fff-ffffffffffff" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/setting/enquiry/status?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
+              "path": [ "enquiry", "status" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enquiryId\": 301,\n  \"statusId\": 102\n}"
+            }
+          }
+        },
+        {
+          "name": "DELETE /enquiry/setting/enquiry",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "00000000-0000-4000-8000-000000000000" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/setting/enquiry?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
+              "path": [ "enquiry" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enquiryId\": 301\n}"
+            }
+          }
+        }
+      ]
     }
   ]
 }

@@ -106,6 +106,17 @@
       <li><a href="#position-options">GET /enquiry/setting/position/options</a></li>
     </ul>
   </div>
+  <div class="menu"><a href="#enquiry">Enquiry</a>
+    <ul class="submenu">
+      <li><a href="#enquiry-post">POST /enquiry/setting/enquiry</a></li>
+      <li><a href="#enquiry-put">PUT /enquiry/setting/enquiry</a></li>
+      <li><a href="#enquiry-edit">GET /enquiry/setting/enquiry/edit</a></li>
+      <li><a href="#enquiry-view">GET /enquiry/setting/enquiry/view</a></li>
+      <li><a href="#enquiry-list">GET /enquiry/setting/enquiry/list</a></li>
+      <li><a href="#enquiry-status">PUT /enquiry/setting/enquiry/status</a></li>
+      <li><a href="#enquiry-delete">DELETE /enquiry/setting/enquiry</a></li>
+    </ul>
+  </div>
   <span class="spacer"></span>
   <a class="dl" href="vSoftware-EnquiryAPI.postman_collection.json" download>Download Postman collection</a>
 </nav>
@@ -181,6 +192,8 @@
   <tr><td class="err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication cookie missing or invalid.</td></tr>
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The record doesn't exist, doesn't belong to your institute, is already in that state, or was changed by another request first.</td></tr>
   <tr><td class="err">409</td><td><code>DUPLICATE_RECORD</code></td><td>A record with that name already exists for your institute.</td></tr>
+  <tr><td class="err">409</td><td><code>INVALID_STATE</code></td><td>The request conflicts with the record's current state (e.g. trying to change an enquiry's subtype).</td></tr>
+  <tr><td class="err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>Blocked because a dependent record still exists (e.g. a status/source still used by a non-deleted enquiry).</td></tr>
   <tr><td class="err">500</td><td><code>INTERNAL_ERROR</code></td><td>Unexpected server error.</td></tr>
 </table>
 
@@ -236,6 +249,7 @@
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>statusId</code> missing/not &gt; 0, or <code>statusName</code> missing/over 100 characters.</td></tr>
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, already deleted, already deactivated, or changed by another request first.</td></tr>
   <tr><td class="err">409</td><td><code>DUPLICATE_RECORD</code></td><td>Another status already has this name for your institute.</td></tr>
+  <tr><td class="err">409</td><td><code>INVALID_STATE</code></td><td>This status is a shared/common record and cannot be updated.</td></tr>
 </table>
 <p>Repeating the same request body returns <span class="ok">200</span> again — updating to the same, unchanged name is not blocked.</p>
 </details>
@@ -268,6 +282,7 @@
   <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>statusId</code> missing or not &gt; 0.</td></tr>
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, deleted, or deactivated.</td></tr>
+  <tr><td class="err">409</td><td><code>INVALID_STATE</code></td><td>This status is a shared/common record and cannot be edited.</td></tr>
 </table>
 </details>
 
@@ -392,6 +407,7 @@
   <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>statusId</code> missing or not &gt; 0.</td></tr>
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, deleted, already active, or changed by another request first.</td></tr>
+  <tr><td class="err">409</td><td><code>INVALID_STATE</code></td><td>This status is a shared/common record and cannot be activated.</td></tr>
 </table>
 <p>Repeating the same request returns <span class="err">404</span> <code>RECORD_NOT_FOUND</code> once the status is already active.</p>
 </details>
@@ -417,6 +433,8 @@
   <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>statusId</code> missing or not &gt; 0.</td></tr>
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, deleted, already deactivated, or changed by another request first.</td></tr>
+  <tr><td class="err">409</td><td><code>INVALID_STATE</code></td><td>This status is a shared/common record and cannot be deactivated.</td></tr>
+  <tr><td class="err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>At least one non-deleted enquiry still uses this status.</td></tr>
 </table>
 <p>Repeating the same request returns <span class="err">404</span> <code>RECORD_NOT_FOUND</code> once the status is already deactivated.</p>
 </details>
@@ -442,6 +460,8 @@
   <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>statusId</code> missing or not &gt; 0.</td></tr>
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, already deleted, or changed by another request first.</td></tr>
+  <tr><td class="err">409</td><td><code>INVALID_STATE</code></td><td>This status is a shared/common record and cannot be deleted.</td></tr>
+  <tr><td class="err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>At least one non-deleted enquiry still uses this status.</td></tr>
 </table>
 <p>Repeating the same request returns <span class="err">404</span> <code>RECORD_NOT_FOUND</code> once the status has already been deleted.</p>
 </details>
@@ -500,6 +520,7 @@
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>sourceId</code> missing/not &gt; 0, or <code>sourceName</code> missing/over 100 characters.</td></tr>
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, already deleted, already deactivated, or changed by another request first.</td></tr>
   <tr><td class="err">409</td><td><code>DUPLICATE_RECORD</code></td><td>Another source already has this name for your institute.</td></tr>
+  <tr><td class="err">409</td><td><code>INVALID_STATE</code></td><td>This source is a shared/common record and cannot be updated.</td></tr>
 </table>
 <p>Repeating the same request body returns <span class="ok">200</span> again — updating to the same, unchanged name is not blocked.</p>
 </details>
@@ -532,6 +553,7 @@
   <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>sourceId</code> missing or not &gt; 0.</td></tr>
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, deleted, or deactivated.</td></tr>
+  <tr><td class="err">409</td><td><code>INVALID_STATE</code></td><td>This source is a shared/common record and cannot be edited.</td></tr>
 </table>
 </details>
 
@@ -656,6 +678,7 @@
   <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>sourceId</code> missing or not &gt; 0.</td></tr>
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, deleted, already active, or changed by another request first.</td></tr>
+  <tr><td class="err">409</td><td><code>INVALID_STATE</code></td><td>This source is a shared/common record and cannot be activated.</td></tr>
 </table>
 <p>Repeating the same request returns <span class="err">404</span> <code>RECORD_NOT_FOUND</code> once the source is already active.</p>
 </details>
@@ -681,6 +704,8 @@
   <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>sourceId</code> missing or not &gt; 0.</td></tr>
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, deleted, already deactivated, or changed by another request first.</td></tr>
+  <tr><td class="err">409</td><td><code>INVALID_STATE</code></td><td>This source is a shared/common record and cannot be deactivated.</td></tr>
+  <tr><td class="err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>At least one non-deleted enquiry still uses this source.</td></tr>
 </table>
 <p>Repeating the same request returns <span class="err">404</span> <code>RECORD_NOT_FOUND</code> once the source is already deactivated.</p>
 </details>
@@ -706,6 +731,8 @@
   <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>sourceId</code> missing or not &gt; 0.</td></tr>
   <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, already deleted, or changed by another request first.</td></tr>
+  <tr><td class="err">409</td><td><code>INVALID_STATE</code></td><td>This source is a shared/common record and cannot be deleted.</td></tr>
+  <tr><td class="err">409</td><td><code>DEPENDENT_RECORDS_EXIST</code></td><td>At least one non-deleted enquiry still uses this source.</td></tr>
 </table>
 <p>Repeating the same request returns <span class="err">404</span> <code>RECORD_NOT_FOUND</code> once the source has already been deleted.</p>
 </details>
@@ -792,6 +819,365 @@
   ],
   "errors": null
 }</code></pre>
+</details>
+
+</section>
+
+<section id="enquiry">
+<h2>Enquiry</h2>
+
+<details id="enquiry-post">
+<summary>POST /enquiry/setting/enquiry</summary>
+<p>Creates an enquiry for your institute. Exactly one of <code>parentDetail</code>, <code>studentDetail</code>, <code>applicantDetail</code>, <code>supplierDetail</code> or <code>otherDetail</code> must be provided — whichever one you send fixes the enquiry's subtype, which cannot be changed afterwards.</p>
+<p><strong>Request</strong></p>
+<table>
+  <tr><th>Environment</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/enquiry?product=scl-software</code></td></tr>
+</table>
+<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
+<p><strong>Sample request</strong></p>
+<pre><code>POST /enquiry/setting/enquiry?product=scl-software</code></pre>
+<pre><code>{
+  "enqTypeId": 1,                          // required, integer, > 0
+  "enqCategoryId": 2,                      // required, integer, > 0
+  "statusId": 101,                         // required, integer, > 0
+  "sourceId": 201,                         // required, integer, > 0
+  "emailAddress": "parent@example.com",    // optional, string, max 150 chars, valid email
+  "details": "Interested in Grade 3 admission for next year.",  // optional, string
+  "phoneCode": "+91",                      // required, string, max 5 chars, pattern +&lt;country code&gt;
+  "phone": "9876543210",                   // required, string, 6 to 15 digits
+  "isWhatsapp": true,                      // optional, boolean, default false
+  "fullAddress": "12 MG Road, Bengaluru",  // optional, string, max 500 chars
+  "stateId": 14,                           // optional, integer
+  "districtId": 212,                       // optional, integer
+  "postCode": "560001",                    // optional, string, max 10 chars
+  "parentDetail": {                        // exactly one of the 5 detail objects below is required — the rest must be omitted or null
+    "studentName": "Aarav Shah",             // required, string, max 150 chars
+    "studentDob": "2015-06-12",              // optional, string, ISO-8601 date
+    "appliedClassId": 3,                     // optional, integer
+    "guardianName": "Raj Shah",              // required, string, max 150 chars
+    "relationToGuardianId": 1                // optional, integer
+  },
+  "studentDetail": null,                   // conditional, object — see studentDetail shape below; omit/null unless this is the chosen subtype
+  "applicantDetail": null,                 // conditional, object — see applicantDetail shape below
+  "supplierDetail": null,                  // conditional, object — see supplierDetail shape below
+  "otherDetail": null                      // conditional, object — see otherDetail shape below
+}</code></pre>
+<p>The other 4 detail shapes, each used the same way (exactly one of the 5 populated):</p>
+<pre><code>// studentDetail
+{
+  "studentName": "Priya Nair",   // required, string, max 150 chars
+  "fatherName": "Suresh Nair",   // optional, string, max 150 chars
+  "appliedClassId": 5            // optional, integer
+}
+// applicantDetail
+{
+  "applicantName": "Vikram Rao",  // required, string, max 150 chars
+  "appliedPositionId": 2,         // optional, integer
+  "qualification": "B.Ed",        // optional, string, max 200 chars
+  "yearsOfExperience": 3.5        // optional, decimal, >= 0
+}
+// supplierDetail
+{
+  "companyName": "ABC Stationers",   // required, string, max 200 chars
+  "serviceOrProductType": "Books",   // optional, string, max 200 chars
+  "gstNumber": "29ABCDE1234F1Z5",    // optional, string, max 15 chars, valid GSTIN
+  "personName": "Mohan Das"          // optional, string, max 150 chars
+}
+// otherDetail
+{
+  "contactPerson": "Unknown Caller"  // required, string, max 150 chars
+}</code></pre>
+<p><strong>Response</strong></p>
+<p><span class="ok">200</span></p>
+<pre><code>{ "success": true, "message": "Success.", "data": 301, "errors": null }</code></pre>
+<p><code>data</code> is the new enquiry's id.</p>
+<table>
+  <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
+  <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td>A required field is missing/invalid, or zero or more than one detail object was provided.</td></tr>
+  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td><code>enqTypeId</code>/<code>enqCategoryId</code> not found, or <code>statusId</code>/<code>sourceId</code> not found for your institute.</td></tr>
+</table>
+<p>There is no uniqueness constraint on enquiries — repeating the same request body creates a separate new enquiry each time.</p>
+</details>
+
+<details id="enquiry-put">
+<summary>PUT /enquiry/setting/enquiry</summary>
+<p>Updates an enquiry's base fields and its existing subtype detail — scoped to your institute. The subtype set at creation cannot change: send the same one detail object the enquiry already has (see <code>subType</code> on Edit/View). <code>statusId</code> is not on this request — use the dedicated status endpoint below.</p>
+<p><strong>Request</strong></p>
+<table>
+  <tr><th>Environment</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/enquiry?product=scl-software</code></td></tr>
+</table>
+<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
+<p><strong>Sample request</strong></p>
+<pre><code>PUT /enquiry/setting/enquiry?product=scl-software</code></pre>
+<pre><code>{
+  "enquiryId": 301,                        // required, integer, > 0
+  "enqTypeId": 1,                          // required, integer, > 0
+  "enqCategoryId": 2,                      // required, integer, > 0
+  "sourceId": 201,                         // required, integer, > 0
+  "emailAddress": "parent@example.com",    // optional, string, max 150 chars, valid email
+  "details": "Follow-up call done.",       // optional, string
+  "phoneCode": "+91",                      // required, string, max 5 chars, pattern +&lt;country code&gt;
+  "phone": "9876543210",                   // required, string, 6 to 15 digits
+  "isWhatsapp": true,                      // optional, boolean, default false
+  "fullAddress": "12 MG Road, Bengaluru",  // optional, string, max 500 chars
+  "stateId": 14,                           // optional, integer
+  "districtId": 212,                       // optional, integer
+  "postCode": "560001",                    // optional, string, max 10 chars
+  "parentDetail": {                        // must be the SAME one detail object this enquiry already has — see enquiry-post for all 5 shapes
+    "studentName": "Aarav Shah",
+    "studentDob": "2015-06-12",
+    "appliedClassId": 3,
+    "guardianName": "Raj Shah",
+    "relationToGuardianId": 1
+  },
+  "studentDetail": null,
+  "applicantDetail": null,
+  "supplierDetail": null,
+  "otherDetail": null
+}</code></pre>
+<p><strong>Response</strong></p>
+<p><span class="ok">200</span></p>
+<pre><code>{ "success": true, "message": "Enquiry updated successfully.", "data": null, "errors": null }</code></pre>
+<table>
+  <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
+  <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td>A required field is missing/invalid, or zero or more than one detail object was provided.</td></tr>
+  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, already deleted, <code>enqTypeId</code>/<code>enqCategoryId</code> not found, or <code>sourceId</code> not found for your institute.</td></tr>
+  <tr><td class="err">409</td><td><code>INVALID_STATE</code></td><td>The detail object sent doesn't match the enquiry's existing subtype.</td></tr>
+</table>
+<p>Repeating the same request body returns <span class="ok">200</span> again — updating to the same, unchanged values is not blocked.</p>
+</details>
+
+<details id="enquiry-edit">
+<summary>GET /enquiry/setting/enquiry/edit</summary>
+<p>Returns an enquiry's editable fields, including its subtype detail — scoped to your institute.</p>
+<p><strong>Request</strong></p>
+<table>
+  <tr><th>Environment</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/enquiry/edit</code></td></tr>
+</table>
+<p><strong>Sample request</strong></p>
+<pre><code>GET /enquiry/setting/enquiry/edit?product=scl-software
+    &amp;enquiryId=301   // required, integer, &gt; 0</code></pre>
+<p><strong>Response</strong></p>
+<p><span class="ok">200</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "data": {
+    "enquiryId": 301,
+    "enqTypeId": 1,
+    "enqCategoryId": 2,
+    "statusId": 101,
+    "sourceId": 201,
+    "emailAddress": "parent@example.com",
+    "details": "Interested in Grade 3 admission for next year.",
+    "phoneCode": "+91",
+    "phone": "9876543210",
+    "isWhatsapp": true,
+    "fullAddress": "12 MG Road, Bengaluru",
+    "stateId": 14,
+    "districtId": 212,
+    "postCode": "560001",
+    "subType": "Parent",
+    "parentDetail": {
+      "studentName": "Aarav Shah",
+      "studentDob": "2015-06-12",
+      "appliedClassId": 3,
+      "guardianName": "Raj Shah",
+      "relationToGuardianId": 1
+    },
+    "studentDetail": null,
+    "applicantDetail": null,
+    "supplierDetail": null,
+    "otherDetail": null,
+    "isActive": true
+  },
+  "errors": null
+}</code></pre>
+<table>
+  <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
+  <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enquiryId</code> missing or not &gt; 0.</td></tr>
+  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, or deleted.</td></tr>
+</table>
+</details>
+
+<details id="enquiry-view">
+<summary>GET /enquiry/setting/enquiry/view</summary>
+<p>Returns an enquiry's full detail, including display names and audit info — scoped to your institute. Deleted enquiries are not returned.</p>
+<p><strong>Request</strong></p>
+<table>
+  <tr><th>Environment</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/enquiry/view</code></td></tr>
+</table>
+<p><strong>Sample request</strong></p>
+<pre><code>GET /enquiry/setting/enquiry/view?product=scl-software
+    &amp;enquiryId=301   // required, integer, &gt; 0</code></pre>
+<p><strong>Response</strong></p>
+<p><span class="ok">200</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "data": {
+    "enquiryId": 301,
+    "enquiryDate": "2026-09-01T10:00:00Z",
+    "enqTypeId": 1,
+    "typeName": "Phone Call",
+    "enqCategoryId": 2,
+    "categoryName": "Admission Enquiry",
+    "statusId": 101,
+    "statusName": "Open",
+    "sourceId": 201,
+    "sourceName": "Website",
+    "emailAddress": "parent@example.com",
+    "details": "Interested in Grade 3 admission for next year.",
+    "phoneCode": "+91",
+    "phone": "9876543210",
+    "isWhatsapp": true,
+    "fullAddress": "12 MG Road, Bengaluru",
+    "stateId": 14,
+    "districtId": 212,
+    "postCode": "560001",
+    "subType": "Parent",
+    "parentDetail": {
+      "studentName": "Aarav Shah",
+      "studentDob": "2015-06-12",
+      "appliedClassId": 3,
+      "guardianName": "Raj Shah",
+      "relationToGuardianId": 1
+    },
+    "studentDetail": null,
+    "applicantDetail": null,
+    "supplierDetail": null,
+    "otherDetail": null,
+    "audit": {
+      "isActive": true,
+      "inactiveAt": null,
+      "createdAt": "2026-09-01T10:00:00Z",
+      "updatedAt": "2026-09-01T10:00:00Z"
+    }
+  },
+  "errors": null
+}</code></pre>
+<table>
+  <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
+  <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enquiryId</code> missing or not &gt; 0.</td></tr>
+  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, or has been deleted.</td></tr>
+</table>
+</details>
+
+<details id="enquiry-list">
+<summary>GET /enquiry/setting/enquiry/list</summary>
+<p>Lists enquiries for your institute, optionally filtered. Deleted enquiries are never included. Results are ordered by enquiry date, most recent first.</p>
+<p><strong>Request</strong></p>
+<table>
+  <tr><th>Environment</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/enquiry/list</code></td></tr>
+</table>
+<p><strong>Sample request</strong></p>
+<pre><code>GET /enquiry/setting/enquiry/list?product=scl-software
+    &amp;statusId=101      // optional, integer, &gt; 0 — exact match; omit for all statuses
+    &amp;sourceId=201       // optional, integer, &gt; 0 — exact match; omit for all sources
+    &amp;categoryId=2       // optional, integer, &gt; 0 — exact match on enqCategoryId; omit for all categories
+    &amp;typeId=1           // optional, integer, &gt; 0 — exact match on enqTypeId; omit for all types
+    &amp;name=Shah          // optional, string — case-insensitive "contains" match on the contact name; omit for all
+    &amp;phone=98765        // optional, string — case-insensitive "contains" match on phone; omit for all
+    &amp;pageNumber=1        // optional, integer, default 1
+    &amp;pageSize=10         // optional, integer, default 10, max 200</code></pre>
+<p><strong>Response</strong></p>
+<p><span class="ok">200</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "data": {
+    "records": [
+      {
+        "enquiryId": 301,
+        "enquiryDate": "2026-09-01T10:00:00Z",
+        "enqTypeId": 1,
+        "typeName": "Phone Call",
+        "enqCategoryId": 2,
+        "categoryName": "Admission Enquiry",
+        "statusId": 101,
+        "statusName": "Open",
+        "sourceId": 201,
+        "sourceName": "Website",
+        "contactName": "Raj Shah",
+        "phoneCode": "+91",
+        "phone": "9876543210",
+        "isWhatsapp": true,
+        "emailAddress": "parent@example.com",
+        "isActive": true
+      }
+    ],
+    "metaData": {
+      "totalCount": 1,
+      "pageSize": 10,
+      "currentPage": 1,
+      "totalPages": 1,
+      "hasNext": false,
+      "hasPrevious": false
+    }
+  },
+  "errors": null
+}</code></pre>
+<p><code>contactName</code> is the enquiry's guardian/student/applicant/company/contact-person name, whichever applies to its subtype.</p>
+<table>
+  <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
+  <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td>Any of <code>statusId</code>/<code>sourceId</code>/<code>categoryId</code>/<code>typeId</code> provided but not &gt; 0, <code>pageNumber</code> not &gt; 0, or <code>pageSize</code> not &gt; 0 or over 200.</td></tr>
+</table>
+</details>
+
+<details id="enquiry-status">
+<summary>PUT /enquiry/setting/enquiry/status</summary>
+<p>Changes an enquiry's status only — scoped to your institute. No other field is touched.</p>
+<p><strong>Request</strong></p>
+<table>
+  <tr><th>Environment</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/enquiry/status?product=scl-software</code></td></tr>
+</table>
+<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
+<p><strong>Sample request</strong></p>
+<pre><code>PUT /enquiry/setting/enquiry/status?product=scl-software</code></pre>
+<pre><code>{
+  "enquiryId": 301,  // required, integer, > 0
+  "statusId": 102    // required, integer, > 0
+}</code></pre>
+<p><strong>Response</strong></p>
+<p><span class="ok">200</span></p>
+<pre><code>{ "success": true, "message": "Enquiry status updated successfully.", "data": null, "errors": null }</code></pre>
+<table>
+  <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
+  <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enquiryId</code> or <code>statusId</code> missing or not &gt; 0.</td></tr>
+  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Enquiry not found for your institute or deleted, or <code>statusId</code> not found for your institute.</td></tr>
+</table>
+<p>Repeating the same request returns <span class="ok">200</span> again — setting the same status again is not blocked.</p>
+</details>
+
+<details id="enquiry-delete">
+<summary>DELETE /enquiry/setting/enquiry</summary>
+<p>Soft-deletes an enquiry — scoped to your institute. Also soft-deletes its subtype detail row.</p>
+<p><strong>Request</strong></p>
+<table>
+  <tr><th>Environment</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/enquiry?product=scl-software</code></td></tr>
+</table>
+<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
+<p><strong>Sample request</strong></p>
+<pre><code>DELETE /enquiry/setting/enquiry?product=scl-software</code></pre>
+<pre><code>{
+  "enquiryId": 301  // required, integer, > 0
+}</code></pre>
+<p><strong>Response</strong></p>
+<p><span class="ok">200</span></p>
+<pre><code>{ "success": true, "message": "Enquiry deleted successfully.", "data": null, "errors": null }</code></pre>
+<table>
+  <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
+  <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enquiryId</code> missing or not &gt; 0.</td></tr>
+  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, or already deleted.</td></tr>
+</table>
+<p>Repeating the same request returns <span class="err">404</span> <code>RECORD_NOT_FOUND</code> once the enquiry has already been deleted.</p>
 </details>
 
 </section>
