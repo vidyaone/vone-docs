@@ -115,6 +115,8 @@
       <li><a href="#enquiry-list">GET /enquiry/setting/enquiry/list</a></li>
       <li><a href="#enquiry-status">PUT /enquiry/setting/enquiry/status</a></li>
       <li><a href="#enquiry-delete">DELETE /enquiry/setting/enquiry</a></li>
+      <li><a href="#enquiry-activate">PUT /enquiry/setting/enquiry/activate</a></li>
+      <li><a href="#enquiry-deactivate">PUT /enquiry/setting/enquiry/deactivate</a></li>
     </ul>
   </div>
   <span class="spacer"></span>
@@ -178,7 +180,7 @@
   "message": "Validation failed.",
   "data": null,
   "errors": [
-    { "code": "VALIDATION_FAILED", "message": "StatusName is required.", "field": "PostDTO.StatusName" }
+    { "code": "VALIDATION_FAILED", "message": "StatusName is required.", "field": "postDTO.statusName" }
   ]
 }</code></pre>
 <p>Switch on <code>errors[].code</code> — never on the message text.</p>
@@ -212,7 +214,9 @@
 <p><strong>Sample request</strong></p>
 <pre><code>POST /enquiry/setting/status?product=scl-software</code></pre>
 <pre><code>{
-  "statusName": "Open"  // required, string, max 100 chars
+  "postDTO": {                   // required object
+    "statusName": "Open"         // required, string, max 100 chars
+  }
 }</code></pre>
 <p><strong>Response</strong></p>
 <p><span class="ok">200</span></p>
@@ -238,8 +242,10 @@
 <p><strong>Sample request</strong></p>
 <pre><code>PUT /enquiry/setting/status?product=scl-software</code></pre>
 <pre><code>{
-  "statusId": 101,        // required, integer, > 0
-  "statusName": "Closed"  // required, string, max 100 chars
+  "putDTO": {                    // required object
+    "statusId": 101,              // required, integer, > 0
+    "statusName": "Closed"        // required, string, max 100 chars
+  }
 }</code></pre>
 <p><strong>Response</strong></p>
 <p><span class="ok">200</span></p>
@@ -483,7 +489,9 @@
 <p><strong>Sample request</strong></p>
 <pre><code>POST /enquiry/setting/source?product=scl-software</code></pre>
 <pre><code>{
-  "sourceName": "Website"  // required, string, max 100 chars
+  "postDTO": {                   // required object
+    "sourceName": "Website"       // required, string, max 100 chars
+  }
 }</code></pre>
 <p><strong>Response</strong></p>
 <p><span class="ok">200</span></p>
@@ -509,8 +517,10 @@
 <p><strong>Sample request</strong></p>
 <pre><code>PUT /enquiry/setting/source?product=scl-software</code></pre>
 <pre><code>{
-  "sourceId": 201,          // required, integer, > 0
-  "sourceName": "Walk-in"   // required, string, max 100 chars
+  "putDTO": {                    // required object
+    "sourceId": 201,               // required, integer, > 0
+    "sourceName": "Walk-in"        // required, string, max 100 chars
+  }
 }</code></pre>
 <p><strong>Response</strong></p>
 <p><span class="ok">200</span></p>
@@ -838,42 +848,45 @@
 <p><strong>Sample request</strong></p>
 <pre><code>POST /enquiry/setting/enquiry?product=scl-software</code></pre>
 <pre><code>{
-  "enqTypeId": 1,                          // required, integer, > 0
-  "enqCategoryId": 2,                      // required, integer, > 0
-  "statusId": 101,                         // required, integer, > 0
-  "sourceId": 201,                         // required, integer, > 0
-  "emailAddress": "parent@example.com",    // optional, string, max 150 chars, valid email
-  "details": "Interested in Grade 3 admission for next year.",  // optional, string
-  "phoneCode": "+91",                      // required, string, max 5 chars, pattern +&lt;country code&gt;
-  "phone": "9876543210",                   // required, string, 6 to 15 digits
-  "isWhatsapp": true,                      // optional, boolean, default false
-  "fullAddress": "12 MG Road, Bengaluru",  // optional, string, max 500 chars
-  "stateId": 14,                           // optional, integer
-  "districtId": 212,                       // optional, integer
-  "postCode": "560001",                    // optional, string, max 10 chars
-  "parentDetail": {                        // exactly one of the 5 detail objects below is required — the rest must be omitted or null
-    "studentName": "Aarav Shah",             // required, string, max 150 chars
-    "studentDob": "2015-06-12",              // optional, string, ISO-8601 date
-    "appliedClassId": 3,                     // optional, integer
-    "guardianName": "Raj Shah",              // required, string, max 150 chars
-    "relationToGuardianId": 1                // optional, integer
-  },
-  "studentDetail": null,                   // conditional, object — see studentDetail shape below; omit/null unless this is the chosen subtype
-  "applicantDetail": null,                 // conditional, object — see applicantDetail shape below
-  "supplierDetail": null,                  // conditional, object — see supplierDetail shape below
-  "otherDetail": null                      // conditional, object — see otherDetail shape below
+  "postDTO": {                             // required object
+    "typeId": 1,                             // required, integer, > 0
+    "categoryId": 2,                         // required, integer, > 0
+    "statusId": 101,                         // required, integer, > 0
+    "sourceId": 201,                         // required, integer, > 0
+    "emailAddress": "parent@example.com",    // optional, string, max 150 chars, valid email
+    "details": "Interested in Grade 3 admission for next year.",  // optional, string
+    "phoneCode": "+91",                      // required, string, max 5 chars, pattern +&lt;country code&gt;
+    "phone": "9876543210",                   // required, string, 6 to 15 digits
+    "isWhatsappNumber": true,                // optional, boolean, default false
+    "address": "12 MG Road, Bengaluru",      // optional, string, max 500 chars
+    "countryId": 1,                          // optional, integer
+    "stateId": 26,                           // optional, integer
+    "districtId": 49,                        // optional, integer
+    "pincode": "560001",                     // optional, string, max 10 chars
+    "parentDetail": {                        // exactly one of the 5 detail objects below is required — the rest must be omitted or null
+      "studentName": "Aarav Shah",             // required, string, max 150 chars
+      "studentDob": "2015-06-12",              // optional, string, ISO-8601 date
+      "classId": 3,                            // optional, integer
+      "guardianName": "Raj Shah",              // required, string, max 150 chars
+      "relationId": 1                          // optional, integer
+    },
+    "studentDetail": null,                   // conditional, object — see studentDetail shape below; omit/null unless this is the chosen subtype
+    "applicantDetail": null,                 // conditional, object — see applicantDetail shape below
+    "supplierDetail": null,                  // conditional, object — see supplierDetail shape below
+    "otherDetail": null                      // conditional, object — see otherDetail shape below
+  }
 }</code></pre>
 <p>The other 4 detail shapes, each used the same way (exactly one of the 5 populated):</p>
 <pre><code>// studentDetail
 {
   "studentName": "Priya Nair",   // required, string, max 150 chars
   "fatherName": "Suresh Nair",   // optional, string, max 150 chars
-  "appliedClassId": 5            // optional, integer
+  "classId": 5                   // optional, integer
 }
 // applicantDetail
 {
   "applicantName": "Vikram Rao",  // required, string, max 150 chars
-  "appliedPositionId": 2,         // optional, integer
+  "positionId": 2,                // optional, integer
   "qualification": "B.Ed",        // optional, string, max 200 chars
   "yearsOfExperience": 3.5        // optional, decimal, >= 0
 }
@@ -881,7 +894,7 @@
 {
   "companyName": "ABC Stationers",   // required, string, max 200 chars
   "serviceOrProductType": "Books",   // optional, string, max 200 chars
-  "gstNumber": "29ABCDE1234F1Z5",    // optional, string, max 15 chars, valid GSTIN
+  "gstNumber": "29ABCDE1234F1Z5",    // optional, string, max 25 chars, valid GSTIN
   "personName": "Mohan Das"          // optional, string, max 150 chars
 }
 // otherDetail
@@ -895,7 +908,7 @@
 <table>
   <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td>A required field is missing/invalid, or zero or more than one detail object was provided.</td></tr>
-  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td><code>enqTypeId</code>/<code>enqCategoryId</code> not found, or <code>statusId</code>/<code>sourceId</code> not found for your institute.</td></tr>
+  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td><code>typeId</code>/<code>categoryId</code> not found, or <code>statusId</code>/<code>sourceId</code> not found for your institute.</td></tr>
 </table>
 <p>There is no uniqueness constraint on enquiries — repeating the same request body creates a separate new enquiry each time.</p>
 </details>
@@ -912,30 +925,33 @@
 <p><strong>Sample request</strong></p>
 <pre><code>PUT /enquiry/setting/enquiry?product=scl-software</code></pre>
 <pre><code>{
-  "enquiryId": 301,                        // required, integer, > 0
-  "enqTypeId": 1,                          // required, integer, > 0
-  "enqCategoryId": 2,                      // required, integer, > 0
-  "sourceId": 201,                         // required, integer, > 0
-  "emailAddress": "parent@example.com",    // optional, string, max 150 chars, valid email
-  "details": "Follow-up call done.",       // optional, string
-  "phoneCode": "+91",                      // required, string, max 5 chars, pattern +&lt;country code&gt;
-  "phone": "9876543210",                   // required, string, 6 to 15 digits
-  "isWhatsapp": true,                      // optional, boolean, default false
-  "fullAddress": "12 MG Road, Bengaluru",  // optional, string, max 500 chars
-  "stateId": 14,                           // optional, integer
-  "districtId": 212,                       // optional, integer
-  "postCode": "560001",                    // optional, string, max 10 chars
-  "parentDetail": {                        // must be the SAME one detail object this enquiry already has — see enquiry-post for all 5 shapes
-    "studentName": "Aarav Shah",
-    "studentDob": "2015-06-12",
-    "appliedClassId": 3,
-    "guardianName": "Raj Shah",
-    "relationToGuardianId": 1
-  },
-  "studentDetail": null,
-  "applicantDetail": null,
-  "supplierDetail": null,
-  "otherDetail": null
+  "putDTO": {                              // required object
+    "enquiryId": 301,                        // required, integer, > 0
+    "typeId": 1,                             // required, integer, > 0
+    "categoryId": 2,                         // required, integer, > 0
+    "sourceId": 201,                         // required, integer, > 0
+    "emailAddress": "parent@example.com",    // optional, string, max 150 chars, valid email
+    "details": "Follow-up call done.",       // optional, string
+    "phoneCode": "+91",                      // required, string, max 5 chars, pattern +&lt;country code&gt;
+    "phone": "9876543210",                   // required, string, 6 to 15 digits
+    "isWhatsappNumber": true,                // optional, boolean, default false
+    "address": "12 MG Road, Bengaluru",      // optional, string, max 500 chars
+    "countryId": 1,                          // optional, integer
+    "stateId": 26,                           // optional, integer
+    "districtId": 49,                        // optional, integer
+    "pincode": "560001",                     // optional, string, max 10 chars
+    "parentDetail": {                        // must be the SAME one detail object this enquiry already has — see enquiry-post for all 5 shapes
+      "studentName": "Aarav Shah",
+      "studentDob": "2015-06-12",
+      "classId": 3,
+      "guardianName": "Raj Shah",
+      "relationId": 1
+    },
+    "studentDetail": null,
+    "applicantDetail": null,
+    "supplierDetail": null,
+    "otherDetail": null
+  }
 }</code></pre>
 <p><strong>Response</strong></p>
 <p><span class="ok">200</span></p>
@@ -943,7 +959,7 @@
 <table>
   <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td>A required field is missing/invalid, or zero or more than one detail object was provided.</td></tr>
-  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, already deleted, <code>enqTypeId</code>/<code>enqCategoryId</code> not found, or <code>sourceId</code> not found for your institute.</td></tr>
+  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, already deleted, <code>typeId</code>/<code>categoryId</code> not found, or <code>sourceId</code> not found for your institute.</td></tr>
   <tr><td class="err">409</td><td><code>INVALID_STATE</code></td><td>The detail object sent doesn't match the enquiry's existing subtype.</td></tr>
 </table>
 <p>Repeating the same request body returns <span class="ok">200</span> again — updating to the same, unchanged values is not blocked.</p>
@@ -967,26 +983,27 @@
   "message": null,
   "data": {
     "enquiryId": 301,
-    "enqTypeId": 1,
-    "enqCategoryId": 2,
+    "typeId": 1,
+    "categoryId": 2,
     "statusId": 101,
     "sourceId": 201,
     "emailAddress": "parent@example.com",
     "details": "Interested in Grade 3 admission for next year.",
     "phoneCode": "+91",
     "phone": "9876543210",
-    "isWhatsapp": true,
-    "fullAddress": "12 MG Road, Bengaluru",
-    "stateId": 14,
-    "districtId": 212,
-    "postCode": "560001",
+    "isWhatsappNumber": true,
+    "address": "12 MG Road, Bengaluru",
+    "countryId": 1,
+    "stateId": 26,
+    "districtId": 49,
+    "pincode": "560001",
     "subType": "Parent",
     "parentDetail": {
       "studentName": "Aarav Shah",
       "studentDob": "2015-06-12",
-      "appliedClassId": 3,
+      "classId": 3,
       "guardianName": "Raj Shah",
-      "relationToGuardianId": 1
+      "relationId": 1
     },
     "studentDetail": null,
     "applicantDetail": null,
@@ -1022,9 +1039,9 @@
   "data": {
     "enquiryId": 301,
     "enquiryDate": "2026-09-01T10:00:00Z",
-    "enqTypeId": 1,
+    "typeId": 1,
     "typeName": "Phone Call",
-    "enqCategoryId": 2,
+    "categoryId": 2,
     "categoryName": "Admission Enquiry",
     "statusId": 101,
     "statusName": "Open",
@@ -1034,18 +1051,24 @@
     "details": "Interested in Grade 3 admission for next year.",
     "phoneCode": "+91",
     "phone": "9876543210",
-    "isWhatsapp": true,
-    "fullAddress": "12 MG Road, Bengaluru",
-    "stateId": 14,
-    "districtId": 212,
-    "postCode": "560001",
+    "isWhatsappNumber": true,
+    "address": "12 MG Road, Bengaluru",
+    "countryId": 1,
+    "countryName": "India",
+    "stateId": 26,
+    "stateName": "Karnataka",
+    "districtId": 49,
+    "districtName": "Bengaluru Urban",
+    "pincode": "560001",
     "subType": "Parent",
     "parentDetail": {
       "studentName": "Aarav Shah",
       "studentDob": "2015-06-12",
-      "appliedClassId": 3,
+      "classId": 3,
+      "className": "No Class",
       "guardianName": "Raj Shah",
-      "relationToGuardianId": 1
+      "relationId": 1,
+      "relationName": "Father"
     },
     "studentDetail": null,
     "applicantDetail": null,
@@ -1060,6 +1083,7 @@
   },
   "errors": null
 }</code></pre>
+<p>When <code>subType</code> is <code>Student</code>, <code>studentDetail</code> carries the same shape plus <code>className</code>; when <code>Applicant</code>, <code>applicantDetail</code> carries the same shape plus <code>positionName</code>. <code>supplierDetail</code>/<code>otherDetail</code> are unchanged from the request shapes.</p>
 <table>
   <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
   <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enquiryId</code> missing or not &gt; 0.</td></tr>
@@ -1079,8 +1103,8 @@
 <pre><code>GET /enquiry/setting/enquiry/list?product=scl-software
     &amp;statusId=101      // optional, integer, &gt; 0 — exact match; omit for all statuses
     &amp;sourceId=201       // optional, integer, &gt; 0 — exact match; omit for all sources
-    &amp;categoryId=2       // optional, integer, &gt; 0 — exact match on enqCategoryId; omit for all categories
-    &amp;typeId=1           // optional, integer, &gt; 0 — exact match on enqTypeId; omit for all types
+    &amp;categoryId=2       // optional, integer, &gt; 0 — exact match on categoryId; omit for all categories
+    &amp;typeId=1           // optional, integer, &gt; 0 — exact match on typeId; omit for all types
     &amp;name=Shah          // optional, string — case-insensitive "contains" match on the contact name; omit for all
     &amp;phone=98765        // optional, string — case-insensitive "contains" match on phone; omit for all
     &amp;pageNumber=1        // optional, integer, default 1
@@ -1095,9 +1119,9 @@
       {
         "enquiryId": 301,
         "enquiryDate": "2026-09-01T10:00:00Z",
-        "enqTypeId": 1,
+        "typeId": 1,
         "typeName": "Phone Call",
-        "enqCategoryId": 2,
+        "categoryId": 2,
         "categoryName": "Admission Enquiry",
         "statusId": 101,
         "statusName": "Open",
@@ -1106,7 +1130,7 @@
         "contactName": "Raj Shah",
         "phoneCode": "+91",
         "phone": "9876543210",
-        "isWhatsapp": true,
+        "isWhatsappNumber": true,
         "emailAddress": "parent@example.com",
         "isActive": true
       }
@@ -1131,7 +1155,7 @@
 
 <details id="enquiry-status">
 <summary>PUT /enquiry/setting/enquiry/status</summary>
-<p>Changes an enquiry's status only — scoped to your institute. No other field is touched.</p>
+<p>Changes the status of one or more enquiries — scoped to your institute. No other field is touched. An enquiry id that doesn't exist, doesn't belong to your institute, or has been deleted is skipped rather than failing the whole request — the request only fails if none of the ids match anything.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
@@ -1141,23 +1165,24 @@
 <p><strong>Sample request</strong></p>
 <pre><code>PUT /enquiry/setting/enquiry/status?product=scl-software</code></pre>
 <pre><code>{
-  "enquiryId": 301,  // required, integer, > 0
-  "statusId": 102    // required, integer, > 0
+  "enquiryIds": [301, 302],  // required, array of integer, 1 to 100 items, each > 0
+  "statusId": 102            // required, integer, > 0
 }</code></pre>
 <p><strong>Response</strong></p>
 <p><span class="ok">200</span></p>
 <pre><code>{ "success": true, "message": "Enquiry status updated successfully.", "data": null, "errors": null }</code></pre>
 <table>
   <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
-  <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enquiryId</code> or <code>statusId</code> missing or not &gt; 0.</td></tr>
-  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Enquiry not found for your institute or deleted, or <code>statusId</code> not found for your institute.</td></tr>
+  <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enquiryIds</code> missing/empty, has more than 100 items, or any item not &gt; 0; or <code>statusId</code> missing or not &gt; 0.</td></tr>
+  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td><code>statusId</code> not found for your institute.</td></tr>
+  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the given <code>enquiryIds</code> were found for your institute, or all have been deleted.</td></tr>
 </table>
 <p>Repeating the same request returns <span class="ok">200</span> again — setting the same status again is not blocked.</p>
 </details>
 
 <details id="enquiry-delete">
 <summary>DELETE /enquiry/setting/enquiry</summary>
-<p>Soft-deletes an enquiry — scoped to your institute. Also soft-deletes its subtype detail row.</p>
+<p>Soft-deletes one or more enquiries — scoped to your institute. Also soft-deletes each one's subtype detail row. An enquiry id that doesn't exist, doesn't belong to your institute, or is already deleted is skipped rather than failing the whole request — the request only fails if none of the ids match anything.</p>
 <p><strong>Request</strong></p>
 <table>
   <tr><th>Environment</th><th>URL</th></tr>
@@ -1167,17 +1192,67 @@
 <p><strong>Sample request</strong></p>
 <pre><code>DELETE /enquiry/setting/enquiry?product=scl-software</code></pre>
 <pre><code>{
-  "enquiryId": 301  // required, integer, > 0
+  "enquiryIds": [301, 302]  // required, array of integer, 1 to 100 items, each > 0
 }</code></pre>
 <p><strong>Response</strong></p>
 <p><span class="ok">200</span></p>
 <pre><code>{ "success": true, "message": "Enquiry deleted successfully.", "data": null, "errors": null }</code></pre>
 <table>
   <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
-  <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enquiryId</code> missing or not &gt; 0.</td></tr>
-  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>Not found for your institute, or already deleted.</td></tr>
+  <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enquiryIds</code> missing/empty, has more than 100 items, or any item not &gt; 0.</td></tr>
+  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the given <code>enquiryIds</code> were found for your institute, or all have already been deleted.</td></tr>
 </table>
-<p>Repeating the same request returns <span class="err">404</span> <code>RECORD_NOT_FOUND</code> once the enquiry has already been deleted.</p>
+<p>Repeating the same request returns <span class="err">404</span> <code>RECORD_NOT_FOUND</code> once every requested enquiry is already deleted.</p>
+</details>
+
+<details id="enquiry-activate">
+<summary>PUT /enquiry/setting/enquiry/activate</summary>
+<p>Re-activates one or more enquiries — scoped to your institute. Also re-activates each one's subtype detail row. An enquiry id that doesn't exist, doesn't belong to your institute, has been deleted, or is already active is skipped rather than failing the whole request — the request only fails if none of the ids match anything.</p>
+<p><strong>Request</strong></p>
+<table>
+  <tr><th>Environment</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/enquiry/activate?product=scl-software</code></td></tr>
+</table>
+<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
+<p><strong>Sample request</strong></p>
+<pre><code>PUT /enquiry/setting/enquiry/activate?product=scl-software</code></pre>
+<pre><code>{
+  "enquiryIds": [301, 302]  // required, array of integer, 1 to 100 items, each > 0
+}</code></pre>
+<p><strong>Response</strong></p>
+<p><span class="ok">200</span></p>
+<pre><code>{ "success": true, "message": "Enquiry activated successfully.", "data": null, "errors": null }</code></pre>
+<table>
+  <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
+  <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enquiryIds</code> missing/empty, has more than 100 items, or any item not &gt; 0.</td></tr>
+  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the given <code>enquiryIds</code> were found for your institute, or all have been deleted or are already active.</td></tr>
+</table>
+<p>Repeating the same request returns <span class="err">404</span> <code>RECORD_NOT_FOUND</code> once every requested enquiry is already active.</p>
+</details>
+
+<details id="enquiry-deactivate">
+<summary>PUT /enquiry/setting/enquiry/deactivate</summary>
+<p>Deactivates one or more enquiries — scoped to your institute. Also deactivates each one's subtype detail row. An enquiry id that doesn't exist, doesn't belong to your institute, has been deleted, or is already deactivated is skipped rather than failing the whole request — the request only fails if none of the ids match anything.</p>
+<p><strong>Request</strong></p>
+<table>
+  <tr><th>Environment</th><th>URL</th></tr>
+  <tr><td>Testing</td><td><code>https://api-vsof.vidyaone.com/test/enquiry/setting/enquiry/deactivate?product=scl-software</code></td></tr>
+</table>
+<p>Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key: &lt;uuid&gt;</code></p>
+<p><strong>Sample request</strong></p>
+<pre><code>PUT /enquiry/setting/enquiry/deactivate?product=scl-software</code></pre>
+<pre><code>{
+  "enquiryIds": [301, 302]  // required, array of integer, 1 to 100 items, each > 0
+}</code></pre>
+<p><strong>Response</strong></p>
+<p><span class="ok">200</span></p>
+<pre><code>{ "success": true, "message": "Enquiry deactivated successfully.", "data": null, "errors": null }</code></pre>
+<table>
+  <tr><th>Status</th><th>Code</th><th>Condition</th></tr>
+  <tr><td class="err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enquiryIds</code> missing/empty, has more than 100 items, or any item not &gt; 0.</td></tr>
+  <tr><td class="err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>None of the given <code>enquiryIds</code> were found for your institute, or all have been deleted or are already deactivated.</td></tr>
+</table>
+<p>Repeating the same request returns <span class="err">404</span> <code>RECORD_NOT_FOUND</code> once every requested enquiry is already deactivated.</p>
 </details>
 
 </section>

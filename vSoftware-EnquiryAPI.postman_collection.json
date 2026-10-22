@@ -35,7 +35,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"statusName\": \"Open\"\n}"
+              "raw": "{\n  \"postDTO\": {\n    \"statusName\": \"Open\"\n  }\n}"
             }
           }
         },
@@ -55,7 +55,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"statusId\": 101,\n  \"statusName\": \"Closed\"\n}"
+              "raw": "{\n  \"putDTO\": {\n    \"statusId\": 101,\n    \"statusName\": \"Closed\"\n  }\n}"
             }
           }
         },
@@ -204,7 +204,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sourceName\": \"Website\"\n}"
+              "raw": "{\n  \"postDTO\": {\n    \"sourceName\": \"Website\"\n  }\n}"
             }
           }
         },
@@ -224,7 +224,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sourceId\": 201,\n  \"sourceName\": \"Walk-in\"\n}"
+              "raw": "{\n  \"putDTO\": {\n    \"sourceId\": 201,\n    \"sourceName\": \"Walk-in\"\n  }\n}"
             }
           }
         },
@@ -427,7 +427,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"enqTypeId\": 1,\n  \"enqCategoryId\": 2,\n  \"statusId\": 101,\n  \"sourceId\": 201,\n  \"emailAddress\": \"parent@example.com\",\n  \"details\": \"Interested in Grade 3 admission for next year.\",\n  \"phoneCode\": \"+91\",\n  \"phone\": \"9876543210\",\n  \"isWhatsapp\": true,\n  \"fullAddress\": \"12 MG Road, Bengaluru\",\n  \"stateId\": 14,\n  \"districtId\": 212,\n  \"postCode\": \"560001\",\n  \"parentDetail\": {\n    \"studentName\": \"Aarav Shah\",\n    \"studentDob\": \"2015-06-12\",\n    \"appliedClassId\": 3,\n    \"guardianName\": \"Raj Shah\",\n    \"relationToGuardianId\": 1\n  },\n  \"studentDetail\": null,\n  \"applicantDetail\": null,\n  \"supplierDetail\": null,\n  \"otherDetail\": null\n}"
+              "raw": "{\n  \"postDTO\": {\n    \"typeId\": 1,\n    \"categoryId\": 2,\n    \"statusId\": 101,\n    \"sourceId\": 201,\n    \"emailAddress\": \"parent@example.com\",\n    \"details\": \"Interested in Grade 3 admission for next year.\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"12 MG Road, Bengaluru\",\n    \"countryId\": 1,\n    \"stateId\": 26,\n    \"districtId\": 49,\n    \"pincode\": \"560001\",\n    \"parentDetail\": {\n      \"studentName\": \"Aarav Shah\",\n      \"studentDob\": \"2015-06-12\",\n      \"classId\": 3,\n      \"guardianName\": \"Raj Shah\",\n      \"relationId\": 1\n    },\n    \"studentDetail\": null,\n    \"applicantDetail\": null,\n    \"supplierDetail\": null,\n    \"otherDetail\": null\n  }\n}"
             }
           }
         },
@@ -447,7 +447,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"enquiryId\": 301,\n  \"enqTypeId\": 1,\n  \"enqCategoryId\": 2,\n  \"sourceId\": 201,\n  \"emailAddress\": \"parent@example.com\",\n  \"details\": \"Follow-up call done.\",\n  \"phoneCode\": \"+91\",\n  \"phone\": \"9876543210\",\n  \"isWhatsapp\": true,\n  \"fullAddress\": \"12 MG Road, Bengaluru\",\n  \"stateId\": 14,\n  \"districtId\": 212,\n  \"postCode\": \"560001\",\n  \"parentDetail\": {\n    \"studentName\": \"Aarav Shah\",\n    \"studentDob\": \"2015-06-12\",\n    \"appliedClassId\": 3,\n    \"guardianName\": \"Raj Shah\",\n    \"relationToGuardianId\": 1\n  },\n  \"studentDetail\": null,\n  \"applicantDetail\": null,\n  \"supplierDetail\": null,\n  \"otherDetail\": null\n}"
+              "raw": "{\n  \"putDTO\": {\n    \"enquiryId\": 301,\n    \"typeId\": 1,\n    \"categoryId\": 2,\n    \"sourceId\": 201,\n    \"emailAddress\": \"parent@example.com\",\n    \"details\": \"Follow-up call done.\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"12 MG Road, Bengaluru\",\n    \"countryId\": 1,\n    \"stateId\": 26,\n    \"districtId\": 49,\n    \"pincode\": \"560001\",\n    \"parentDetail\": {\n      \"studentName\": \"Aarav Shah\",\n      \"studentDob\": \"2015-06-12\",\n      \"classId\": 3,\n      \"guardianName\": \"Raj Shah\",\n      \"relationId\": 1\n    },\n    \"studentDetail\": null,\n    \"applicantDetail\": null,\n    \"supplierDetail\": null,\n    \"otherDetail\": null\n  }\n}"
             }
           }
         },
@@ -522,7 +522,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"enquiryId\": 301,\n  \"statusId\": 102\n}"
+              "raw": "{\n  \"enquiryIds\": [301, 302],\n  \"statusId\": 102\n}"
             }
           }
         },
@@ -542,7 +542,47 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"enquiryId\": 301\n}"
+              "raw": "{\n  \"enquiryIds\": [301, 302]\n}"
+            }
+          }
+        },
+        {
+          "name": "PUT /enquiry/setting/enquiry/activate",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "11111111-2222-4111-8111-111111111112" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/setting/enquiry/activate?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
+              "path": [ "enquiry", "activate" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enquiryIds\": [301, 302]\n}"
+            }
+          }
+        },
+        {
+          "name": "PUT /enquiry/setting/enquiry/deactivate",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "22222222-3333-4222-8222-222222222223" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/setting/enquiry/deactivate?product={{product}}",
+              "host": [ "{{baseUrl}}enquiry/setting" ],
+              "path": [ "enquiry", "deactivate" ],
+              "query": [ { "key": "product", "value": "{{product}}" } ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enquiryIds\": [301, 302]\n}"
             }
           }
         }

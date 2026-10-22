@@ -356,6 +356,11 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful create returns <span class="status-err">409 Conflict</span> rather than the original success.</p>
 
+<h4>Events</h4>
+<p>Fires <code>ORG_CREATED</code> after the organization is created.</p>
+<p>Fires <code>ORG_KYC_VERIFY</code> (super-admin) and <code>ORG_KYC_STATUS</code> when both <code>legalDocumentPath</code> and <code>identityProofPath</code> are submitted.</p>
+<p>Fires <code>ORG_OWNER_INVITE</code> when <code>isOwner</code> is <code>false</code> and <code>ownerEmail</code> is sent.</p>
+
 </details>
 <!-- ========================= Update organization ========================= -->
 <details id="org-put">
@@ -468,6 +473,12 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the organization in the same final state.</p>
 
+<h4>Events</h4>
+<p>Fires <code>ORG_UPDATED</code> after the update, once per recipient (creator; owner too once accepted).</p>
+<p>Fires <code>ORG_KYC_VERIFY</code> (super-admin) when the update moves <code>kycStatus</code> to <code>Under Review</code>.</p>
+<p>Fires <code>ORG_KYC_STATUS</code> when <code>kycStatus</code> actually changes and KYC is or was in play.</p>
+<p>Fires <code>ORG_OWNER_INVITE</code> when no owner has accepted yet and the request's <code>ownerEmail</code> is new or changed.</p>
+
 </details>
 <!-- ========================= Get organization (edit) ========================= -->
 <details id="org-edit">
@@ -573,6 +584,9 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the organization as the caller's default.</p>
 
+<h4>Events</h4>
+<p>Fires <code>ORG_DEFAULT_SET</code> after the default is set.</p>
+
 </details>
 <!-- ========================= Activate organization ========================= -->
 <details id="org-activate">
@@ -607,6 +621,9 @@
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
+
+<h4>Events</h4>
+<p>Fires <code>ORG_ACTIVATED</code> after the organization is activated, once per recipient (creator; owner too if <code>ownerUserId</code> &gt; 0).</p>
 
 </details>
 <!-- ========================= Deactivate organization ========================= -->
@@ -645,6 +662,9 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
 
+<h4>Events</h4>
+<p>Fires <code>ORG_DEACTIVATED</code> after the organization is deactivated, once per recipient (creator; owner too if <code>ownerUserId</code> &gt; 0).</p>
+
 </details>
 <!-- ========================= Delete organization ========================= -->
 <details id="org-delete">
@@ -681,6 +701,9 @@
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
+
+<h4>Events</h4>
+<p>Fires <code>ORG_DELETED</code> after the organization is deleted, once per recipient (creator; owner too if <code>ownerUserId</code> &gt; 0).</p>
 
 </details>
 <!-- ========================= Organization options ========================= -->
@@ -921,10 +944,10 @@
     "remarks": "docs ok",
     "totalInst": 0,
     "totalUser": 0,
-    "audit": { "isActive": true, "createdAt": "2026-09-01T08:00:00+00:00", "updatedAt": "2026-09-09T10:20:00+00:00" }
+    "audit": { "isActive": true, "inactiveAt": null, "createdAt": "2026-09-01T08:00:00+00:00", "updatedAt": "2026-09-09T10:20:00+00:00" }
   }
 }</code></pre>
-<p>This shape is returned regardless of whether the organization is active. <code>totalInst</code> counts non-deleted institutes; <code>totalUser</code> counts distinct non-deleted users across them, deactivated users included.</p>
+<p>This shape is returned regardless of whether the organization is active. <code>audit.inactiveAt</code> is <code>null</code> while active, or the deactivation timestamp otherwise. <code>totalInst</code> counts non-deleted institutes; <code>totalUser</code> counts distinct non-deleted users across them, deactivated users included.</p>
 
 <h4>Response — any other caller</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -948,7 +971,7 @@
     "pincode": "560001",
     "logo": "org/acme/logo.png",
     "kycStatus": "Approved",
-    "audit": { "isActive": true, "createdAt": "2026-09-01T08:00:00+00:00", "updatedAt": "2026-09-09T10:20:00+00:00" }
+    "audit": { "isActive": true, "inactiveAt": null, "createdAt": "2026-09-01T08:00:00+00:00", "updatedAt": "2026-09-09T10:20:00+00:00" }
   }
 }</code></pre>
 <p>This shape omits <code>isOwner</code>, <code>ownerName</code>, <code>ownerEmail</code>, <code>creatorName</code>, KYC document fields, <code>remarks</code>, and <code>totalInst</code>/<code>totalUser</code>. It is only returned while the organization is active — an inactive organization reports <span class="status-err">404</span> to any caller who isn't its creator or owner.</p>
@@ -1061,6 +1084,11 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful create returns <span class="status-err">409 Conflict</span> rather than the original success.</p>
 
+<h4>Events</h4>
+<p>Fires <code>INST_CREATED</code> after the institute is created.</p>
+<p>Fires <code>INST_TRIAL_ACTIVATED</code> (normal and super-admin) for the institute's initial product trial.</p>
+<p>Fires <code>PRODUCT_FIRST_SETUP_TRIGGER</code> when the product has a first-setup queue configured.</p>
+
 </details>
 <!-- ========================= Start institute trial ========================= -->
 <details id="inst-trial">
@@ -1098,6 +1126,10 @@
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">409 Conflict</span> rather than the original success.</p>
+
+<h4>Events</h4>
+<p>Fires <code>INST_TRIAL_ACTIVATED</code> (normal and super-admin) after the trial is added.</p>
+<p>Fires <code>PRODUCT_FIRST_SETUP_TRIGGER</code> when the product has a first-setup queue configured.</p>
 
 </details>
 <!-- ========================= Update institute ========================= -->
@@ -1177,6 +1209,9 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the institute in the same final state.</p>
 
+<h4>Events</h4>
+<p>Fires <code>INST_UPDATED</code> after the update.</p>
+
 </details>
 <!-- ========================= Set default institute ========================= -->
 <details id="inst-default">
@@ -1210,6 +1245,9 @@
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the institute as the caller's default.</p>
+
+<h4>Events</h4>
+<p>Fires <code>INST_DEFAULT_SET</code> after the default is set.</p>
 
 </details>
 <!-- ========================= Activate institute ========================= -->
@@ -1247,6 +1285,9 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
 
+<h4>Events</h4>
+<p>Fires <code>INST_ACTIVATED</code> after the institute is activated.</p>
+
 </details>
 <!-- ========================= Deactivate institute ========================= -->
 <details id="inst-deactive">
@@ -1282,6 +1323,10 @@
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
+
+<h4>Events</h4>
+<p>Fires <code>INST_DEACTIVATED</code> after the institute is deactivated.</p>
+<p>Fires <code>PRODUCT_DEACTIVATED_TRIGGER</code> once per subscribed product actually deactivated, only if that product has a deactive/delete queue configured.</p>
 
 </details>
 <!-- ========================= Change institute org ========================= -->
@@ -1320,6 +1365,9 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the institute in the same org.</p>
 
+<h4>Events</h4>
+<p>Fires <code>INST_ORG_CHANGED</code> after the institute is moved.</p>
+
 </details>
 <!-- ========================= Delete institute ========================= -->
 <details id="inst-delete">
@@ -1355,6 +1403,10 @@
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
+
+<h4>Events</h4>
+<p>Fires <code>INST_DELETED</code> after the institute is deleted.</p>
+<p>Fires <code>PRODUCT_DELETED_TRIGGER</code> once per subscribed product actually deleted, only if that product has a deactive/delete queue configured.</p>
 
 </details>
 <!-- ========================= Institute options ========================= -->
@@ -1464,6 +1516,7 @@
             "instCode": "INSTA1B2C3",
             "instSaaSCode": "SAASX7Y8Z9",
             "instTypeId": 1,
+            "instTypeName": "Engineering College",
             "instName": "Acme Engineering College",
             "orgId": 123,
             "orgName": "Acme Institute",
@@ -1568,6 +1621,7 @@
             "instCode": "INSTD4E5F6",
             "instSaaSCode": "SAASP1Q2R3",
             "instTypeId": 2,
+            "instTypeName": "Arts College",
             "instName": "Beacon Arts College",
             "orgId": 301,
             "orgName": "Beacon Education Trust",
@@ -1718,6 +1772,7 @@
         "instCode": "INSTA1B2C3",
         "instSaaSCode": "SAASX7Y8Z9",
         "instTypeId": 1,
+        "instTypeName": "Engineering College",
         "instName": "Acme Engineering College",
         "orgId": 123,
         "orgName": "Acme Institute",
@@ -1768,10 +1823,10 @@
     "orgKycStatus": "Approved",
     "totalSaas": 2,
     "totalUser": 3,
-    "audit": { "isActive": true, "createdAt": "2026-09-01T08:00:00+00:00", "updatedAt": "2026-09-09T10:20:00+00:00" }
+    "audit": { "isActive": true, "inactiveAt": null, "createdAt": "2026-09-01T08:00:00+00:00", "updatedAt": "2026-09-09T10:20:00+00:00" }
   }
 }</code></pre>
-<p>This shape is returned regardless of whether the institute is active. <code>totalSaas</code> counts non-deleted product subscriptions; <code>totalUser</code> counts distinct non-deleted users, deactivated users included.</p>
+<p>This shape is returned regardless of whether the institute is active. <code>audit.inactiveAt</code> is <code>null</code> while active, or the deactivation timestamp otherwise. <code>totalSaas</code> counts non-deleted product subscriptions; <code>totalUser</code> counts distinct non-deleted users, deactivated users included.</p>
 
 <h4>Response — any other caller</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -1803,6 +1858,7 @@
         "instCode": "INSTA1B2C3",
         "instSaaSCode": "SAASX7Y8Z9",
         "instTypeId": 1,
+        "instTypeName": "Engineering College",
         "instName": "Acme Engineering College",
         "orgId": 123,
         "orgName": "Acme Institute",
@@ -1839,7 +1895,7 @@
     "orgCountryName": "India",
     "orgPincode": "560001",
     "orgLogo": "org/acme/logo.png",
-    "audit": { "isActive": true, "createdAt": "2026-09-01T08:00:00+00:00", "updatedAt": "2026-09-09T10:20:00+00:00" }
+    "audit": { "isActive": true, "inactiveAt": null, "createdAt": "2026-09-01T08:00:00+00:00", "updatedAt": "2026-09-09T10:20:00+00:00" }
   }
 }</code></pre>
 <p>This shape omits <code>contactPerson</code>, <code>contactEmail</code>, <code>contactPhoneCode</code>, <code>contactPhone</code>, <code>contactIsWhatsappNumber</code>, <code>creatorName</code>, <code>creatorEmail</code>, <code>orgOwnerName</code>, <code>orgKycStatus</code>, <code>orgCreatorName</code>, <code>orgCreatorEmail</code>, <code>orgOwnerEmail</code>, <code>totalSaas</code>, and <code>totalUser</code>. <code>role</code> is empty if the caller has no role on the institute. It is only returned while the institute is active — an inactive institute reports <span class="status-err">404</span> to any caller who isn't its creator or an admin on it.</p>
@@ -1900,6 +1956,7 @@
         "instCode": "INSTA1B2C3",
         "instSaaSCode": "SAASX7Y8Z9",
         "instTypeId": 1,
+        "instTypeName": "Engineering College",
         "instName": "Acme Engineering College",
         "orgId": 123,
         "orgName": "Acme Institute",
@@ -2051,6 +2108,9 @@
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> again returns <span class="status-ok">200 OK</span> and leaves the institute in the same onboarded state.</p>
 
+<h4>Events</h4>
+<p>Fires <code>INST_ONBOARDED</code> (normal and super-admin) only the first time the institute is onboarded.</p>
+
 </details>
 <!-- ========================= Onboard by support ========================= -->
 <details id="onboard-bysupport">
@@ -2078,6 +2138,9 @@
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> again returns <span class="status-ok">200 OK</span> and leaves the institute in the same onboarded state.</p>
+
+<h4>Events</h4>
+<p>Fires <code>INST_ONBOARDED</code> (normal and super-admin) on every call &mdash; this route has no already-onboarded check, unlike <a href="#onboard-byuser"><code>PUT /onboard/byuser</code></a>.</p>
 
 </details>
 </section>
