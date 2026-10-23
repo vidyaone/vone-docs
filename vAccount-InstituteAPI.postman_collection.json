@@ -578,6 +578,15 @@
       "name": "Onboard",
       "item": [
         {
+          "name": "List pending onboards",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}onboard/list/pending?product={{product}}&pageNumber=1&pageSize=10"
+          },
+          "response": []
+        },
+        {
           "name": "Onboard status",
           "request": {
             "method": "GET",

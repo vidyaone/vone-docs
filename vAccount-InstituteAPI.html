@@ -126,6 +126,7 @@
   <div class="menu">
     <a href="#onboard">Onboard</a>
     <ul class="submenu">
+      <li><a href="#onboard-list-pending"><code>GET /onboard/list/pending</code></a></li>
       <li><a href="#onboard-status"><code>GET /onboard/status</code></a></li>
       <li><a href="#onboard-byuser"><code>PUT /onboard/byuser</code></a></li>
       <li><a href="#onboard-bysupport"><code>PUT /onboard/bysupport</code></a></li>
@@ -2449,8 +2450,69 @@
 
 <section id="onboard">
 <h2>Onboard</h2>
-<p>Scoped to the authenticated institute for the given <code>product</code> — <code>instId</code>/<code>userId</code> are resolved from the session automatically, never sent by the caller.</p>
+<p><a href="#onboard-list-pending">List pending onboards</a> is scoped to every institute the caller administers (creator or Admin); the other three routes are scoped to the single authenticated institute for the given <code>product</code> — <code>instId</code>/<code>userId</code> are resolved from the session automatically, never sent by the caller.</p>
 
+<!-- ========================= List pending onboards ========================= -->
+<details id="onboard-list-pending">
+<summary><span class="method">GET</span> <code>/onboard/list/pending</code></summary>
+<p>Returns a paged list of not-yet-onboarded product (SaaS) subscriptions across every institute the caller administers (creator or Admin role).</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/onboard/list/pending?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/onboard/list/pending?product={product}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. A value &le; 0 is ignored.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>10</code>. A value &le; 0 is ignored; above <code>200</code> is rejected.</td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /onboard/list/pending?product=account
+    &amp;pageNumber=1   // optional, integer, default 1
+    &amp;pageSize=10    // optional, integer, default 10, max 200</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": {
+    "records": [
+      {
+        "instSaaSId": 789,
+        "instId": 456,
+        "instCode": "INSTA1B2C3",
+        "instName": "Acme Engineering College",
+        "instSaaSCode": "SAASX7Y8Z9",
+        "productId": 1,
+        "productName": "vWebsite",
+        "productCode": "WEB",
+        "planId": 1
+      }
+    ],
+    "metaData": {
+      "totalCount": 1, "pageSize": 10, "currentPage": 1,
+      "totalPages": 1, "hasNext": false, "hasPrevious": false
+    }
+  }
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageSize</code> above <code>200</code>, or a value that isn't an integer.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+<p>An empty <code>records</code> list (not an error) is returned when the caller administers no institute, or every subscription under the institutes they administer is already onboarded.</p>
+
+</details>
 <!-- ========================= Onboard status ========================= -->
 <details id="onboard-status">
 <summary><span class="method">GET</span> <code>/onboard/status</code></summary>
