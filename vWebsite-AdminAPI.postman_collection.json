@@ -95,6 +95,21 @@
           "response": []
         },
         {
+          "name": "Get module limit",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}module/limit?product={{product}}",
+              "host": ["{{baseUrl}}module/limit"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Save module statuses",
           "request": {
             "method": "POST",
@@ -170,7 +185,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "[\n  { \"pageName\": \"about\",   \"status\": true  },\n  { \"pageName\": \"contact\", \"status\": false }\n]",
+              "raw": "[\n  { \"pageName\": \"about\",   \"moduleName\": \"data_about\", \"status\": true  },\n  { \"pageName\": \"contact\", \"moduleName\": \"data_about\", \"status\": false },\n  { \"pageName\": \"blog\" }\n]",
               "options": { "raw": { "language": "json" } }
             }
           },

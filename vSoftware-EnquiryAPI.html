@@ -865,7 +865,7 @@
     "pincode": "560001",                     // optional, string, max 10 chars
     "parentDetail": {                        // exactly one of the 5 detail objects below is required — the rest must be omitted or null
       "studentName": "Aarav Shah",             // required, string, max 150 chars
-      "studentDob": "2015-06-12",              // optional, string, ISO-8601 date
+      "studentDob": "2015-06-12T00:00:00Z",    // optional, string, ISO-8601 date-time, must be UTC (offset +00:00)
       "classId": 3,                            // optional, integer
       "guardianName": "Raj Shah",              // required, string, max 150 chars
       "relationId": 1                          // optional, integer
@@ -879,9 +879,10 @@
 <p>The other 4 detail shapes, each used the same way (exactly one of the 5 populated):</p>
 <pre><code>// studentDetail
 {
-  "studentName": "Priya Nair",   // required, string, max 150 chars
-  "fatherName": "Suresh Nair",   // optional, string, max 150 chars
-  "classId": 5                   // optional, integer
+  "studentName": "Priya Nair",            // required, string, max 150 chars
+  "fatherName": "Suresh Nair",            // optional, string, max 150 chars
+  "classId": 5,                           // optional, integer
+  "studentDob": "2016-03-20T00:00:00Z"    // optional, string, ISO-8601 date-time, must be UTC (offset +00:00)
 }
 // applicantDetail
 {
@@ -942,7 +943,7 @@
     "pincode": "560001",                     // optional, string, max 10 chars
     "parentDetail": {                        // must be the SAME one detail object this enquiry already has — see enquiry-post for all 5 shapes
       "studentName": "Aarav Shah",
-      "studentDob": "2015-06-12",
+      "studentDob": "2015-06-12T00:00:00Z",
       "classId": 3,
       "guardianName": "Raj Shah",
       "relationId": 1
@@ -1000,7 +1001,7 @@
     "subType": "Parent",
     "parentDetail": {
       "studentName": "Aarav Shah",
-      "studentDob": "2015-06-12",
+      "studentDob": "2015-06-12T00:00:00Z",
       "classId": 3,
       "guardianName": "Raj Shah",
       "relationId": 1
@@ -1063,7 +1064,7 @@
     "subType": "Parent",
     "parentDetail": {
       "studentName": "Aarav Shah",
-      "studentDob": "2015-06-12",
+      "studentDob": "2015-06-12T00:00:00Z",
       "classId": 3,
       "className": "No Class",
       "guardianName": "Raj Shah",

@@ -427,7 +427,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"postDTO\": {\n    \"typeId\": 1,\n    \"categoryId\": 2,\n    \"statusId\": 101,\n    \"sourceId\": 201,\n    \"emailAddress\": \"parent@example.com\",\n    \"details\": \"Interested in Grade 3 admission for next year.\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"12 MG Road, Bengaluru\",\n    \"countryId\": 1,\n    \"stateId\": 26,\n    \"districtId\": 49,\n    \"pincode\": \"560001\",\n    \"parentDetail\": {\n      \"studentName\": \"Aarav Shah\",\n      \"studentDob\": \"2015-06-12\",\n      \"classId\": 3,\n      \"guardianName\": \"Raj Shah\",\n      \"relationId\": 1\n    },\n    \"studentDetail\": null,\n    \"applicantDetail\": null,\n    \"supplierDetail\": null,\n    \"otherDetail\": null\n  }\n}"
+              "raw": "{\n  \"postDTO\": {\n    \"typeId\": 1,\n    \"categoryId\": 2,\n    \"statusId\": 101,\n    \"sourceId\": 201,\n    \"emailAddress\": \"parent@example.com\",\n    \"details\": \"Interested in Grade 3 admission for next year.\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"12 MG Road, Bengaluru\",\n    \"countryId\": 1,\n    \"stateId\": 26,\n    \"districtId\": 49,\n    \"pincode\": \"560001\",\n    \"parentDetail\": {\n      \"studentName\": \"Aarav Shah\",\n      \"studentDob\": \"2015-06-12T00:00:00Z\",\n      \"classId\": 3,\n      \"guardianName\": \"Raj Shah\",\n      \"relationId\": 1\n    },\n    \"studentDetail\": null,\n    \"applicantDetail\": null,\n    \"supplierDetail\": null,\n    \"otherDetail\": null\n  }\n}"
             }
           }
         },
@@ -447,7 +447,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"putDTO\": {\n    \"enquiryId\": 301,\n    \"typeId\": 1,\n    \"categoryId\": 2,\n    \"sourceId\": 201,\n    \"emailAddress\": \"parent@example.com\",\n    \"details\": \"Follow-up call done.\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"12 MG Road, Bengaluru\",\n    \"countryId\": 1,\n    \"stateId\": 26,\n    \"districtId\": 49,\n    \"pincode\": \"560001\",\n    \"parentDetail\": {\n      \"studentName\": \"Aarav Shah\",\n      \"studentDob\": \"2015-06-12\",\n      \"classId\": 3,\n      \"guardianName\": \"Raj Shah\",\n      \"relationId\": 1\n    },\n    \"studentDetail\": null,\n    \"applicantDetail\": null,\n    \"supplierDetail\": null,\n    \"otherDetail\": null\n  }\n}"
+              "raw": "{\n  \"putDTO\": {\n    \"enquiryId\": 301,\n    \"typeId\": 1,\n    \"categoryId\": 2,\n    \"sourceId\": 201,\n    \"emailAddress\": \"parent@example.com\",\n    \"details\": \"Follow-up call done.\",\n    \"phoneCode\": \"+91\",\n    \"phone\": \"9876543210\",\n    \"isWhatsappNumber\": true,\n    \"address\": \"12 MG Road, Bengaluru\",\n    \"countryId\": 1,\n    \"stateId\": 26,\n    \"districtId\": 49,\n    \"pincode\": \"560001\",\n    \"parentDetail\": {\n      \"studentName\": \"Aarav Shah\",\n      \"studentDob\": \"2015-06-12T00:00:00Z\",\n      \"classId\": 3,\n      \"guardianName\": \"Raj Shah\",\n      \"relationId\": 1\n    },\n    \"studentDetail\": null,\n    \"applicantDetail\": null,\n    \"supplierDetail\": null,\n    \"otherDetail\": null\n  }\n}"
             }
           }
         },

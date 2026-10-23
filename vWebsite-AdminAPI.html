@@ -90,6 +90,7 @@
     <ul class="submenu">
       <li><a href="#get-module"><code>GET /module</code></a></li>
       <li><a href="#get-module-status"><code>GET /module/status</code></a></li>
+      <li><a href="#get-module-limit"><code>GET /module/limit</code></a></li>
       <li><a href="#post-module"><code>POST /module</code></a></li>
     </ul>
   </div>
@@ -191,10 +192,12 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A request field fails validation (e.g. empty required string, institution not resolved).</td></tr>
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>Service-layer rejection — bad file name, JSON too deep/large, malformed request body.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> is missing from the query string.</td></tr>
+    <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>Saving modules would leave more active modules than the institution's plan allows (<a href="#post-module">POST /module</a>).</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required — missing or invalid session.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The requested file, module, or page does not exist for this institution. Not used by <a href="#onboard">Onboard</a> — its <code>GET</code> routes default to <code>false</code> instead.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The requested file, module, page, or plan does not exist for this institution. Not used by <a href="#onboard">Onboard</a> — its <code>GET</code> routes default to <code>false</code> instead.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>Unique-constraint conflict.</td></tr>
     <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record (e.g. the institution) does not exist.</td></tr>
+    <tr><td class="status-err">409</td><td><code>INVALID_STATE</code></td><td>A page is being saved as enabled while its named module is disabled (<a href="#post-page">POST /page</a>).</td></tr>
     <tr><td class="status-err">499</td><td>—</td><td>Client disconnected mid-request. No body.</td></tr>
     <tr><td class="status-err">502</td><td><code>EXTERNAL_SERVICE_ERROR</code></td><td>The file storage backend failed in a way the caller did nothing to cause (access denied, metadata lookup, read, or write failure).</td></tr>
     <tr><td class="status-err">500</td><td><code>INTERNAL_ERROR</code></td><td>Unhandled failure. Message is generic in Production.</td></tr>
@@ -392,6 +395,37 @@
 </table>
 </details>
 
+<details id="get-module-limit">
+<summary><span class="method">GET</span> <code>/module/limit</code></summary>
+<p>Get the module limit (maximum number of modules that can be active at once) from the caller's institution's current plan. Call it to validate the module-settings screen before saving.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/module/limit?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/admin/module/limit?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /module/limit?product=vweb</code></pre>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{ "success": true, "message": null, "errors": null, "data": { "enableModule": 10 } }</code></pre>
+
+<h4>Error responses</h4>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Institution not resolved.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No plan row exists for this institution.</td></tr>
+  </tbody>
+</table>
+</details>
+
 <details id="post-module">
 <summary><span class="method">POST</span> <code>/module</code></summary>
 <p>Bulk create-or-update module statuses for the caller's institution in one call. Call it when the customer saves the module-settings screen.</p>
@@ -418,6 +452,8 @@
   <li>Per item: an existing row for <code>moduleName</code> has its status updated; otherwise a new row is created.</li>
   <li>The whole batch is saved in one transaction.</li>
   <li>Duplicate names within the same payload — the last occurrence wins.</li>
+  <li>A plan must exist for the institution — if none does, the whole request fails before anything is saved.</li>
+  <li>After the batch is applied, the total number of modules left with <code>status: true</code> for the institution can never exceed the plan's module limit (see <a href="#get-module-limit">GET /module/limit</a>) — if it would, the whole request fails before anything is saved.</li>
 </ul>
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
@@ -430,7 +466,9 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Empty array, an item with empty <code>moduleName</code>, or institution/caller not resolved.</td></tr>
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>Body is not a JSON array, is malformed, or a submitted value fails a database check constraint.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or a required database column was left null.</td></tr>
+    <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>Saving this batch would leave more modules active (<code>status: true</code>) than the institution's plan allows.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No plan row exists for this institution.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>Unique conflict on module name for this institution.</td></tr>
     <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>The institution referenced by this request does not exist.</td></tr>
   </tbody>
@@ -445,7 +483,7 @@
 <!-- ================================================================= PAGE -->
 <section id="page">
 <h2>Page</h2>
-<p>Identical contract to <a href="#module">Module</a>, for per-institution page on/off toggles. Substitute <code>page</code> / <code>pageName</code> / <code>pageId</code> for <code>module</code> / <code>moduleName</code> / <code>moduleId</code> throughout.</p>
+<p>Same contract as <a href="#module">Module</a> for per-institution page on/off toggles — substitute <code>page</code> / <code>pageName</code> / <code>pageId</code> for <code>module</code> / <code>moduleName</code> / <code>moduleId</code> — except <a href="#post-page">POST /page</a>, which also accepts a <code>moduleName</code> per item and enforces its own module-enabled rule instead of Module's plan-limit rule.</p>
 
 <details id="get-page">
 <summary><span class="method">GET</span> <code>/page</code></summary>
@@ -516,19 +554,36 @@
 
 <h4>Sample request body</h4>
 <pre><code>[
-  { "pageName": "about",   "status": true  },  // required, string, non-empty (whitespace-only rejected), trimmed server-side
-  { "pageName": "contact", "status": false }    // status: optional, boolean, default true
+  { "pageName": "about",   "moduleName": "data_about", "status": true  },  // pageName: required, string, non-empty (whitespace-only rejected), trimmed server-side
+  { "pageName": "contact", "moduleName": "data_about", "status": false },  // moduleName: optional, string, trimmed server-side — if set and status is true, this module must currently be enabled; status: optional, boolean, default true
+  { "pageName": "blog" }                                                    // moduleName omitted — no module-enabled check applied for this item
 ]</code></pre>
 <p class="small"><code>data_home</code> and <code>data_school_info</code> are mandatory pages — their <code>status</code> is always forced to <code>true</code> regardless of what's sent.</p>
 
 <h4>Behaviour</h4>
-<p class="small">Match by <code>pageName</code> — update status; else insert. One transaction; duplicate names in the same payload — last one wins.</p>
+<ul class="tight">
+  <li>Per item: an existing row for <code>pageName</code> has its status (and <code>moduleName</code>) updated; otherwise a new row is created.</li>
+  <li>The whole batch is saved in one transaction.</li>
+  <li>Duplicate names within the same payload — the last occurrence wins.</li>
+  <li>An item cannot be saved with <code>status: true</code> if its named module (<code>moduleName</code>) is currently disabled — the whole request fails before anything is saved. No such check applies when <code>moduleName</code> is omitted.</li>
+</ul>
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
 <pre><code>{ "success": true, "message": null, "errors": null, "data": true }</code></pre>
 
 <h4>Error responses</h4>
-<p class="small">Same set as <a href="#post-module">POST /module</a>.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Empty array, an item with empty <code>pageName</code>, or institution/caller not resolved.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>Body is not a JSON array, is malformed, or a submitted value fails a database check constraint.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or a required database column was left null.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>Unique conflict on page name for this institution.</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>The institution referenced by this request does not exist.</td></tr>
+    <tr><td class="status-err">409</td><td><code>INVALID_STATE</code></td><td>An item requests <code>status: true</code> for a page whose named module is currently disabled.</td></tr>
+  </tbody>
+</table>
 <p class="note"><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again leaves exactly one row per name in the same final status and returns <span class="status-ok">200 OK</span> <code>data: true</code> — same final state. Created vs updated rows are not distinguished in the response.</p>
 <p class="note"><strong>Side effect.</strong> After a successful save, the institution's site is flagged as having unpublished changes. If that flag update fails, this request still returns <span class="status-ok">200 OK</span> (the pages are already saved).</p>
 <h4>Events</h4>
