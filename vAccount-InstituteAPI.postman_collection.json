@@ -519,11 +519,56 @@
           "response": []
         },
         {
-          "name": "List products available for trial",
+          "name": "List active products",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}product/list/trial?product={{product}}&instId={{instId}}"
+            "url": "{{baseUrl}}product/list/active?product={{product}}&pageNumber=1&pageSize=10"
+          },
+          "response": []
+        },
+        {
+          "name": "List renew products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}product/list/renew?product={{product}}&pageNumber=1&pageSize=10"
+          },
+          "response": []
+        },
+        {
+          "name": "List expired products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}product/list/expired?product={{product}}&pageNumber=1&pageSize=10"
+          },
+          "response": []
+        },
+        {
+          "name": "List trial products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}product/list/trial?product={{product}}&pageNumber=1&pageSize=10"
+          },
+          "response": []
+        },
+        {
+          "name": "List free-plan products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}product/list/free?product={{product}}&pageNumber=1&pageSize=10"
+          },
+          "response": []
+        },
+        {
+          "name": "List products available to try now",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}product/list/trynow?product={{product}}&instId={{instId}}"
           },
           "response": []
         }

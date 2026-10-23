@@ -115,7 +115,12 @@
     <a href="#product">Product</a>
     <ul class="submenu">
       <li><a href="#product-list"><code>GET /product/list</code></a></li>
+      <li><a href="#product-list-active"><code>GET /product/list/active</code></a></li>
+      <li><a href="#product-list-renew"><code>GET /product/list/renew</code></a></li>
+      <li><a href="#product-list-expired"><code>GET /product/list/expired</code></a></li>
       <li><a href="#product-list-trial"><code>GET /product/list/trial</code></a></li>
+      <li><a href="#product-list-free"><code>GET /product/list/free</code></a></li>
+      <li><a href="#product-list-trynow"><code>GET /product/list/trynow</code></a></li>
     </ul>
   </div>
   <div class="menu">
@@ -1914,7 +1919,7 @@
 
 <section id="product">
 <h2>Product</h2>
-<p>An institute's product (SaaS) subscriptions, and what else it can still try, scoped by <code>instId</code>. <a href="#product-list">List institute products</a> is open to any member of the institute; <a href="#product-list-trial">List products available for trial</a> requires the caller to be an Admin of it.</p>
+<p>The caller's product (SaaS) subscriptions across every institute they belong to (any membership role) — the full list, or pre-filtered to one plan status — and, scoped to one institute by <code>instId</code>, what it can still try now. <a href="#product-list">List</a>, <a href="#product-list-active">Active</a>, <a href="#product-list-renew">Renew</a>, <a href="#product-list-expired">Expired</a>, <a href="#product-list-trial">Trial</a> and <a href="#product-list-free">Free</a> need no particular role on the institutes returned; <a href="#product-list-trynow">List products available to try now</a> requires the caller to be an Admin of the institute given.</p>
 
 <!-- ========================= List institute products ========================= -->
 <details id="product-list">
@@ -1967,6 +1972,7 @@
         "productIcon": "vwebsite.png",
         "productWebsite": "https://vwebsite.example",
         "productAdmin": "https://admin.vwebsite.example",
+        "productAdminCta": "Manage",
         "planId": 1,
         "planName": "Trial",
         "planCode": "TRIAL",
@@ -1983,6 +1989,7 @@
     }
   }
 }</code></pre>
+<p>When <code>product</code> is prefixed with <code>test-</code> (test mode), every record's <code>productAdmin</code> is returned as a fixed test URL instead of its real admin URL.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
@@ -1994,17 +2001,407 @@
 <p>An empty <code>records</code> list (not an error) is returned when the caller belongs to no institute, or none of theirs have a product subscription matching <code>planStatus</code>.</p>
 
 </details>
-<!-- ========================= List products available for trial ========================= -->
+<!-- ========================= List active products ========================= -->
+<details id="product-list-active">
+<summary><span class="method">GET</span> <code>/product/list/active</code></summary>
+<p>Returns a paged list of the caller's product (SaaS) subscriptions across every institute they belong to (any membership role) that currently have plan status <code>Active</code>.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/product/list/active?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/product/list/active?product={product}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. A value &le; 0 is ignored.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>10</code>. A value &le; 0 is ignored; above <code>200</code> is rejected.</td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /product/list/active?product=account
+    &amp;pageNumber=1   // optional, integer, default 1
+    &amp;pageSize=10    // optional, integer, default 10, max 200</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": {
+    "records": [
+      {
+        "instSaaSId": 789,
+        "instId": 456,
+        "instCode": "INSTA1B2C3",
+        "instSaaSCode": "SAASX7Y8Z9",
+        "instTypeId": 1,
+        "instTypeName": "Engineering College",
+        "instName": "Acme Engineering College",
+        "orgId": 123,
+        "orgName": "Acme Institute",
+        "productId": 1,
+        "productName": "vWebsite",
+        "productCode": "WEB",
+        "productSubdomain": "vwebsite",
+        "productIcon": "vwebsite.png",
+        "productWebsite": "https://vwebsite.example",
+        "productAdmin": "https://admin.vwebsite.example",
+        "productAdminCta": "Manage",
+        "planId": 2,
+        "planName": "Standard",
+        "planCode": "STD",
+        "isHighest": false,
+        "planStartDate": "2026-07-01T08:00:00+00:00",
+        "planEndDate": "2027-07-01T08:00:00+00:00",
+        "planStatus": "Active",
+        "isActive": true
+      }
+    ],
+    "metaData": {
+      "totalCount": 1, "pageSize": 10, "currentPage": 1,
+      "totalPages": 1, "hasNext": false, "hasPrevious": false
+    }
+  }
+}</code></pre>
+<p>When <code>product</code> is prefixed with <code>test-</code> (test mode), every record's <code>productAdmin</code> is returned as a fixed test URL instead of its real admin URL.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageSize</code> above <code>200</code>, or a value that isn't an integer.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+<p>An empty <code>records</code> list (not an error) is returned when the caller belongs to no institute, or none of theirs currently have an <code>Active</code> subscription.</p>
+
+</details>
+<!-- ========================= List renew products ========================= -->
+<details id="product-list-renew">
+<summary><span class="method">GET</span> <code>/product/list/renew</code></summary>
+<p>Returns a paged list of the caller's product (SaaS) subscriptions across every institute they belong to (any membership role) whose plan is expiring within 30 days.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/product/list/renew?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/product/list/renew?product={product}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. A value &le; 0 is ignored.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>10</code>. A value &le; 0 is ignored; above <code>200</code> is rejected.</td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /product/list/renew?product=account
+    &amp;pageNumber=1   // optional, integer, default 1
+    &amp;pageSize=10    // optional, integer, default 10, max 200</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": {
+    "records": [
+      {
+        "instSaaSId": 789,
+        "instId": 456,
+        "instCode": "INSTA1B2C3",
+        "instSaaSCode": "SAASX7Y8Z9",
+        "instTypeId": 1,
+        "instTypeName": "Engineering College",
+        "instName": "Acme Engineering College",
+        "orgId": 123,
+        "orgName": "Acme Institute",
+        "productId": 1,
+        "productName": "vWebsite",
+        "productCode": "WEB",
+        "productSubdomain": "vwebsite",
+        "productIcon": "vwebsite.png",
+        "productWebsite": "https://vwebsite.example",
+        "productAdmin": "https://admin.vwebsite.example",
+        "productAdminCta": "Renew",
+        "planId": 2,
+        "planName": "Standard",
+        "planCode": "STD",
+        "isHighest": false,
+        "planStartDate": "2025-10-01T08:00:00+00:00",
+        "planEndDate": "2026-10-01T08:00:00+00:00",
+        "planStatus": "Renew",
+        "isActive": true
+      }
+    ],
+    "metaData": {
+      "totalCount": 1, "pageSize": 10, "currentPage": 1,
+      "totalPages": 1, "hasNext": false, "hasPrevious": false
+    }
+  }
+}</code></pre>
+<p>When <code>product</code> is prefixed with <code>test-</code> (test mode), every record's <code>productAdmin</code> is returned as a fixed test URL instead of its real admin URL.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageSize</code> above <code>200</code>, or a value that isn't an integer.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+<p>An empty <code>records</code> list (not an error) is returned when the caller belongs to no institute, or none of theirs currently have a <code>Renew</code> subscription.</p>
+
+</details>
+<!-- ========================= List expired products ========================= -->
+<details id="product-list-expired">
+<summary><span class="method">GET</span> <code>/product/list/expired</code></summary>
+<p>Returns a paged list of the caller's product (SaaS) subscriptions across every institute they belong to (any membership role) that have expired.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/product/list/expired?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/product/list/expired?product={product}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. A value &le; 0 is ignored.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>10</code>. A value &le; 0 is ignored; above <code>200</code> is rejected.</td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /product/list/expired?product=account
+    &amp;pageNumber=1   // optional, integer, default 1
+    &amp;pageSize=10    // optional, integer, default 10, max 200</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": {
+    "records": [
+      {
+        "instSaaSId": 789,
+        "instId": 456,
+        "instCode": "INSTA1B2C3",
+        "instSaaSCode": "SAASX7Y8Z9",
+        "instTypeId": 1,
+        "instTypeName": "Engineering College",
+        "instName": "Acme Engineering College",
+        "orgId": 123,
+        "orgName": "Acme Institute",
+        "productId": 1,
+        "productName": "vWebsite",
+        "productCode": "WEB",
+        "productSubdomain": "vwebsite",
+        "productIcon": "vwebsite.png",
+        "productWebsite": "https://vwebsite.example",
+        "productAdmin": "https://admin.vwebsite.example",
+        "productAdminCta": "Renew",
+        "planId": 2,
+        "planName": "Standard",
+        "planCode": "STD",
+        "isHighest": false,
+        "planStartDate": "2025-01-01T08:00:00+00:00",
+        "planEndDate": "2026-01-01T08:00:00+00:00",
+        "planStatus": "Expired",
+        "isActive": true
+      }
+    ],
+    "metaData": {
+      "totalCount": 1, "pageSize": 10, "currentPage": 1,
+      "totalPages": 1, "hasNext": false, "hasPrevious": false
+    }
+  }
+}</code></pre>
+<p>When <code>product</code> is prefixed with <code>test-</code> (test mode), every record's <code>productAdmin</code> is returned as a fixed test URL instead of its real admin URL.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageSize</code> above <code>200</code>, or a value that isn't an integer.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+<p>An empty <code>records</code> list (not an error) is returned when the caller belongs to no institute, or none of theirs currently have an <code>Expired</code> subscription.</p>
+
+</details>
+<!-- ========================= List trial products ========================= -->
 <details id="product-list-trial">
 <summary><span class="method">GET</span> <code>/product/list/trial</code></summary>
+<p>Returns a paged list of the caller's product (SaaS) subscriptions across every institute they belong to (any membership role) that currently have plan status <code>Trial</code>.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/product/list/trial?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/product/list/trial?product={product}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. A value &le; 0 is ignored.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>10</code>. A value &le; 0 is ignored; above <code>200</code> is rejected.</td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /product/list/trial?product=account
+    &amp;pageNumber=1   // optional, integer, default 1
+    &amp;pageSize=10    // optional, integer, default 10, max 200</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": {
+    "records": [
+      {
+        "instSaaSId": 789,
+        "instId": 456,
+        "instCode": "INSTA1B2C3",
+        "instSaaSCode": "SAASX7Y8Z9",
+        "instTypeId": 1,
+        "instTypeName": "Engineering College",
+        "instName": "Acme Engineering College",
+        "orgId": 123,
+        "orgName": "Acme Institute",
+        "productId": 1,
+        "productName": "vWebsite",
+        "productCode": "WEB",
+        "productSubdomain": "vwebsite",
+        "productIcon": "vwebsite.png",
+        "productWebsite": "https://vwebsite.example",
+        "productAdmin": "https://admin.vwebsite.example",
+        "productAdminCta": "Manage",
+        "planId": 1,
+        "planName": "Trial",
+        "planCode": "TRIAL",
+        "isHighest": false,
+        "planStartDate": "2026-09-01T08:00:00+00:00",
+        "planEndDate": "2026-09-16T08:00:00+00:00",
+        "planStatus": "Trial",
+        "isActive": true
+      }
+    ],
+    "metaData": {
+      "totalCount": 1, "pageSize": 10, "currentPage": 1,
+      "totalPages": 1, "hasNext": false, "hasPrevious": false
+    }
+  }
+}</code></pre>
+<p>When <code>product</code> is prefixed with <code>test-</code> (test mode), every record's <code>productAdmin</code> is returned as a fixed test URL instead of its real admin URL.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageSize</code> above <code>200</code>, or a value that isn't an integer.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+<p>An empty <code>records</code> list (not an error) is returned when the caller belongs to no institute, or none of theirs currently have a <code>Trial</code> subscription.</p>
+
+</details>
+<!-- ========================= List free-plan products ========================= -->
+<details id="product-list-free">
+<summary><span class="method">GET</span> <code>/product/list/free</code></summary>
+<p>Returns a paged list of the caller's product (SaaS) subscriptions across every institute they belong to (any membership role) that are currently on a Free plan.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/product/list/free?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/product/list/free?product={product}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. A value &le; 0 is ignored.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>10</code>. A value &le; 0 is ignored; above <code>200</code> is rejected.</td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /product/list/free?product=account
+    &amp;pageNumber=1   // optional, integer, default 1
+    &amp;pageSize=10    // optional, integer, default 10, max 200</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": {
+    "records": [
+      {
+        "instSaaSId": 789,
+        "instId": 456,
+        "instCode": "INSTA1B2C3",
+        "instSaaSCode": "SAASX7Y8Z9",
+        "instTypeId": 1,
+        "instTypeName": "Engineering College",
+        "instName": "Acme Engineering College",
+        "orgId": 123,
+        "orgName": "Acme Institute",
+        "productId": 1,
+        "productName": "vWebsite",
+        "productCode": "WEB",
+        "productSubdomain": "vwebsite",
+        "productIcon": "vwebsite.png",
+        "productWebsite": "https://vwebsite.example",
+        "productAdmin": "https://admin.vwebsite.example",
+        "productAdminCta": "Upgrade",
+        "planId": 3,
+        "planName": "Free",
+        "planCode": "FREE",
+        "isHighest": false,
+        "planStartDate": "2026-01-01T08:00:00+00:00",
+        "planEndDate": "2099-01-01T08:00:00+00:00",
+        "planStatus": "Active",
+        "isActive": true
+      }
+    ],
+    "metaData": {
+      "totalCount": 1, "pageSize": 10, "currentPage": 1,
+      "totalPages": 1, "hasNext": false, "hasPrevious": false
+    }
+  }
+}</code></pre>
+<p>When <code>product</code> is prefixed with <code>test-</code> (test mode), every record's <code>productAdmin</code> is returned as a fixed test URL instead of its real admin URL.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageSize</code> above <code>200</code>, or a value that isn't an integer.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+<p>An empty <code>records</code> list (not an error) is returned when the caller belongs to no institute, or none of theirs currently have a Free-plan subscription.</p>
+
+</details>
+<!-- ========================= List products available to try now ========================= -->
+<details id="product-list-trynow">
+<summary><span class="method">GET</span> <code>/product/list/trynow</code></summary>
 <p>Returns the products this institute can still start a trial on — matching the institute's type, with no existing subscription yet. Not paginated. The caller must be an Admin of the institute — the same rule <a href="#inst-trial">Start institute trial</a> enforces.</p>
 
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/product/list/trial?product={product}&amp;instId={instId}</code></td></tr>
-    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/product/list/trial?product={product}&amp;instId={instId}</code></td></tr>
+    <tr><td>Testing</td><td><code>GET https://api-vacc.vidyaone.com/test/inst/product/list/trynow?product={product}&amp;instId={instId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vacc.vidyaone.com/inst/product/list/trynow?product={product}&amp;instId={instId}</code></td></tr>
   </tbody>
 </table>
 <table>
@@ -2015,7 +2412,7 @@
 </table>
 
 <h4>Sample request</h4>
-<pre><code>GET /product/list/trial?product=account
+<pre><code>GET /product/list/trynow?product=account
     &amp;instId=456   // required, integer, > 0</code></pre>
 
 <h4>Response</h4>
