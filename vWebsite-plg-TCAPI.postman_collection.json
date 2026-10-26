@@ -1,0 +1,162 @@
+{
+  "info": {
+    "name": "vWebsite-plg-TCAPI",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api-vweb.vidyaone.com/test/plugin/",
+      "description": "Testing environment. Source: appsettings.Testing.json → App:BaseUrl"
+    },
+    {
+      "key": "product",
+      "value": "scl-website",
+      "description": "Calling client-app identifier (used consistently in this project's dev guide samples; not sourced from a TCAPI config key — confirm if this should be a different value)"
+    }
+  ],
+  "item": [
+    {
+      "name": "TC",
+      "item": [
+        {
+          "name": "GET /tc",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}tc?product={{product}}&pageNumber=1&pageSize=50&studentName=Asha&fatherName=Raj&className=8&regNo=REG-2026-0042&srNo=SR-1123&dob=2015-04-12T00:00:00Z&hasImage=true&hasFile=true",
+              "host": ["{{baseUrl}}tc"],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "pageNumber", "value": "1" },
+                { "key": "pageSize", "value": "50" },
+                { "key": "studentName", "value": "Asha" },
+                { "key": "fatherName", "value": "Raj" },
+                { "key": "className", "value": "8" },
+                { "key": "regNo", "value": "REG-2026-0042" },
+                { "key": "srNo", "value": "SR-1123" },
+                { "key": "dob", "value": "2015-04-12T00:00:00Z" },
+                { "key": "hasImage", "value": "true" },
+                { "key": "hasFile", "value": "true" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /tc/edit",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}tc/edit?product={{product}}&tcId=301",
+              "host": ["{{baseUrl}}tc", "edit"],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "tcId", "value": "301" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /tc/view",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}tc/view?product={{product}}&tcId=301",
+              "host": ["{{baseUrl}}tc", "view"],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "tcId", "value": "301" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /tc",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}tc?product={{product}}",
+              "host": ["{{baseUrl}}tc"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tc\": {\n    \"studentName\": \"Asha Mehta\",\n    \"regNo\": \"REG-2026-0042\",\n    \"srNo\": \"SR-1123\",\n    \"dob\": \"2015-04-12T00:00:00Z\",\n    \"fatherName\": \"Raj Mehta\",\n    \"className\": \"8\",\n    \"sectionName\": \"B\",\n    \"fileSrc\": \"tc-asha-mehta.pdf\",\n    \"imageSrc\": \"asha-mehta.jpg\"\n  },\n  \"uploadFileFileName\": \"asha-mehta-tc-raw.pdf\",\n  \"uploadImageFileName\": \"asha-mehta-raw.jpg\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "POST /tc/bulk",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}tc/bulk?product={{product}}",
+              "host": ["{{baseUrl}}tc", "bulk"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"studentName\": \"Asha Mehta\",\n      \"regNo\": \"REG-2026-0042\",\n      \"srNo\": \"SR-1123\",\n      \"dob\": \"2015-04-12T00:00:00Z\",\n      \"fatherName\": \"Raj Mehta\",\n      \"className\": \"8\",\n      \"sectionName\": \"B\",\n      \"fileSrc\": \"tc-asha-mehta.pdf\",\n      \"imageSrc\": \"asha-mehta.jpg\"\n    },\n    {\n      \"studentName\": \"Rohan Iyer\",\n      \"regNo\": \"REG-2026-0043\",\n      \"srNo\": \"SR-1124\",\n      \"dob\": \"2014-08-30T00:00:00Z\",\n      \"fatherName\": \"Suresh Iyer\",\n      \"className\": \"8\",\n      \"sectionName\": \"B\",\n      \"fileSrc\": \"tc-rohan-iyer.pdf\",\n      \"imageSrc\": null\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "PUT /tc",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}tc?product={{product}}",
+              "host": ["{{baseUrl}}tc"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tc\": {\n    \"tcId\": 301,\n    \"studentName\": \"Asha Mehta\",\n    \"regNo\": \"REG-2026-0042\",\n    \"srNo\": \"SR-1123\",\n    \"dob\": \"2015-04-12T00:00:00Z\",\n    \"fatherName\": \"Raj Mehta\",\n    \"className\": \"9\",\n    \"sectionName\": \"B\",\n    \"fileSrc\": \"tc-asha-mehta-v2.pdf\",\n    \"imageSrc\": \"asha-mehta.jpg\"\n  },\n  \"uploadFileFileName\": \"asha-mehta-tc-v2-raw.pdf\",\n  \"uploadImageFileName\": null\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "DELETE /tc",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}tc?product={{product}}&tcId=301",
+              "host": ["{{baseUrl}}tc"],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "tcId", "value": "301" }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

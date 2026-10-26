@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>vWebsite-plg-TCAPI — Developer Guide</title>
+<style>
+  :root{
+    --accent:#0b6bcb;
+    --ink:#1c1e21;
+    --muted:#5b6470;
+    --line:#dfe3e8;
+    --bg:#fdfdfd;
+    --ok:#0a7d33;
+    --err:#b42318;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.65;
+    font-size:15px;
+  }
+  main{max-width:900px;margin:0 auto;padding:32px 24px 140px}
+  h1{font-size:24px;margin:28px 0 4px;color:var(--ink)}
+  h2{font-size:19px;margin:52px 0 14px;padding-top:14px;border-top:1px solid var(--line);color:var(--ink)}
+  h4{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:18px 0 6px}
+  p{margin:8px 0}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:13px}
+  pre{background:#f6f7f8;border:1px solid var(--line);border-radius:4px;padding:12px 14px;overflow-x:auto;max-width:100%;font-size:13px;line-height:1.5}
+  pre code{font-size:13px}
+  table{border-collapse:collapse;width:100%;max-width:100%;margin:10px 0;font-size:14px;overflow-x:auto;display:block}
+  table thead,table tbody{display:table;width:100%;table-layout:fixed}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+  th{font-weight:700}
+  td.req{color:var(--accent);font-weight:600;white-space:nowrap}
+  td.opt{color:var(--muted);white-space:nowrap}
+  .status-ok{color:var(--ok);font-weight:700}
+  .status-err{color:var(--err);font-weight:700}
+  .method{font-family:ui-monospace,monospace;font-weight:700}
+  .small{font-size:13px;color:var(--muted)}
+  nav.top{
+    position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);
+    padding:10px 24px;display:flex;flex-wrap:wrap;gap:4px 18px;align-items:baseline;
+  }
+  nav.top strong{color:var(--ink);white-space:nowrap;margin-right:6px}
+  nav.top a{white-space:nowrap;font-size:14px}
+  nav.top a.download{font-weight:700;margin-left:auto}
+  nav.top .menu{position:relative;padding-bottom:8px;margin-bottom:-8px}
+  nav.top .submenu{
+    display:none;position:absolute;top:100%;left:0;margin:0;padding:6px 0;
+    list-style:none;min-width:210px;background:#fff;border:1px solid var(--line);z-index:20;
+  }
+  nav.top .menu:hover .submenu,
+  nav.top .menu:focus-within .submenu{display:block}
+  nav.top .submenu li{margin:0}
+  nav.top .submenu a{display:block;padding:5px 14px;font-size:13px;white-space:nowrap}
+  details{margin:36px 0 0}
+  section details:first-of-type{margin-top:18px}
+  summary{font-size:16px;font-weight:700;color:var(--accent);cursor:pointer;margin:0}
+  summary::marker{color:var(--accent)}
+  details[open] summary{margin-bottom:8px}
+  ul.tight{margin:6px 0;padding-left:20px}
+  ul.tight li{margin:3px 0}
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <strong>vWebsite-plg-TCAPI</strong>
+  <a href="https://vidyaone.github.io/vone-docs/">Home</a>
+  <a href="#postman-setup">Postman setup</a>
+  <a href="#base-urls">Base URLs</a>
+  <a href="#common-rules">Common rules</a>
+  <div class="menu">
+    <a href="#tc">TC</a>
+    <ul class="submenu">
+      <li><a href="#tc-get"><code>GET /tc</code></a></li>
+      <li><a href="#tc-edit"><code>GET /tc/edit</code></a></li>
+      <li><a href="#tc-view"><code>GET /tc/view</code></a></li>
+      <li><a href="#tc-post"><code>POST /tc</code></a></li>
+      <li><a href="#tc-bulk"><code>POST /tc/bulk</code></a></li>
+      <li><a href="#tc-put"><code>PUT /tc</code></a></li>
+      <li><a href="#tc-delete"><code>DELETE /tc</code></a></li>
+    </ul>
+  </div>
+  <a class="download" href="vWebsite-plg-TCAPI.postman_collection.json" download>&#8595; Postman collection</a>
+</nav>
+
+<main>
+<h1>vWebsite-plg-TCAPI — Developer Guide</h1>
+<p class="small">Documents the <strong>TC</strong> (Transfer Certificate) resource.</p>
+
+<section id="postman-setup">
+<h2>Postman setup guide</h2>
+<ol class="tight">
+  <li>Use Postman for web (<a href="https://web.postman.co">web.postman.co</a>), not the desktop app.</li>
+  <li>Install the <a href="https://chromewebstore.google.com/detail/postman-interceptor/aicmkgpgakddgnaphhhpliifpcfhicfo">Postman Interceptor</a> Chrome extension — it lets Postman's web app read cookies from your Chrome session.</li>
+  <li>Enable Interceptor, then log into the product normally in Chrome. Once logged in, your session is available to Postman automatically — you don't need to set any auth header or cookie by hand.</li>
+  <li>Download the collection from the link in the navbar above and import it into Postman, then send requests — it's pre-configured for Testing.</li>
+</ol>
+</section>
+
+<section id="base-urls">
+<h2>Base URLs</h2>
+<table>
+  <thead><tr><th>Environment</th><th>Base URL</th><th>Source</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>https://api-vweb.vidyaone.com/test/plugin/</code></td><td><code>appsettings.Testing.json</code> → <code>App:BaseUrl</code></td></tr>
+    <tr><td>Production</td><td><code>https://api-vweb.vidyaone.com/plugin/</code></td><td><code>appsettings.json</code> → <code>App:BaseUrl</code></td></tr>
+    <tr><td>Local (Development)</td><td><code>http://localhost:65183/</code></td><td><code>Properties/launchSettings.json</code> → <code>applicationUrl</code> (no <code>App:BaseUrl</code> override for this environment; routes are hit directly off the root, with no <code>/plugin/tc/</code> prefix)</td></tr>
+  </tbody>
+</table>
+<p class="small">Concatenate the base URL with the route shown in each endpoint below (except Local, which has no path prefix). There is no version segment.</p>
+</section>
+
+<section id="common-rules">
+<h2>Common request &amp; response rules</h2>
+
+<h4>Authentication</h4>
+<p>Authentication required on every route documented in this guide.</p>
+
+<h4>Headers required on every request</h4>
+<table>
+  <thead><tr><th>Header</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>Content-Type: application/json</code></td><td class="req">writes only</td><td>Required on any request that carries a body.</td></tr>
+    <tr><td><code>Idempotency-Key</code></td><td class="req">mutating requests</td><td>A UUID the caller generates per request. Required on every <code>POST</code> / <code>PUT</code> / <code>DELETE</code> below. See the Idempotency line under each endpoint for what happens if you resend the same key/body.</td></tr>
+  </tbody>
+</table>
+
+<h4>Common query parameter</h4>
+<table>
+  <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>product</code></td><td>string</td><td class="req">yes</td><td>Calling client-app identifier, e.g. <code>scl-website</code>. Required on every route below.</td></tr>
+  </tbody>
+</table>
+
+<h4>Response envelope</h4>
+<p>Every response — success or failure — uses the same JSON shape:</p>
+<pre><code>{
+  "success": true | false,
+  "message": "human-readable string" | null,
+  "errors":  [ { "code": "...", "message": "...", "field": "..." } ] | null,
+  "data":    { ... } | [ ... ] | true | false | null
+}</code></pre>
+<p><strong>Success example</strong>:</p>
+<pre><code>{ "success": true, "message": null, "errors": null, "data": { "tcId": 301, "wasUpdated": false, "filePresign": null, "imagePresign": null } }</code></pre>
+<p><strong>Error example</strong>:</p>
+<pre><code>{
+  "success": false,
+  "message": "Validation failed.",
+  "errors": [ { "code": "VALIDATION_FAILED", "message": "studentName is required.", "field": "Tc.StudentName" } ],
+  "data": null
+}</code></pre>
+<p>Each entry in <code>errors[]</code> has a machine-readable <code>code</code> — switch on <code>code</code>, not on <code>message</code> text.</p>
+<p>JSON bodies accept numeric ids and numbers sent either as numbers or as quoted strings (<code>"tcId": 301</code> and <code>"tcId": "301"</code> are equivalent).</p>
+
+<h4>Status &amp; error codes used in this guide</h4>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-ok">200</td><td>—</td><td>Success.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A request field fails validation (see each endpoint), or the body is missing / not valid JSON.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> is missing from the query string.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadFileFileName</code> / <code>uploadImageFileName</code> has an unsupported or unsafe value (see <a href="#tc-post">Create TC</a>).</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The TC doesn't exist for the calling institution (missing or already deleted).</td></tr>
+    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>regNo</code> or <code>srNo</code> is already in use by another record for this institution — including when they each match a <em>different</em> existing record (see <a href="#tc-post">Create TC</a>).</td></tr>
+    <tr><td class="status-err">500</td><td><code>INTERNAL_ERROR</code></td><td>Unexpected server error.</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="tc">
+<h2>TC</h2>
+<p>All routes below act only on TC records belonging to the caller's own institution.</p>
+
+<!-- ========================= List TCs ========================= -->
+<details id="tc-get">
+<summary><span class="method">GET</span> <code>/tc</code></summary>
+<p>Returns a page of active, non-deleted TC records for the calling institution, most recently created first. Reads from the <code>vw_plg_tc_list</code> read model.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/tc?product={product}&amp;pageNumber={pageNumber}&amp;pageSize={pageSize}&amp;studentName={studentName}&amp;fatherName={fatherName}&amp;className={className}&amp;regNo={regNo}&amp;srNo={srNo}&amp;dob={dob}&amp;hasImage={hasImage}&amp;hasFile={hasFile}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/tc?product={product}&amp;pageNumber={pageNumber}&amp;pageSize={pageSize}&amp;studentName={studentName}&amp;fatherName={fatherName}&amp;className={className}&amp;regNo={regNo}&amp;srNo={srNo}&amp;dob={dob}&amp;hasImage={hasImage}&amp;hasFile={hasFile}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. Must be &gt; 0. A value past the last page is clamped back onto the last page.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. Must be &gt; 0 and &le; <code>200</code>.</td></tr>
+    <tr><td><code>studentName</code></td><td>string</td><td class="opt">no</td><td>Substring match.</td></tr>
+    <tr><td><code>fatherName</code></td><td>string</td><td class="opt">no</td><td>Substring match.</td></tr>
+    <tr><td><code>className</code></td><td>string</td><td class="opt">no</td><td>Substring match.</td></tr>
+    <tr><td><code>regNo</code></td><td>string</td><td class="opt">no</td><td>Exact match.</td></tr>
+    <tr><td><code>srNo</code></td><td>string</td><td class="opt">no</td><td>Exact match.</td></tr>
+    <tr><td><code>dob</code></td><td>string, date-time</td><td class="opt">no</td><td>ISO-8601 date-time, UTC only (offset <code>+00:00</code> or <code>Z</code>) — any other offset fails validation. Matches records whose <code>dob</code> falls on the same UTC calendar day as this value (time-of-day is ignored).</td></tr>
+    <tr><td><code>hasImage</code></td><td>boolean</td><td class="opt">no</td><td><code>true</code> returns only records with a non-empty <code>imageSrc</code>; <code>false</code> returns only those without.</td></tr>
+    <tr><td><code>hasFile</code></td><td>boolean</td><td class="opt">no</td><td><code>true</code> returns only records with a non-empty <code>fileSrc</code>; <code>false</code> returns only those without.</td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /tc?product=scl-website
+    &amp;pageNumber=1               // optional, integer, default 1, > 0
+    &amp;pageSize=50                // optional, integer, default 50, > 0, max 200
+    &amp;studentName=Asha           // optional, string, substring match
+    &amp;fatherName=Raj             // optional, string, substring match
+    &amp;className=8                // optional, string, substring match
+    &amp;regNo=REG-2026-0042        // optional, string, exact match
+    &amp;srNo=SR-1123               // optional, string, exact match
+    &amp;dob=2015-04-12T00:00:00Z   // optional, string, ISO-8601 date-time, UTC only — matches records whose dob falls on the same UTC calendar day
+    &amp;hasImage=true              // optional, boolean
+    &amp;hasFile=true               // optional, boolean</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "records": [
+      {
+        "tcId": 301,
+        "instSaaSId": 321,
+        "studentName": "Asha Mehta",
+        "regNo": "REG-2026-0042",
+        "srNo": "SR-1123",
+        "dob": "2015-04-12T00:00:00+00:00",
+        "fatherName": "Raj Mehta",
+        "className": "8",
+        "sectionName": "B",
+        "fileSrc": "tc-asha-mehta.pdf",
+        "imageSrc": "asha-mehta.jpg",
+        "isActive": true,
+        "createdAt": "2026-10-10T08:00:00+00:00",
+        "updatedAt": "2026-10-10T08:00:00+00:00"
+      }
+    ],
+    "metaData": {
+      "totalCount": 1,
+      "pageSize": 50,
+      "currentPage": 1,
+      "totalPages": 1,
+      "hasNext": false,
+      "hasPrevious": false
+    }
+  }
+}</code></pre>
+<p><code>regNo</code>, <code>srNo</code>, <code>fileSrc</code> and <code>imageSrc</code> can each independently be <code>null</code> for a given record. <code>isActive</code> is always <code>true</code> in current practice: no route in this API deactivates a TC.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageNumber</code> not &gt; 0, <code>pageSize</code> not &gt; 0 or over <code>200</code>, or <code>dob</code> not UTC (offset <code>+00:00</code>).</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+
+</details>
+<!-- ========================= Get TC (edit) ========================= -->
+<details id="tc-edit">
+<summary><span class="method">GET</span> <code>/tc/edit</code></summary>
+<p>Returns one TC in a flat, editable shape that can be sent straight back to <a href="#tc-put">Update TC</a>. Reads the table directly (not a view).</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/tc/edit?product={product}&amp;tcId={tcId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/tc/edit?product={product}&amp;tcId={tcId}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>tcId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0.</td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /tc/edit?product=scl-website
+    &amp;tcId=301    // required, integer, > 0</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "tcId": 301,
+    "studentName": "Asha Mehta",
+    "regNo": "REG-2026-0042",
+    "srNo": "SR-1123",
+    "dob": "2015-04-12T00:00:00+00:00",
+    "fatherName": "Raj Mehta",
+    "className": "8",
+    "sectionName": "B",
+    "fileSrc": "tc-asha-mehta.pdf",
+    "imageSrc": "asha-mehta.jpg"
+  }
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>tcId</code> missing or not &gt; 0.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No matching TC for this institution.</td></tr>
+  </tbody>
+</table>
+
+</details>
+<!-- ========================= Get TC (view) ========================= -->
+<details id="tc-view">
+<summary><span class="method">GET</span> <code>/tc/view</code></summary>
+<p>Returns one TC in a detailed, read-only shape, including audit info. Reads from the <code>vw_plg_tc_view</code> read model.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/tc/view?product={product}&amp;tcId={tcId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/tc/view?product={product}&amp;tcId={tcId}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>tcId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0.</td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /tc/view?product=scl-website
+    &amp;tcId=301    // required, integer, > 0</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "tcId": 301,
+    "studentName": "Asha Mehta",
+    "regNo": "REG-2026-0042",
+    "srNo": "SR-1123",
+    "dob": "2015-04-12T00:00:00+00:00",
+    "fatherName": "Raj Mehta",
+    "className": "8",
+    "sectionName": "B",
+    "fileSrc": "tc-asha-mehta.pdf",
+    "imageSrc": "asha-mehta.jpg",
+    "instSaaSId": 321,
+    "creatorUserId": 42,
+    "audit": { "isActive": true, "inactiveAt": null, "createdAt": "2026-10-10T08:00:00+00:00", "updatedAt": "2026-10-10T08:00:00+00:00" }
+  }
+}</code></pre>
+<p><code>audit.isActive</code> is always <code>true</code> and <code>audit.inactiveAt</code> is always <code>null</code> in current practice: no route in this API deactivates a TC.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>tcId</code> missing or not &gt; 0.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No matching TC for this institution.</td></tr>
+  </tbody>
+</table>
+
+</details>
+<!-- ========================= Create TC ========================= -->
+<details id="tc-post">
+<summary><span class="method">POST</span> <code>/tc</code></summary>
+<p>Creates a TC for the calling institution — or, if <code>regNo</code> or <code>srNo</code> matches a record that already exists for this institution, updates that record in place instead of creating a duplicate (an upsert).</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/plugin/tc?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/plugin/tc?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request body</h4>
+<pre><code>{
+  "tc": {
+    "studentName": "Asha Mehta",         // required, string, max 150 chars
+    "regNo": "REG-2026-0042",            // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
+    "srNo": "SR-1123",                   // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
+    "dob": "2015-04-12T00:00:00Z",       // required, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; any other offset fails validation
+    "fatherName": "Raj Mehta",           // required, string, max 150 chars
+    "className": "8",                    // required, string, max 20 chars
+    "sectionName": "B",                  // optional, string, max 10 chars
+    "fileSrc": "tc-asha-mehta.pdf",       // conditional, string, max 500 chars &mdash; a plain file name only, never a URL or a path; at least one of fileSrc/imageSrc is required; see "Uploading a document or image" below &mdash; independent of uploadFileFileName/uploadImageFileName, never required to match either
+    "imageSrc": "asha-mehta.jpg"          // conditional, string, max 500 chars &mdash; a plain file name only, never a URL or a path; at least one of fileSrc/imageSrc is required; see "Uploading a document or image" below
+  },
+  "uploadFileFileName": "asha-mehta-tc-raw.pdf",  // optional, string, max 200 chars &mdash; requests a document upload slot; see "Uploading a document or image" below
+  "uploadImageFileName": "asha-mehta-raw.jpg"     // optional, string, max 200 chars &mdash; requests an image upload slot; see "Uploading a document or image" below
+}</code></pre>
+<p class="small"><code>regNo</code>/<code>srNo</code> is a single either/or requirement — sending one without the other is valid. Same for <code>fileSrc</code>/<code>imageSrc</code>. All four may also be sent together.</p>
+
+<h4>Uploading a document or image</h4>
+<p><code>fileSrc</code>/<code>imageSrc</code> and <code>uploadFileFileName</code>/<code>uploadImageFileName</code> are unrelated fields — <code>fileSrc</code>/<code>imageSrc</code> are stored exactly as sent, and this API never requires either to match anything the upload flow produces.</p>
+<p>Sending <code>uploadFileFileName</code> and/or <code>uploadImageFileName</code> returns a presigned S3 upload for each, resolved <strong>after</strong> the TC is already created/updated — an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code>, but <strong>the TC has already been saved</strong> by that point (look it up via <a href="#tc-get">List TCs</a> or <a href="#tc-view">Get TC (view)</a> if this happens). On success, <code>POST</code> the raw file bytes plus every field in <code>data.filePresign.post.fields</code> / <code>data.imagePresign.post.fields</code> directly to the matching <code>post.url</code> (as multipart form fields, file field last) within <code>expiresIn</code> seconds. Re-uploading the same file name for the same institution overwrites the previous object at that key.</p>
+<table>
+  <thead><tr><th>Upload</th><th>Allowed extensions (case-insensitive)</th><th>Max size</th></tr></thead>
+  <tbody>
+    <tr><td><code>uploadFileFileName</code></td><td><code>pdf</code></td><td>10 MB (<code>10485760</code> bytes)</td></tr>
+    <tr><td><code>uploadImageFileName</code></td><td><code>jpg</code>, <code>jpeg</code>, <code>png</code>, <code>gif</code>, <code>webp</code>, <code>bmp</code></td><td>10 MB (<code>10485760</code> bytes)</td></tr>
+  </tbody>
+</table>
+<p class="small">Also rejected, after the 200-character check above (so still possible after the TC is already saved): a name containing a path separator (<code>/</code> or <code>\</code>), <code>..</code>, a control character, a missing extension, or a second, disguised extension (e.g. <code>invoice.php.jpg</code>).</p>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "tcId": 301,
+    "wasUpdated": false,
+    "filePresign": {
+      "key": "vWebsite/plugin_cdn/tc_files/SAASX7Y8Z9/asha-mehta-tc-raw.pdf",
+      "post": {
+        "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/",
+        "fields": {
+          "key": "vWebsite/plugin_cdn/tc_files/SAASX7Y8Z9/asha-mehta-tc-raw.pdf",
+          "x-amz-server-side-encryption": "AES256",
+          "x-amz-credential": "ASIAEXAMPLE/20261012/ap-south-1/s3/aws4_request",
+          "x-amz-algorithm": "AWS4-HMAC-SHA256",
+          "x-amz-date": "20261012T000000Z",
+          "policy": "eyJleHBpcmF0aW9uIjoiMjAyNi0xMC0xMlQwMDowMjowMFoi...",
+          "x-amz-signature": "a1b2c3d4e5f6..."
+        }
+      },
+      "expiresIn": 120,
+      "maxFileSize": 10485760,
+      "contentTypePrefix": "application/"
+    },
+    "imagePresign": {
+      "key": "vWebsite/plugin_cdn/tc_images/SAASX7Y8Z9/asha-mehta-raw.jpg",
+      "post": { "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/", "fields": { "...": "..." } },
+      "expiresIn": 120,
+      "maxFileSize": 10485760,
+      "contentTypePrefix": "image/"
+    }
+  }
+}</code></pre>
+<p><code>filePresign</code>/<code>imagePresign</code> are each <code>null</code> unless the matching <code>uploadFileFileName</code>/<code>uploadImageFileName</code> was sent. <code>wasUpdated</code> is <code>true</code> when <code>regNo</code> or <code>srNo</code> matched an existing record for this institution and that record was updated in place rather than a new one created — <code>tcId</code> is then the existing record's id.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including the either/or rules on <code>regNo</code>/<code>srNo</code> and <code>fileSrc</code>/<code>imageSrc</code>), or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>regNo</code> matches one existing record for this institution and <code>srNo</code> matches a <em>different</em> existing record — ambiguous, so neither is updated.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadFileFileName</code>/<code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading a document or image" above) — the TC is still saved; only the affected upload slot fails.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again: since at least one of <code>regNo</code>/<code>srNo</code> is always present and now matches the record just created, the second call updates that same record in place (<code>data.wasUpdated: true</code>) rather than creating a duplicate — <code>tcId</code> is unchanged.</p>
+
+</details>
+<!-- ========================= Bulk create TC ========================= -->
+<details id="tc-bulk">
+<summary><span class="method">POST</span> <code>/tc/bulk</code></summary>
+<p>Creates or updates up to 200 TCs for the calling institution in one call. Partial success — each row is validated and upserted independently (same matching rule as <a href="#tc-post">Create TC</a>), and the response reports a per-row outcome instead of rejecting the whole batch for one bad row. This route accepts no upload-related fields — it never returns a presign.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/plugin/tc/bulk?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/plugin/tc/bulk?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request body</h4>
+<pre><code>{
+  "items": [                              // required, array, 1&ndash;200 items
+    {
+      "studentName": "Asha Mehta",         // required, string, max 150 chars
+      "regNo": "REG-2026-0042",            // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required per item
+      "srNo": "SR-1123",                   // conditional, string, max 50 chars
+      "dob": "2015-04-12T00:00:00Z",       // required, string, ISO-8601 date-time, UTC only
+      "fatherName": "Raj Mehta",           // required, string, max 150 chars
+      "className": "8",                    // required, string, max 20 chars
+      "sectionName": "B",                  // optional, string, max 10 chars
+      "fileSrc": "tc-asha-mehta.pdf",       // conditional, string, max 500 chars &mdash; at least one of fileSrc/imageSrc is required per item
+      "imageSrc": "asha-mehta.jpg"          // conditional, string, max 500 chars
+    },
+    {
+      "studentName": "Rohan Iyer",
+      "regNo": "REG-2026-0043",
+      "srNo": "SR-1124",
+      "dob": "2014-08-30T00:00:00Z",
+      "fatherName": "Suresh Iyer",
+      "className": "8",
+      "sectionName": "B",
+      "fileSrc": "tc-rohan-iyer.pdf",
+      "imageSrc": null
+    }
+  ]
+}</code></pre>
+<p class="small">Each item follows the same field rules as <a href="#tc-post">Create TC</a>'s <code>tc</code> object — including the either/or requirements on <code>regNo</code>/<code>srNo</code> and <code>fileSrc</code>/<code>imageSrc</code> — applied per item, not to the batch as a whole.</p>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "totalCount": 2,
+    "successCount": 1,
+    "failureCount": 1,
+    "results": [
+      { "index": 0, "success": true, "tcId": 301, "wasUpdated": false, "error": null },
+      { "index": 1, "success": false, "tcId": null, "wasUpdated": false, "error": "regNo matches one existing record for this institution and srNo matches a different existing record; cannot determine which to update." }
+    ]
+  }
+}</code></pre>
+<p><code>index</code> matches the item's position in the request's <code>items</code> array. <code>error</code> is a human-readable message, not a machine-readable code — it carries either a field-validation message or a match-conflict message for that row only; it never aborts the rest of the batch. <code>wasUpdated</code> has the same meaning per row as on <a href="#tc-post">Create TC</a>.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>items</code> is empty or missing, contains more than 200 records, or the body is missing / invalid. (Per-item field errors never produce this status — they appear in <code>data.results[]</code> instead.)</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again: every item whose <code>regNo</code>/<code>srNo</code> matches a row created by the first call now updates that row in place (<code>wasUpdated: true</code>) instead of creating a duplicate.</p>
+
+</details>
+<!-- ========================= Update TC ========================= -->
+<details id="tc-put">
+<summary><span class="method">PUT</span> <code>/tc</code></summary>
+<p>Updates a TC belonging to the calling institution. Every writable field is overwritten with the value sent — there is no partial update. Unlike <a href="#tc-post">Create TC</a>, this is a plain update by <code>tcId</code>, not an upsert — it never creates a new record.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>PUT https://api-vweb.vidyaone.com/test/plugin/tc?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>PUT https://api-vweb.vidyaone.com/plugin/tc?product={product}</code></td></tr>
+  </tbody>
+</table>
+<p>Same shape as <a href="#tc-post">Create TC</a>, plus <code>tc.tcId</code>.</p>
+
+<h4>Sample request body</h4>
+<pre><code>{
+  "tc": {
+    "tcId": 301,                           // required, integer, > 0 &mdash; must belong to the caller's institution
+    "studentName": "Asha Mehta",           // required, string, max 150 chars
+    "regNo": "REG-2026-0042",              // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
+    "srNo": "SR-1123",                     // conditional, string, max 50 chars
+    "dob": "2015-04-12T00:00:00Z",         // required, string, ISO-8601 date-time, UTC only
+    "fatherName": "Raj Mehta",             // required, string, max 150 chars
+    "className": "9",                      // required, string, max 20 chars &mdash; promoted since Create TC
+    "sectionName": "B",                    // optional, string, max 10 chars
+    "fileSrc": "tc-asha-mehta-v2.pdf",      // conditional, string, max 500 chars &mdash; at least one of fileSrc/imageSrc is required
+    "imageSrc": "asha-mehta.jpg"            // conditional, string, max 500 chars
+  },
+  "uploadFileFileName": "asha-mehta-tc-v2-raw.pdf",  // optional, string, max 200 chars &mdash; see "Uploading a document or image" on Create TC
+  "uploadImageFileName": null                        // optional, string, max 200 chars
+}</code></pre>
+
+<h4>Uploading a document or image</h4>
+<p>Same rules as <a href="#tc-post">Create TC</a>'s "Uploading a document or image" — <code>fileSrc</code>/<code>imageSrc</code> and <code>uploadFileFileName</code>/<code>uploadImageFileName</code> are unrelated. Sending either upload field returns a presigned S3 upload, resolved <strong>after</strong> the update is already written — an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code>, but <strong>the update has already been applied</strong> by that point.</p>
+<table>
+  <thead><tr><th>Upload</th><th>Allowed extensions (case-insensitive)</th><th>Max size</th></tr></thead>
+  <tbody>
+    <tr><td><code>uploadFileFileName</code></td><td><code>pdf</code></td><td>10 MB (<code>10485760</code> bytes)</td></tr>
+    <tr><td><code>uploadImageFileName</code></td><td><code>jpg</code>, <code>jpeg</code>, <code>png</code>, <code>gif</code>, <code>webp</code>, <code>bmp</code></td><td>10 MB (<code>10485760</code> bytes)</td></tr>
+  </tbody>
+</table>
+<p class="small">Also rejected, after the 200-character check above: a name containing a path separator (<code>/</code> or <code>\</code>), <code>..</code>, a control character, a missing extension, or a second, disguised extension (e.g. <code>invoice.php.jpg</code>).</p>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "updated": true,
+    "filePresign": {
+      "key": "vWebsite/plugin_cdn/tc_files/SAASX7Y8Z9/asha-mehta-tc-v2-raw.pdf",
+      "post": { "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/", "fields": { "...": "..." } },
+      "expiresIn": 120,
+      "maxFileSize": 10485760,
+      "contentTypePrefix": "application/"
+    },
+    "imagePresign": null
+  }
+}</code></pre>
+<p><code>filePresign</code>/<code>imagePresign</code> are each <code>null</code> unless the matching <code>uploadFileFileName</code>/<code>uploadImageFileName</code> was sent.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails, <code>tc.tcId</code> missing or not &gt; 0, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No matching TC for this institution.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>The <code>regNo</code> or <code>srNo</code> being set already belongs to a different TC for this institution.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadFileFileName</code>/<code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading a document or image" above) — the update is still applied; only the affected upload slot fails.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the TC in the same final state.</p>
+
+</details>
+<!-- ========================= Delete TC ========================= -->
+<details id="tc-delete">
+<summary><span class="method">DELETE</span> <code>/tc</code></summary>
+<p>Soft-deletes a TC belonging to the calling institution.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>DELETE https://api-vweb.vidyaone.com/test/plugin/tc?product={product}&amp;tcId={tcId}</code></td></tr>
+    <tr><td>Production</td><td><code>DELETE https://api-vweb.vidyaone.com/plugin/tc?product={product}&amp;tcId={tcId}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>tcId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0.</td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>DELETE /tc?product=scl-website
+    &amp;tcId=301    // required, integer, > 0</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{ "success": true, "message": null, "errors": null, "data": true }</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>tcId</code> missing or not &gt; 0.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No matching TC for this institution (missing or already deleted).</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again after a successful call returns <span class="status-err">404 Not Found</span>.</p>
+
+</details>
+</section>
+
+</main>
+</body>
+</html>
