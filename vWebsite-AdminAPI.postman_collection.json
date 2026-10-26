@@ -110,6 +110,21 @@
           "response": []
         },
         {
+          "name": "List module/page catalog",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}module/list-pages?product={{product}}",
+              "host": ["{{baseUrl}}module/list-pages"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Save module statuses",
           "request": {
             "method": "POST",
@@ -185,7 +200,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "[\n  { \"pageName\": \"about\",   \"moduleName\": \"data_about\", \"status\": true  },\n  { \"pageName\": \"contact\", \"moduleName\": \"data_about\", \"status\": false },\n  { \"pageName\": \"blog\" }\n]",
+              "raw": "[\n  { \"pageName\": \"about\",   \"moduleName\": \"data_about\", \"status\": true  },\n  { \"pageName\": \"contact\", \"moduleName\": \"data_about\", \"status\": false },\n  { \"pageName\": \"home\",    \"moduleName\": \"data_home\" }\n]",
               "options": { "raw": { "language": "json" } }
             }
           },
