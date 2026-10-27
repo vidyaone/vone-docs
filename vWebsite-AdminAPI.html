@@ -114,12 +114,21 @@
       <li><a href="#post-onboard-template"><code>POST /onboard/template</code></a></li>
     </ul>
   </div>
+  <div class="menu">
+    <a href="#template">Template</a>
+    <ul class="submenu">
+      <li><a href="#get-template-current"><code>GET /template/current</code></a></li>
+      <li><a href="#post-template"><code>POST /template</code></a></li>
+      <li><a href="#get-template-list-paid"><code>GET /template/list/paid</code></a></li>
+      <li><a href="#get-template-list-history"><code>GET /template/list/history</code></a></li>
+    </ul>
+  </div>
   <a class="download" href="vWebsite-AdminAPI.postman_collection.json" download>&#8595; Postman collection</a>
 </nav>
 
 <main>
 <h1>vWebsite-AdminAPI — Developer Guide</h1>
-<p class="small">Documents the <strong>DataJson</strong>, <strong>Module</strong>, <strong>Page</strong>, and <strong>Onboard</strong> resources.</p>
+<p class="small">Documents the <strong>DataJson</strong>, <strong>Module</strong>, <strong>Page</strong>, <strong>Onboard</strong>, and <strong>Template</strong> resources.</p>
 
 <section id="postman-setup">
 <h2>Postman setup guide</h2>
@@ -195,7 +204,7 @@
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> is missing from the query string.</td></tr>
     <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>Saving modules would leave more active modules than the institution's plan allows (<a href="#post-module">POST /module</a>).</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required — missing or invalid session.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The requested file, module, page, or plan does not exist for this institution, or a submitted module/page name (or pairing) is not in the lookup catalog (<a href="#get-module-list-pages">GET /module/list-pages</a>). Not used by <a href="#onboard">Onboard</a> — its <code>GET</code> routes default to <code>false</code> instead.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The requested file, module, page, or plan does not exist for this institution, or a submitted module/page name (or pairing) is not in the lookup catalog (<a href="#get-module-list-pages">GET /module/list-pages</a>). Also fires on <a href="#post-template">POST /template</a> when the submitted <code>tid</code> is not recognized for the calling product, or when a paid template has no existing purchase record for this institution. Not used by <a href="#onboard">Onboard</a> or <a href="#get-template-current">GET /template/current</a> — these default to <code>false</code>/<code>null</code> instead.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>Unique-constraint conflict.</td></tr>
     <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record (e.g. the institution) does not exist.</td></tr>
     <tr><td class="status-err">409</td><td><code>INVALID_STATE</code></td><td>A page is being saved as enabled while its named module is disabled (<a href="#post-page">POST /page</a>).</td></tr>
@@ -803,6 +812,225 @@
 <h4>Error responses</h4>
 <p class="small">Same as <a href="#post-onboard-domain">POST /onboard/domain</a>.</p>
 <p class="note"><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again leaves <code>isSetupTemplate</code> at the same final value and returns <span class="status-ok">200 OK</span> <code>data: true</code> — same final state.</p>
+</details>
+</section>
+
+<!-- ================================================================= TEMPLATE -->
+<section id="template">
+<h2>Template</h2>
+<p>Manages the single site template applied to the caller's institution, the catalog of free/paid templates available for its product, and the purchase/change history behind that choice.</p>
+
+<details id="get-template-current">
+<summary><span class="method">GET</span> <code>/template/current</code></summary>
+<p>Get the template currently applied to the caller's institution, or <code>null</code> if none has been applied yet. Call it to render the template-settings screen.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/template/current?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/admin/template/current?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /template/current?product=vweb</code></pre>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "tid": "modern-01",
+    "templateId": 14,
+    "instSaaSId": 203,
+    "templatePurchaseId": null,
+    "productSubdomain": "vweb",
+    "templateName": "Modern Minimal",
+    "description": "A clean, modern layout for schools.",
+    "isFree": true,
+    "price": 0,
+    "liveUrl": "https://demo.vidyaone.com/modern-01",
+    "webUrl": "https://vidyaone.com/templates/modern-01"
+  }
+}</code></pre>
+<p class="small"><code>data</code> is <code>null</code> — not a <span class="status-err">404</span> — when the institution hasn't applied a template yet.</p>
+
+<h4>Error responses</h4>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Institution not resolved.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+</details>
+
+<details id="post-template">
+<summary><span class="method">POST</span> <code>/template</code></summary>
+<p>Apply a catalog template to the caller's institution — free templates apply directly; paid templates require an existing purchase (see <a href="#get-template-list-paid">GET /template/list/paid</a>). Call it when the customer picks or changes their site template.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/admin/template?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/admin/template?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request body</h4>
+<pre><code>{
+  "postDTO": {              // required object
+    "tid": "modern-01"       // required, string, non-empty
+  }
+}</code></pre>
+
+<h4>Behaviour</h4>
+<ul class="tight">
+  <li><code>tid</code> must match a catalog template whose product matches the calling <code>product</code> — an unrecognized <code>tid</code>/product combination fails before anything is saved.</li>
+  <li>If the matched template is free, it applies immediately.</li>
+  <li>If the matched template is paid, this institution must already have a purchase record for that <code>tid</code> (see <a href="#get-template-list-paid">GET /template/list/paid</a>) — otherwise the request fails before anything is saved.</li>
+  <li>Before saving, the institution's previously applied template (if any) is moved into its change history (see <a href="#get-template-list-history">GET /template/list/history</a>).</li>
+  <li>An institution has at most one applied template at a time — saving replaces whatever was previously applied.</li>
+</ul>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{ "success": true, "message": null, "errors": null, "data": true }</code></pre>
+
+<h4>Error responses</h4>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>postDTO.tid</code> empty, missing request body, or institution/caller not resolved.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td><code>tid</code> is not a recognized template for the calling <code>product</code>, or the matched template is paid and this institution has no purchase record for it.</td></tr>
+  </tbody>
+</table>
+<p class="note"><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again leaves the same template applied (same final state) and returns <span class="status-ok">200 OK</span> <code>data: true</code> — but each resend still adds a new entry to the change history (see <a href="#get-template-list-history">GET /template/list/history</a>), since the previously-applied template is archived before every save, including a resend of the same one.</p>
+<p class="note"><strong>Side effect.</strong> After a successful save, the institution's site is flagged as having unpublished changes. If that flag update fails, this request still returns <span class="status-ok">200 OK</span> (the template is already saved).</p>
+<h4>Events</h4>
+<p>Fires <code>TEMPLATE_STATUS_UPDATED</code> after the template is saved.</p>
+</details>
+
+<details id="get-template-list-paid">
+<summary><span class="method">GET</span> <code>/template/list/paid</code></summary>
+<p>List the caller's institution's paid-template purchase records, newest first. Call it to check which paid templates this institution can apply via <a href="#post-template">POST /template</a>.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/template/list/paid?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/admin/template/list/paid?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /template/list/paid?product=vweb
+    &amp;pageNumber=1   // optional, integer, default 1, must be &gt; 0
+    &amp;pageSize=50    // optional, integer, default 50, must be &gt; 0</code></pre>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "records": [
+      {
+        "templatePurchaseId": 7,
+        "instSaaSId": 203,
+        "tid": "deluxe-02",
+        "tranId": "txn_8841203",
+        "productSubdomain": "vweb",
+        "templateName": "Deluxe Pro",
+        "description": "A premium layout with extra sections.",
+        "isFree": false,
+        "price": 49.00,
+        "liveUrl": "https://demo.vidyaone.com/deluxe-02",
+        "webUrl": "https://vidyaone.com/templates/deluxe-02"
+      }
+    ],
+    "metaData": {
+      "totalCount": 1,
+      "pageSize": 50,
+      "currentPage": 1,
+      "totalPages": 1,
+      "hasNext": false,
+      "hasPrevious": false
+    }
+  }
+}</code></pre>
+<p class="small"><code>records</code> is <code>[]</code> when the institution has no purchases yet. Ordered newest first. A <code>pageNumber</code> past the last page returns the last page's rows instead.</p>
+
+<h4>Error responses</h4>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Institution not resolved, or <code>pageNumber</code>/<code>pageSize</code> is not greater than 0.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+</details>
+
+<details id="get-template-list-history">
+<summary><span class="method">GET</span> <code>/template/list/history</code></summary>
+<p>List the caller's institution's template change history, newest first — one entry per template that was ever replaced via <a href="#post-template">POST /template</a>.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/template/list/history?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/admin/template/list/history?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /template/list/history?product=vweb
+    &amp;pageNumber=1   // optional, integer, default 1, must be &gt; 0
+    &amp;pageSize=50    // optional, integer, default 50, must be &gt; 0</code></pre>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "records": [
+      {
+        "templateHistoryId": 31,
+        "instSaaSId": 203,
+        "tid": "modern-01",
+        "templatePurchaseId": null,
+        "productSubdomain": "vweb",
+        "templateName": "Modern Minimal",
+        "description": "A clean, modern layout for schools.",
+        "isFree": true,
+        "price": 0,
+        "liveUrl": "https://demo.vidyaone.com/modern-01",
+        "webUrl": "https://vidyaone.com/templates/modern-01"
+      }
+    ],
+    "metaData": {
+      "totalCount": 1,
+      "pageSize": 50,
+      "currentPage": 1,
+      "totalPages": 1,
+      "hasNext": false,
+      "hasPrevious": false
+    }
+  }
+}</code></pre>
+<p class="small"><code>records</code> is <code>[]</code> when the institution has never changed templates. Ordered newest first. A <code>pageNumber</code> past the last page returns the last page's rows instead.</p>
+
+<h4>Error responses</h4>
+<p class="small">Same as <a href="#get-template-list-paid">GET /template/list/paid</a>.</p>
 </details>
 </section>
 

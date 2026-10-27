@@ -326,6 +326,83 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Template",
+      "item": [
+        {
+          "name": "Get current template",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}template/current?product={{product}}",
+              "host": ["{{baseUrl}}template/current"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Apply template",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}template?product={{product}}",
+              "host": ["{{baseUrl}}template"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"postDTO\": {\n    \"tid\": \"modern-01\"\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List paid templates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}template/list/paid?product={{product}}&pageNumber=1&pageSize=50",
+              "host": ["{{baseUrl}}template/list/paid"],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "pageNumber", "value": "1" },
+                { "key": "pageSize", "value": "50" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List template history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}template/list/history?product={{product}}&pageNumber=1&pageSize=50",
+              "host": ["{{baseUrl}}template/list/history"],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "pageNumber", "value": "1" },
+                { "key": "pageSize", "value": "50" }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
