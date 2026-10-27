@@ -147,11 +147,12 @@
               { "key": "Idempotency-Key", "value": "{{$guid}}" }
             ],
             "url": {
-              "raw": "{{baseUrl}}tc?product={{product}}&tcId=301",
+              "raw": "{{baseUrl}}tc?product={{product}}&tcIds=301&tcIds=302",
               "host": ["{{baseUrl}}tc"],
               "query": [
                 { "key": "product", "value": "{{product}}" },
-                { "key": "tcId", "value": "301" }
+                { "key": "tcIds", "value": "301" },
+                { "key": "tcIds", "value": "302" }
               ]
             }
           }
