@@ -123,12 +123,21 @@
       <li><a href="#get-template-list-history"><code>GET /template/list/history</code></a></li>
     </ul>
   </div>
+  <div class="menu">
+    <a href="#plugin">Plugin</a>
+    <ul class="submenu">
+      <li><a href="#get-plugin-list"><code>GET /plugin/list</code></a></li>
+      <li><a href="#get-plugin-list-paid"><code>GET /plugin/list/paid</code></a></li>
+      <li><a href="#put-plugin-status"><code>PUT /plugin/status</code></a></li>
+      <li><a href="#post-plugin"><code>POST /plugin</code></a></li>
+    </ul>
+  </div>
   <a class="download" href="vWebsite-AdminAPI.postman_collection.json" download>&#8595; Postman collection</a>
 </nav>
 
 <main>
 <h1>vWebsite-AdminAPI — Developer Guide</h1>
-<p class="small">Documents the <strong>DataJson</strong>, <strong>Module</strong>, <strong>Page</strong>, <strong>Onboard</strong>, and <strong>Template</strong> resources.</p>
+<p class="small">Documents the <strong>DataJson</strong>, <strong>Module</strong>, <strong>Page</strong>, <strong>Onboard</strong>, <strong>Template</strong>, and <strong>Plugin</strong> resources.</p>
 
 <section id="postman-setup">
 <h2>Postman setup guide</h2>
@@ -204,7 +213,7 @@
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> is missing from the query string.</td></tr>
     <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>Saving modules would leave more active modules than the institution's plan allows (<a href="#post-module">POST /module</a>).</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required — missing or invalid session.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The requested file, module, page, or plan does not exist for this institution, or a submitted module/page name (or pairing) is not in the lookup catalog (<a href="#get-module-list-pages">GET /module/list-pages</a>). Also fires on <a href="#post-template">POST /template</a> when the submitted <code>tid</code> is not recognized for the calling product, or when a paid template has no existing purchase record for this institution. Not used by <a href="#onboard">Onboard</a> or <a href="#get-template-current">GET /template/current</a> — these default to <code>false</code>/<code>null</code> instead.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The requested file, module, page, or plan does not exist for this institution, or a submitted module/page name (or pairing) is not in the lookup catalog (<a href="#get-module-list-pages">GET /module/list-pages</a>). Also fires on <a href="#post-template">POST /template</a> when the submitted <code>tid</code> is not recognized for the calling product, or when a paid template has no existing purchase record for this institution; and on <a href="#post-plugin">POST /plugin</a> for the analogous <code>pid</code> cases, or on <a href="#put-plugin-status">PUT /plugin/status</a> when the plugin has not been applied for this institution. Not used by <a href="#onboard">Onboard</a> or <a href="#get-template-current">GET /template/current</a> — these default to <code>false</code>/<code>null</code> instead.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>Unique-constraint conflict.</td></tr>
     <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record (e.g. the institution) does not exist.</td></tr>
     <tr><td class="status-err">409</td><td><code>INVALID_STATE</code></td><td>A page is being saved as enabled while its named module is disabled (<a href="#post-page">POST /page</a>).</td></tr>
@@ -846,6 +855,9 @@
     "templateId": 14,
     "instSaaSId": 203,
     "templatePurchaseId": null,
+    "activationAt": "2026-09-09T10:15:00Z",
+    "publishedAt": null,
+    "publishStatus": "Draft",
     "productSubdomain": "vweb",
     "templateName": "Modern Minimal",
     "description": "A clean, modern layout for schools.",
@@ -855,7 +867,7 @@
     "webUrl": "https://vidyaone.com/templates/modern-01"
   }
 }</code></pre>
-<p class="small"><code>data</code> is <code>null</code> — not a <span class="status-err">404</span> — when the institution hasn't applied a template yet.</p>
+<p class="small"><code>data</code> is <code>null</code> — not a <span class="status-err">404</span> — when the institution hasn't applied a template yet. <code>publishStatus</code> is always <code>"Draft"</code> and <code>publishedAt</code> is always <code>null</code> immediately after <a href="#post-template">POST /template</a> — nothing in this API transitions a template to a published state yet.</p>
 
 <h4>Error responses</h4>
 <table>
@@ -893,8 +905,9 @@
   <li><code>tid</code> must match a catalog template whose product matches the calling <code>product</code> — an unrecognized <code>tid</code>/product combination fails before anything is saved.</li>
   <li>If the matched template is free, it applies immediately.</li>
   <li>If the matched template is paid, this institution must already have a purchase record for that <code>tid</code> (see <a href="#get-template-list-paid">GET /template/list/paid</a>) — otherwise the request fails before anything is saved.</li>
-  <li>Before saving, the institution's previously applied template (if any) is moved into its change history (see <a href="#get-template-list-history">GET /template/list/history</a>).</li>
+  <li>Before saving, the institution's previously applied template (if any) is moved into its change history (see <a href="#get-template-list-history">GET /template/list/history</a>) — carrying over whatever <code>activationAt</code>/<code>publishedAt</code>/<code>publishStatus</code> it had, not reset values.</li>
   <li>An institution has at most one applied template at a time — saving replaces whatever was previously applied.</li>
+  <li>Every save (including re-applying the same <code>tid</code>) resets the newly-applied row's <code>publishStatus</code> to <code>"Draft"</code>, <code>activationAt</code> to the current time, and <code>publishedAt</code> to <code>null</code>.</li>
 </ul>
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
@@ -1008,6 +1021,9 @@
         "instSaaSId": 203,
         "tid": "modern-01",
         "templatePurchaseId": null,
+        "activationAt": "2026-08-01T09:00:00Z",
+        "publishedAt": null,
+        "publishStatus": "Draft",
         "productSubdomain": "vweb",
         "templateName": "Modern Minimal",
         "description": "A clean, modern layout for schools.",
@@ -1027,10 +1043,230 @@
     }
   }
 }</code></pre>
-<p class="small"><code>records</code> is <code>[]</code> when the institution has never changed templates. Ordered newest first. A <code>pageNumber</code> past the last page returns the last page's rows instead.</p>
+<p class="small"><code>records</code> is <code>[]</code> when the institution has never changed templates. Ordered newest first. A <code>pageNumber</code> past the last page returns the last page's rows instead. Each record's <code>activationAt</code>/<code>publishedAt</code>/<code>publishStatus</code> is a snapshot of that template's own values at the moment it was replaced — not reset to defaults.</p>
 
 <h4>Error responses</h4>
 <p class="small">Same as <a href="#get-template-list-paid">GET /template/list/paid</a>.</p>
+</details>
+</section>
+
+<!-- ================================================================= PLUGIN -->
+<section id="plugin">
+<h2>Plugin</h2>
+<p>Manages the catalog of free/paid plugins applied to the caller's institution, each plugin's own on/off status, and the purchase history behind paid plugins.</p>
+
+<details id="get-plugin-list">
+<summary><span class="method">GET</span> <code>/plugin/list</code></summary>
+<p>List the caller's institution's own applied plugins, optionally filtered by status, free/paid, and name. Call it to render the plugin-settings screen.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/plugin/list?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/admin/plugin/list?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /plugin/list?product=vweb
+    &pluginStatus=true   // optional, boolean, default none — filter to only active (true) or inactive (false) plugins; omit for both
+    &isFree=false        // optional, boolean, default none — filter to only free (true) or paid (false) plugins; omit for both
+    &name=chat           // optional, string, default none — case-insensitive partial match on the plugin's catalog name
+    &pageNumber=1        // optional, integer, default 1, must be &gt; 0
+    &pageSize=50         // optional, integer, default 50, must be &gt; 0</code></pre>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "records": [
+      {
+        "pid": "chatbot-01",
+        "pluginId": 22,
+        "instSaaSId": 203,
+        "pluginPurchaseId": null,
+        "pluginStatus": true,
+        "productSubdomain": "vweb",
+        "pluginName": "Live Chat",
+        "description": "Adds a live chat widget to every page.",
+        "isFree": true,
+        "price": 0,
+        "webUrl": "https://vidyaone.com/plugins/chatbot-01"
+      }
+    ],
+    "metaData": {
+      "totalCount": 1,
+      "pageSize": 50,
+      "currentPage": 1,
+      "totalPages": 1,
+      "hasNext": false,
+      "hasPrevious": false
+    }
+  }
+}</code></pre>
+<p class="small"><code>records</code> is <code>[]</code> when the institution has no plugins yet. Ordered by <code>pluginName</code>. A <code>pageNumber</code> past the last page returns the last page's rows instead.</p>
+
+<h4>Error responses</h4>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Institution not resolved, or <code>pageNumber</code>/<code>pageSize</code> is not greater than 0.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+</details>
+
+<details id="get-plugin-list-paid">
+<summary><span class="method">GET</span> <code>/plugin/list/paid</code></summary>
+<p>List the caller's institution's paid-plugin purchase records, newest first. Call it to check which paid plugins this institution can apply via <a href="#post-plugin">POST /plugin</a>.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/plugin/list/paid?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/admin/plugin/list/paid?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /plugin/list/paid?product=vweb
+    &amp;pageNumber=1   // optional, integer, default 1, must be &gt; 0
+    &amp;pageSize=50    // optional, integer, default 50, must be &gt; 0</code></pre>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "records": [
+      {
+        "pluginPurchaseId": 9,
+        "instSaaSId": 203,
+        "pid": "analytics-pro",
+        "tranId": "txn_5512044",
+        "productSubdomain": "vweb",
+        "pluginName": "Analytics Pro",
+        "description": "Advanced visitor analytics dashboard.",
+        "isFree": false,
+        "price": 29.00,
+        "webUrl": "https://vidyaone.com/plugins/analytics-pro"
+      }
+    ],
+    "metaData": {
+      "totalCount": 1,
+      "pageSize": 50,
+      "currentPage": 1,
+      "totalPages": 1,
+      "hasNext": false,
+      "hasPrevious": false
+    }
+  }
+}</code></pre>
+<p class="small"><code>records</code> is <code>[]</code> when the institution has no purchases yet. Ordered newest first. A <code>pageNumber</code> past the last page returns the last page's rows instead.</p>
+
+<h4>Error responses</h4>
+<p class="small">Same as <a href="#get-plugin-list">GET /plugin/list</a>.</p>
+</details>
+
+<details id="put-plugin-status">
+<summary><span class="method">PUT</span> <code>/plugin/status</code></summary>
+<p>Turn one already-applied plugin on or off for the caller's institution. Call it when the customer toggles a plugin switch.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>PUT https://api-vweb.vidyaone.com/test/admin/plugin/status?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>PUT https://api-vweb.vidyaone.com/admin/plugin/status?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request body</h4>
+<pre><code>{
+  "putDTO": {              // required object
+    "pid": "chatbot-01",    // required, string, non-empty — trimmed before lookup
+    "status": true          // optional, boolean, default false
+  }
+}</code></pre>
+
+<h4>Behaviour</h4>
+<ul class="tight">
+  <li>The plugin must already have been applied for this institution via <a href="#post-plugin">POST /plugin</a> — otherwise the whole request fails.</li>
+  <li>Only the status is changed; the plugin's purchase link is untouched.</li>
+</ul>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{ "success": true, "message": null, "errors": null, "data": true }</code></pre>
+
+<h4>Error responses</h4>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>putDTO.pid</code> empty, missing request body, or institution/caller not resolved.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>This plugin has not been applied for this institution.</td></tr>
+  </tbody>
+</table>
+<p class="note"><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again leaves the plugin at the same final status and returns <span class="status-ok">200 OK</span> <code>data: true</code> — same final state.</p>
+<p class="note"><strong>Side effect.</strong> After a successful update, the institution's site is flagged as having unpublished changes and the institution's active-plugins file is rebuilt. If either fails, this request still returns <span class="status-ok">200 OK</span> (the status is already saved).</p>
+<h4>Events</h4>
+<p>Fires <code>PLUGIN_STATUS_UPDATED</code> after the status is saved.</p>
+</details>
+
+<details id="post-plugin">
+<summary><span class="method">POST</span> <code>/plugin</code></summary>
+<p>Apply a catalog plugin to the caller's institution — free plugins apply directly; paid plugins require an existing purchase (see <a href="#get-plugin-list-paid">GET /plugin/list/paid</a>). Call it when the customer adds a plugin.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/admin/plugin?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/admin/plugin?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request body</h4>
+<pre><code>{
+  "postDTO": {              // required object
+    "pid": "chatbot-01"      // required, string, non-empty
+  }
+}</code></pre>
+
+<h4>Behaviour</h4>
+<ul class="tight">
+  <li><code>pid</code> must match a catalog plugin whose product matches the calling <code>product</code> — an unrecognized <code>pid</code>/product combination fails before anything is saved.</li>
+  <li>If the matched plugin is free, it applies immediately.</li>
+  <li>If the matched plugin is paid, this institution must already have a purchase record for that <code>pid</code> (see <a href="#get-plugin-list-paid">GET /plugin/list/paid</a>) — otherwise the request fails before anything is saved.</li>
+  <li>Applying always sets the plugin's status to off, even if it was previously turned on via <a href="#put-plugin-status">PUT /plugin/status</a> — call that route afterward to turn it on.</li>
+</ul>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<pre><code>{ "success": true, "message": null, "errors": null, "data": true }</code></pre>
+
+<h4>Error responses</h4>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>postDTO.pid</code> empty, missing request body, or institution/caller not resolved.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td><code>pid</code> is not a recognized plugin for the calling <code>product</code>, or the matched plugin is paid and this institution has no purchase record for it.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>Unique conflict on plugin id for this institution.</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>The institution referenced by this request does not exist.</td></tr>
+  </tbody>
+</table>
+<p class="note"><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again leaves the plugin applied with status off and the same purchase link (same final state) and returns <span class="status-ok">200 OK</span> <code>data: true</code>.</p>
+<p class="note"><strong>Side effect.</strong> After a successful save, the institution's active-plugins file is rebuilt. If that rebuild fails, this request still returns <span class="status-ok">200 OK</span> (the plugin is already saved). Unlike Module/Page/Template, applying a plugin does not by itself flag the site as having unpublished changes.</p>
+<h4>Events</h4>
+<p>Fires <code>PLUGIN_STATUS_UPDATED</code> after the plugin is saved.</p>
 </details>
 </section>
 

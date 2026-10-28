@@ -403,6 +403,94 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Plugin",
+      "item": [
+        {
+          "name": "List plugins",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}plugin/list?product={{product}}&pluginStatus=true&isFree=false&name=chat&pageNumber=1&pageSize=50",
+              "host": ["{{baseUrl}}plugin/list"],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "pluginStatus", "value": "true" },
+                { "key": "isFree", "value": "false" },
+                { "key": "name", "value": "chat" },
+                { "key": "pageNumber", "value": "1" },
+                { "key": "pageSize", "value": "50" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List paid plugins",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}plugin/list/paid?product={{product}}&pageNumber=1&pageSize=50",
+              "host": ["{{baseUrl}}plugin/list/paid"],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "pageNumber", "value": "1" },
+                { "key": "pageSize", "value": "50" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set plugin status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}plugin/status?product={{product}}",
+              "host": ["{{baseUrl}}plugin/status"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"putDTO\": {\n    \"pid\": \"chatbot-01\",\n    \"status\": true\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Apply plugin",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}plugin?product={{product}}",
+              "host": ["{{baseUrl}}plugin"],
+              "query": [
+                { "key": "product", "value": "{{product}}" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"postDTO\": {\n    \"pid\": \"chatbot-01\"\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
