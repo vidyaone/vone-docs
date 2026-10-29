@@ -128,6 +128,9 @@
     <ul class="submenu">
       <li><a href="#get-plugin-list"><code>GET /plugin/list</code></a></li>
       <li><a href="#get-plugin-list-paid"><code>GET /plugin/list/paid</code></a></li>
+      <li><a href="#get-plugin-list-paid-active"><code>GET /plugin/list/paid/active</code></a></li>
+      <li><a href="#get-plugin-list-paid-expired"><code>GET /plugin/list/paid/expired</code></a></li>
+      <li><a href="#get-plugin-list-paid-renew"><code>GET /plugin/list/paid/renew</code></a></li>
       <li><a href="#put-plugin-status"><code>PUT /plugin/status</code></a></li>
       <li><a href="#post-plugin"><code>POST /plugin</code></a></li>
     </ul>
@@ -1155,7 +1158,12 @@
         "description": "Advanced visitor analytics dashboard.",
         "isFree": false,
         "price": 29.00,
-        "webUrl": "https://vidyaone.com/plugins/analytics-pro"
+        "webUrl": "https://vidyaone.com/plugins/analytics-pro",
+        "purchaseAt": "2026-09-01T00:00:00Z",
+        "planEndDate": "2026-12-30T00:00:00Z",
+        "remainingDays": 45,
+        "planDays": 120,
+        "planStatus": "Active"
       }
     ],
     "metaData": {
@@ -1168,7 +1176,82 @@
     }
   }
 }</code></pre>
-<p class="small"><code>records</code> is <code>[]</code> when the institution has no purchases yet. Ordered newest first. A <code>pageNumber</code> past the last page returns the last page's rows instead.</p>
+<p class="small"><code>records</code> is <code>[]</code> when the institution has no purchases yet. Ordered newest first. A <code>pageNumber</code> past the last page returns the last page's rows instead. <code>planStatus</code> is one of <code>Trial</code>, <code>Active</code>, <code>Renew</code> (plan ends within 30 days), or <code>Expired</code>. <code>remainingDays</code>, <code>planDays</code>, and <code>planEndDate</code> are <code>null</code>, and <code>planStatus</code> defaults to <code>Active</code>, when the purchase record has no resolvable purchase date/plan.</p>
+
+<h4>Error responses</h4>
+<p class="small">Same as <a href="#get-plugin-list">GET /plugin/list</a>.</p>
+</details>
+
+<details id="get-plugin-list-paid-active">
+<summary><span class="method">GET</span> <code>/plugin/list/paid/active</code></summary>
+<p>Same as <a href="#get-plugin-list-paid">GET /plugin/list/paid</a>, filtered to only records whose <code>planStatus</code> is <code>Active</code>.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/plugin/list/paid/active?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/admin/plugin/list/paid/active?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /plugin/list/paid/active?product=vweb
+    &amp;pageNumber=1   // optional, integer, default 1, must be &gt; 0
+    &amp;pageSize=50    // optional, integer, default 50, must be &gt; 0</code></pre>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<p class="small">Same shape as <a href="#get-plugin-list-paid">GET /plugin/list/paid</a> — every record's <code>planStatus</code> is <code>"Active"</code>. <code>records</code> is <code>[]</code> when the institution has no active paid plugins. Ordered newest first.</p>
+
+<h4>Error responses</h4>
+<p class="small">Same as <a href="#get-plugin-list">GET /plugin/list</a>.</p>
+</details>
+
+<details id="get-plugin-list-paid-expired">
+<summary><span class="method">GET</span> <code>/plugin/list/paid/expired</code></summary>
+<p>Same as <a href="#get-plugin-list-paid">GET /plugin/list/paid</a>, filtered to only records whose <code>planStatus</code> is <code>Expired</code>.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/plugin/list/paid/expired?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/admin/plugin/list/paid/expired?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /plugin/list/paid/expired?product=vweb
+    &amp;pageNumber=1   // optional, integer, default 1, must be &gt; 0
+    &amp;pageSize=50    // optional, integer, default 50, must be &gt; 0</code></pre>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<p class="small">Same shape as <a href="#get-plugin-list-paid">GET /plugin/list/paid</a> — every record's <code>planStatus</code> is <code>"Expired"</code>. <code>records</code> is <code>[]</code> when the institution has no expired paid plugins. Ordered newest first.</p>
+
+<h4>Error responses</h4>
+<p class="small">Same as <a href="#get-plugin-list">GET /plugin/list</a>.</p>
+</details>
+
+<details id="get-plugin-list-paid-renew">
+<summary><span class="method">GET</span> <code>/plugin/list/paid/renew</code></summary>
+<p>Same as <a href="#get-plugin-list-paid">GET /plugin/list/paid</a>, filtered to only records whose <code>planStatus</code> is <code>Renew</code> (plan ends within 30 days).</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/plugin/list/paid/renew?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/admin/plugin/list/paid/renew?product={product}</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /plugin/list/paid/renew?product=vweb
+    &amp;pageNumber=1   // optional, integer, default 1, must be &gt; 0
+    &amp;pageSize=50    // optional, integer, default 50, must be &gt; 0</code></pre>
+
+<h4>Response — <span class="status-ok">200 OK</span></h4>
+<p class="small">Same shape as <a href="#get-plugin-list-paid">GET /plugin/list/paid</a> — every record's <code>planStatus</code> is <code>"Renew"</code>. <code>records</code> is <code>[]</code> when the institution has no paid plugins due for renewal. Ordered newest first.</p>
 
 <h4>Error responses</h4>
 <p class="small">Same as <a href="#get-plugin-list">GET /plugin/list</a>.</p>

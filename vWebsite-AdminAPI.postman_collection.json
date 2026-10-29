@@ -445,6 +445,57 @@
           "response": []
         },
         {
+          "name": "List active paid plugins",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}plugin/list/paid/active?product={{product}}&pageNumber=1&pageSize=50",
+              "host": ["{{baseUrl}}plugin/list/paid/active"],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "pageNumber", "value": "1" },
+                { "key": "pageSize", "value": "50" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List expired paid plugins",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}plugin/list/paid/expired?product={{product}}&pageNumber=1&pageSize=50",
+              "host": ["{{baseUrl}}plugin/list/paid/expired"],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "pageNumber", "value": "1" },
+                { "key": "pageSize", "value": "50" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List renewing paid plugins",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}plugin/list/paid/renew?product={{product}}&pageNumber=1&pageSize=50",
+              "host": ["{{baseUrl}}plugin/list/paid/renew"],
+              "query": [
+                { "key": "product", "value": "{{product}}" },
+                { "key": "pageNumber", "value": "1" },
+                { "key": "pageSize", "value": "50" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Set plugin status",
           "request": {
             "method": "PUT",
