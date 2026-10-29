@@ -649,7 +649,7 @@
   </tbody>
 </table>
 <p class="note"><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again leaves exactly one row per name in the same final status and returns <span class="status-ok">200 OK</span> <code>data: true</code> — same final state. Created vs updated rows are not distinguished in the response.</p>
-<p class="note"><strong>Side effect.</strong> After a successful save, the institution's site is flagged as having unpublished changes. If that flag update fails, this request still returns <span class="status-ok">200 OK</span> (the pages are already saved).</p>
+<p class="note"><strong>Side effect.</strong> After a successful save, the institution's site is flagged as having unpublished changes, and the institution's active-pages file is rebuilt. If either fails, this request still returns <span class="status-ok">200 OK</span> (the pages are already saved).</p>
 <h4>Events</h4>
 <p>Fires <code>PAGE_STATUS_UPDATED</code> after the pages are saved.</p>
 </details>
