@@ -3,19 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>vone-cart-get-lambda — API Reference</title>
+<title>vone-cart-get-lambda — Developer Guide</title>
 <style>
   :root {
-    --bg:        #0f1115;
-    --panel:     #161920;
-    --panel-2:   #1c2029;
-    --border:    #2a2f3a;
-    --text:      #e6e9ef;
-    --text-dim:  #9aa3b2;
-    --accent:    #5b9dff;
-    --ok:        #3ecf8e;
-    --warn:      #f5a524;
-    --err:       #f5556c;
+    --bg:     #fafafa;
+    --text:   #1a1a1a;
+    --dim:    #5b5b5b;
+    --accent: #2563eb;
+    --ok:     #15803d;
+    --err:    #b91c1c;
+    --border: #d9d9d9;
     --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
@@ -25,468 +22,321 @@
     font-family: var(--sans);
     background: var(--bg);
     color: var(--text);
-    line-height: 1.55;
+    line-height: 1.6;
   }
-  header {
-    padding: 32px clamp(16px, 5vw, 64px) 24px;
-    border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, #151822, var(--bg));
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
   }
-  header h1 { margin: 0 0 6px; font-size: 1.6rem; }
-  header p { margin: 0; color: var(--text-dim); font-size: 0.95rem; }
-  .badges { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
-  .badge {
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    padding: 3px 9px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    background: var(--panel);
-  }
-  nav {
-    position: sticky; top: 0; z-index: 10;
-    display: flex; gap: 4px; flex-wrap: wrap;
-    padding: 10px clamp(16px, 5vw, 64px);
-    background: rgba(15,17,21,0.92);
-    backdrop-filter: blur(6px);
-    border-bottom: 1px solid var(--border);
-  }
-  nav a {
-    color: var(--text-dim);
-    text-decoration: none;
-    font-size: 0.85rem;
-    padding: 6px 10px;
-    border-radius: 6px;
-  }
-  nav a:hover { color: var(--text); background: var(--panel-2); }
-  main { padding: 8px clamp(16px, 5vw, 64px) 80px; max-width: 1080px; margin: 0 auto; }
-  section { padding: 36px 0; border-bottom: 1px solid var(--border); }
-  section:last-child { border-bottom: none; }
-  h2 {
-    font-size: 1.15rem;
-    margin: 0 0 4px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  h2 .idx {
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    color: var(--accent);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 2px 7px;
-  }
-  h3 { font-size: 0.95rem; margin: 24px 0 8px; color: var(--text); }
-  p.lead { color: var(--text-dim); margin-top: 6px; }
+  h1 { font-size: 1.6rem; margin: 28px 0 4px; }
+  h2 { font-size: 1.2rem; margin: 0 0 8px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  h3 { font-size: 1rem; margin: 20px 0 6px; }
+  section { margin: 40px 0; }
+  p { margin: 8px 0; }
   code {
     font-family: var(--mono);
-    background: var(--panel-2);
-    border: 1px solid var(--border);
-    padding: 1px 6px;
-    border-radius: 4px;
-    font-size: 0.85em;
+    font-size: 0.9em;
+    background: none;
+    padding: 0;
   }
   pre {
     font-family: var(--mono);
-    font-size: 0.82rem;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px 18px;
-    overflow-x: auto;
-    margin: 10px 0 0;
-    line-height: 1.5;
-  }
-  pre code { background: none; border: none; padding: 0; }
-  .str { color: #a6e3a1; }
-  .num { color: #f5c078; }
-  .kw  { color: #89b4fa; }
-  .lit { color: #cba6f7; }
-  .comment { color: var(--text-dim); }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
     font-size: 0.85rem;
+    background: #f1f1f1;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    line-height: 1.55;
   }
-  th, td {
-    text-align: left;
-    padding: 8px 10px;
+  pre code { background: none; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.9rem; max-width: 100%; overflow-x: auto; display: block; }
+  table thead, table tbody { display: table; width: 100%; table-layout: fixed; }
+  th, td { text-align: left; padding: 7px 10px; border: 1px solid var(--border); vertical-align: top; }
+  th { font-weight: 700; }
+  .req  { color: var(--accent); font-weight: 600; }
+  .cond { color: var(--accent); font-weight: 600; }
+  .opt  { color: var(--dim); }
+  .s2xx { color: var(--ok); font-weight: 700; }
+  .s4xx, .s5xx { color: var(--err); font-weight: 700; }
+  .comment { color: var(--dim); }
+  details {
+    margin: 0;
+    padding: 14px 0;
     border-bottom: 1px solid var(--border);
-    vertical-align: top;
   }
-  th {
-    color: var(--text-dim);
-    font-weight: 600;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-  tr:hover td { background: var(--panel); }
-  td code { white-space: nowrap; }
-  .tag {
-    display: inline-block;
+  details:last-of-type { border-bottom: none; }
+  summary {
+    font-weight: 700;
+    color: var(--accent);
+    cursor: pointer;
     font-family: var(--mono);
-    font-size: 0.7rem;
-    padding: 1px 7px;
-    border-radius: 999px;
-    font-weight: 600;
+    font-size: 1rem;
+    list-style: revert;
   }
-  .tag.req  { background: rgba(245,85,108,0.15); color: var(--err); }
-  .tag.cond { background: rgba(245,165,36,0.15); color: var(--warn); }
-  .tag.opt  { background: rgba(62,207,142,0.15); color: var(--ok); }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
-  .card {
-    background: var(--panel);
+  details > *:not(summary) { margin-top: 12px; }
+  nav.top {
+    position: sticky; top: 0;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 16px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 24px;
+    z-index: 10;
+  }
+  nav.top a { color: var(--text); text-decoration: none; font-size: 0.9rem; }
+  nav.top a:hover { color: var(--accent); }
+  nav.top .title { font-weight: 700; margin-right: 8px; }
+  nav.top .spacer { flex: 1 1 auto; }
+  nav.top .download { font-weight: 700; color: var(--accent); }
+  .menu {
+    position: relative;
+    padding-bottom: 10px;
+    margin-bottom: -10px;
+  }
+  .menu > a { display: inline-block; }
+  .submenu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin: 0;
+    padding: 6px 0;
+    list-style: none;
+    background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px 18px;
+    border-radius: 4px;
+    min-width: 160px;
   }
-  .card h4 {
-    margin: 0 0 8px;
-    font-size: 0.85rem;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-  .dot.ok  { background: var(--ok); }
-  .dot.err { background: var(--err); }
-  .flow {
-    font-family: var(--mono);
-    font-size: 0.8rem;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px 20px;
-    overflow-x: auto;
-    white-space: pre;
-    color: var(--text-dim);
-  }
-  .flow .step { color: var(--text); }
-  .flow .gate { color: var(--warn); }
-  .flow .final { color: var(--ok); }
-  .status {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-family: var(--mono); font-weight: 700; font-size: 0.9rem;
-    padding: 4px 10px; border-radius: 8px; margin-bottom: 8px;
-  }
-  .status.s200 { background: rgba(62,207,142,0.12); color: var(--ok); }
-  .status.s204 { background: rgba(91,157,255,0.12); color: var(--accent); }
-  .status.s400 { background: rgba(245,165,36,0.12); color: var(--warn); }
-  .status.s500 { background: rgba(245,85,108,0.12); color: var(--err); }
-  ul.err-list { margin: 10px 0 0; padding-left: 20px; font-size: 0.85rem; }
-  ul.err-list li { margin-bottom: 6px; color: var(--text-dim); }
-  ul.err-list code { color: var(--text); }
-  footer {
-    padding: 24px clamp(16px, 5vw, 64px) 40px;
-    color: var(--text-dim);
-    font-size: 0.8rem;
-    text-align: center;
-  }
+  .menu:hover .submenu, .menu:focus-within .submenu { display: block; }
+  .submenu li { padding: 0; }
+  .submenu a { display: block; padding: 6px 14px; font-family: var(--mono); font-size: 0.82rem; white-space: nowrap; }
+  .submenu a:hover { background: #f0f0f0; }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>vone-cart-get-lambda</h1>
-  <p>API reference for the cart read endpoint — query parameters, response shape, and field reference.</p>
-  <div class="badges">
-    <span class="badge">GET only (+ OPTIONS preflight)</span>
-    <span class="badge">ap-south-1</span>
-    <span class="badge">CORS: *.vidyaone.com (https only)</span>
-    <span class="badge">Lookup: guest_id and/or user_id</span>
-    <span class="badge">Max items: 1000 per response</span>
+<nav class="top">
+  <span class="title">vone-cart-get-lambda</span>
+  <a href="https://vidyaone.github.io/vone-docs/">Home</a>
+  <a href="#postman">Postman setup</a>
+  <a href="#base-urls">Base URLs</a>
+  <a href="#common">Common rules</a>
+  <div class="menu">
+    <a href="#cart">Cart</a>
+    <ul class="submenu">
+      <li><a href="#get-cart">GET /website/cart</a></li>
+      <li><a href="#delete-cart">DELETE /website/cart</a></li>
+    </ul>
   </div>
-</header>
-
-<nav>
-  <a href="#request">Request</a>
-  <a href="#query">Query parameters</a>
-  <a href="#lookup">Lookup behaviour</a>
-  <a href="#fields">Response item fields</a>
-  <a href="#validation">Validation &amp; rejection</a>
-  <a href="#examples">Example requests</a>
-  <a href="#responses">Responses</a>
-  <a href="#flow">Request flow</a>
+  <span class="spacer"></span>
+  <a class="download" href="vone-cart-get-lambda.postman_collection.json" download>Download Postman collection</a>
 </nav>
 
 <main>
 
-  <section id="request">
-    <h2><span class="idx">01</span> Request</h2>
-    <p class="lead">
-      A plain <code>GET</code> request — no body. The cart is looked up by <code>guest_id</code>,
-      <code>user_id</code>, or both, passed as query string parameters. At least one of the two
-      must be present.
-    </p>
-    <pre><code><span class="kw">GET</span> /cart?<span class="str">guest_id</span>=guest_a1b2c3d4 HTTP/1.1
-<span class="comment">Host: api.vidyaone.com</span></code></pre>
-  </section>
+<h1>vone-cart-get-lambda</h1>
+<p>Reads and deletes cart items saved for a guest/user session.</p>
 
-  <section id="query">
-    <h2><span class="idx">02</span> Query parameters</h2>
+<section id="postman">
+  <h2>Postman setup</h2>
+  <ol>
+    <li>Use Postman for web (<a href="https://web.postman.co">web.postman.co</a>), not the desktop app.</li>
+    <li>Install the <a href="https://chromewebstore.google.com/detail/postman-interceptor/aicmkgpgakddgnaphhhpliifpcfhicfo">Postman Interceptor</a> Chrome extension — it lets Postman's web app read cookies from your Chrome session.</li>
+    <li>Enable Interceptor, then log into the product normally in Chrome. Once logged in, your session is available to Postman automatically — no auth header or cookie to set by hand.</li>
+    <li>Download the collection from the link in the navbar above and import it into Postman, then send requests — it's pre-configured for Testing.</li>
+  </ol>
+</section>
+
+<section id="base-urls">
+  <h2>Base URLs</h2>
+  <table>
+    <thead><tr><th>Environment</th><th>Base URL</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td>Testing</td><td><code>https://api.vidyaone.com</code></td><td>Provided directly — not read from <code>config.py</code> (this Lambda has no knowledge of its own API Gateway invoke URL)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="common">
+  <h2>Common rules</h2>
+
+  <h3>Headers</h3>
+  <p>No request headers are required on either route. Neither <code>GET /website/cart</code> nor <code>DELETE /website/cart</code> takes a request body, so no <code>Content-Type</code> is needed. Neither route reads an <code>Idempotency-Key</code> header — <code>DELETE</code> is naturally idempotent instead: repeating the same delete after it already succeeded returns <strong class="s4xx">404</strong> <code>Item not found</code>, not an error or a second effect.</p>
+  <p><strong>No authentication is required on either route</strong> — both are reachable by anyone who supplies a valid <code>guest_id</code>/<code>user_id</code> (and, for delete, <code>item_id</code>).</p>
+
+  <h3>Shared query parameters</h3>
+  <table>
+    <thead><tr><th>Parameter</th><th>Type</th><th>Requirement</th><th>Rule</th></tr></thead>
+    <tbody>
+      <tr><td><code>guest_id</code></td><td>string</td><td><span class="cond">conditional</span></td><td>Non-blank after trim, 1–100 chars, <code>^[A-Za-z0-9_-]+$</code> only. Required unless <code>user_id</code> is supplied.</td></tr>
+      <tr><td><code>user_id</code></td><td>integer (as string)</td><td><span class="cond">conditional</span></td><td>Digits only, <code>^[0-9]{1,20}$</code>, value <code>&gt; 0</code>. Required unless <code>guest_id</code> is supplied.</td></tr>
+    </tbody>
+  </table>
+  <p>Read from the query string only — no path-parameter or body fallback. Supplying neither <code>guest_id</code> nor <code>user_id</code> is a <strong class="s4xx">400</strong>. Each parameter is validated independently: a present-but-malformed value is a <strong class="s4xx">400</strong> even if the other parameter is valid or absent.</p>
+
+  <h3>Response envelope</h3>
+  <p>Every response (except the <strong class="s2xx">204</strong> OPTIONS preflight) is shaped:</p>
+  <pre><code>{ "success": bool, "message": string, "errors": null, "data": ... }</code></pre>
+  <p>Success example:</p>
+  <pre><code>{ "success": true, "message": "", "errors": null, "data": [] }</code></pre>
+  <p>Error example:</p>
+  <pre><code>{ "success": false, "message": "Query parameter 'guest_id' must not be blank", "errors": null, "data": [] }</code></pre>
+  <p>There is no <code>code</code> field in this project — only HTTP status and a human-readable <code>message</code>. <code>errors</code> is always <code>null</code>. <code>data</code> is a list on <code>GET</code> success, an object on <code>DELETE</code> success, and always <code>[]</code> on any error from either route.</p>
+
+  <h3>Status summary</h3>
+  <table>
+    <thead><tr><th>Status</th><th>Route(s)</th><th>Condition</th></tr></thead>
+    <tbody>
+      <tr><td><span class="s2xx">204</span></td><td>any</td><td>OPTIONS preflight — returned immediately, no processing, no body.</td></tr>
+      <tr><td><span class="s2xx">200</span></td><td><code>GET</code></td><td>Query succeeded (possibly with an empty list).</td></tr>
+      <tr><td><span class="s2xx">200</span></td><td><code>DELETE</code></td><td>Item found and deleted.</td></tr>
+      <tr><td><span class="s4xx">400</span></td><td>any</td><td>A query parameter is missing/malformed — see each route's Request section.</td></tr>
+      <tr><td><span class="s4xx">404</span></td><td><code>DELETE</code></td><td>No item matched <code>item_id</code> for the given <code>guest_id</code>/<code>user_id</code> (never existed, already deleted, or belongs to a different guest/user).</td></tr>
+      <tr><td><span class="s4xx">405</span></td><td>any</td><td>Method other than <code>GET</code>, <code>DELETE</code>, or <code>OPTIONS</code>.</td></tr>
+      <tr><td><span class="s5xx">500</span></td><td>any</td><td>Unexpected error (DynamoDB outage, missing IAM permission, bad table config, etc.). The real cause is logged server-side only — the response never leaks it.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>CORS</h3>
+  <p>Applied only when the request's <code>Origin</code> header is <code>https://vidyaone.com</code> or any <code>https://*.vidyaone.com</code> subdomain — plain <code>http</code> and unrecognized origins get no CORS headers, so a browser blocks the page from reading the response (non-browser callers are unaffected; the body is still returned). <code>Access-Control-Allow-Methods: GET,DELETE,OPTIONS</code>. An <code>OPTIONS</code> request always gets an immediate <strong class="s2xx">204</strong> with no body, before any parameter validation runs.</p>
+</section>
+
+<section id="cart">
+  <h2>Cart</h2>
+
+  <details id="get-cart">
+    <summary>GET /website/cart</summary>
+    <p>Returns every cart item saved for a <code>guest_id</code> and/or <code>user_id</code>.</p>
+
+    <h3>Request</h3>
+    <p>Testing URL: <code>https://api.vidyaone.com/website/cart</code></p>
+    <p>No headers required. Query parameters: see Common rules above (<code>guest_id</code>, <code>user_id</code>).</p>
+
+    <h3>Sample request</h3>
+    <pre><code>GET /website/cart?guest_id=guest_a1b2c3d4   // conditional, string, 1-100 chars, ^[A-Za-z0-9_-]+$ — required unless user_id is given
+    &amp;user_id=4071                            // conditional, integer as string, 1-20 digits, &gt; 0 — required unless guest_id is given</code></pre>
+    <p>Supplying both merges the two lookups and de-duplicates the result (the <code>guest_id</code> copy of a match wins). Supplying either alone is equally valid.</p>
+
+    <h3>Response</h3>
+    <p><strong class="s2xx">200</strong> — items returned newest-first, sorted by <code>savedAt</code> descending:</p>
+    <pre><code>{
+  "success": true,
+  "message": "",
+  "errors": null,
+  "data": [
+    {
+      "productId": 1042,
+      "productName": "Pro Plan",
+      "planId": 3,
+      "planName": "Pro — Monthly",
+      "serviceId": 0,
+      "serviceName": "",
+      "serviceCode": "",
+      "quantity": 1,
+      "price": 999.0,
+      "discount": 100.0,
+      "total": 899.0,
+      "buyNow": false,
+      "payAsGuest": true,
+      "billingCycle": "monthly",
+      "subscription": true,
+      "pageLink": "https://vidyaone.com/plans/pro",
+      "guestId": "guest_a1b2c3d4",
+      "userId": 0,
+      "instSaaSId": 0,
+      "instSaaSCode": "",
+      "savedAt": "2026-10-30T09:15:42.118273+00:00",
+      "itemId": "a1b2c3d4-5e6f-4a1b-9c3d-7f8e9a0b1c2d"
+    }
+  ]
+}</code></pre>
+    <p>Every item always has the full 22-field shape above, regardless of what the underlying record is missing (legacy rows get the defaults listed in the table below merged in) — no field is ever absent from an item.</p>
     <table>
-      <thead>
-        <tr><th>Parameter</th><th>Type</th><th>Requirement</th><th>Rule</th></tr>
-      </thead>
+      <thead><tr><th>Field</th><th>Type</th><th>Default if missing</th></tr></thead>
       <tbody>
-        <tr><td><code>guest_id</code></td><td>string</td><td><span class="tag cond">conditional</span></td><td>Non-blank after trim, 1–100 chars, <code>^[A-Za-z0-9_-]+$</code> only. Required unless <code>user_id</code> is supplied.</td></tr>
-        <tr><td><code>user_id</code></td><td>integer (as string)</td><td><span class="tag cond">conditional</span></td><td>Digits only, <code>^[0-9]{1,20}$</code>, value <code>&gt; 0</code>. Required unless <code>guest_id</code> is supplied.</td></tr>
+        <tr><td><code>productId</code></td><td>int</td><td>0</td></tr>
+        <tr><td><code>productName</code></td><td>string</td><td>""</td></tr>
+        <tr><td><code>planId</code></td><td>int</td><td>0</td></tr>
+        <tr><td><code>planName</code></td><td>string</td><td>""</td></tr>
+        <tr><td><code>serviceId</code></td><td>int</td><td>0</td></tr>
+        <tr><td><code>serviceName</code></td><td>string</td><td>""</td></tr>
+        <tr><td><code>serviceCode</code></td><td>string</td><td>""</td></tr>
+        <tr><td><code>quantity</code></td><td>int</td><td>1</td></tr>
+        <tr><td><code>price</code></td><td>number</td><td>0.0 (always a float, even for whole amounts, e.g. <code>899.0</code> never <code>899</code>)</td></tr>
+        <tr><td><code>discount</code></td><td>number</td><td>0.0 (always a float)</td></tr>
+        <tr><td><code>total</code></td><td>number</td><td>0.0 (always a float)</td></tr>
+        <tr><td><code>buyNow</code></td><td>boolean</td><td>false</td></tr>
+        <tr><td><code>payAsGuest</code></td><td>boolean</td><td>true</td></tr>
+        <tr><td><code>billingCycle</code></td><td>string</td><td>""</td></tr>
+        <tr><td><code>subscription</code></td><td>boolean</td><td>false</td></tr>
+        <tr><td><code>pageLink</code></td><td>string</td><td>""</td></tr>
+        <tr><td><code>guestId</code></td><td>string</td><td>"" — the session the item was saved under; may differ from the <code>guest_id</code> query parameter for items matched via <code>user_id</code></td></tr>
+        <tr><td><code>userId</code></td><td>int</td><td>0 — 0 means a pure guest checkout with no logged-in user</td></tr>
+        <tr><td><code>instSaaSId</code></td><td>int</td><td>0</td></tr>
+        <tr><td><code>instSaaSCode</code></td><td>string</td><td>""</td></tr>
+        <tr><td><code>savedAt</code></td><td>string</td><td>"" — ISO-8601 UTC timestamp of when the item was written; drives the newest-first sort</td></tr>
+        <tr><td><code>itemId</code></td><td>string</td><td>""</td></tr>
       </tbody>
     </table>
-    <p class="lead" style="margin-top:14px;">
-      Read from <code>queryStringParameters</code> only — there is no path-parameter or body
-      fallback. <strong>At least one</strong> of <code>guest_id</code> / <code>user_id</code> must
-      be present; supplying neither is a <code>400</code>. Supplying both is allowed and triggers
-      a merged lookup (see §03). Neither value is treated as a secret credential — each is only
-      sanitized/bounded before use: <code>guest_id</code> builds the DynamoDB partition key
-      (<code>GUEST#&lt;guest_id&gt;</code>); <code>user_id</code> is coerced to an integer and
-      matched against the <code>userId</code> item attribute.
-    </p>
-  </section>
-
-  <section id="lookup">
-    <h2><span class="idx">03</span> Lookup behaviour</h2>
-    <p class="lead">
-      The two parameters resolve items by different mechanisms, then results are combined.
-    </p>
-    <table>
-      <thead>
-        <tr><th>Parameter</th><th>Mechanism</th><th>Cost</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><code>guest_id</code></td><td>DynamoDB <code>Query</code> on <code>pk = GUEST#&lt;guest_id&gt;</code></td><td>Key lookup — fast, single partition.</td></tr>
-        <tr><td><code>user_id</code></td><td>DynamoDB <code>Scan</code> with <code>FilterExpression userId = &lt;n&gt;</code></td><td><span class="tag req">expensive</span> The table has <strong>no GSI</strong> on <code>userId</code>, so every partition is scanned and filtered. Read-capacity cost and latency grow with table size. Logged with <code>[WARN]</code> on every call.</td></tr>
-      </tbody>
-    </table>
-    <h3>Merge &amp; de-duplication (both parameters supplied)</h3>
-    <p class="lead" style="margin-top:0;">
-      <code>guest_id</code> is read first, then <code>user_id</code>. The two result sets are
-      concatenated and de-duplicated on the item's internal sort key
-      (<code>sk = REQUEST#&lt;request_id&gt;</code>); on a collision the <code>guest_id</code> copy
-      is kept. The internal key is stripped before the response is returned. The combined result
-      is still capped at 1000 items.
-    </p>
-    <p class="lead" style="font-size:0.8rem;">
-      <strong>Worked example.</strong> A logged-in shopper (<code>userId = 7</code>) has cart
-      items saved under session <code>guest_g1</code>; the same account also has one older item
-      from session <code>guest_g2</code>.
-    </p>
-    <pre><code><span class="kw">GET</span> /cart?<span class="str">guest_id</span>=guest_g1&amp;<span class="str">user_id</span>=7
-
-<span class="comment">// Query  pk = GUEST#guest_g1        -> REQUEST#r1 (userId 7), REQUEST#r2 (userId 0)</span>
-<span class="comment">// Scan   userId = 7                 -> REQUEST#r1 (guest_g1), REQUEST#r3 (guest_g2)</span>
-<span class="comment">// Merge + dedupe on sk              -> r1 (guest copy kept), r2, r3</span>
-<span class="comment">// data: 3 items</span></code></pre>
-  </section>
-
-  <section id="fields">
-    <h2><span class="idx">04</span> Response item fields</h2>
-    <p class="lead">
-      Each object in <code>data</code> mirrors the original client-submitted payload shape from
-      <code>vone-cart-post-lambda</code> — no internal keys (<code>pk</code>/<code>sk</code>), no
-      server-generated bookkeeping (<code>requestId</code>, <code>submittedAt</code>,
-      <code>status</code>), and no enrichment data (<code>device</code>, <code>location</code>,
-      <code>botDetection</code>) are ever returned. Fields are fetched via a DynamoDB
-      <code>ProjectionExpression</code>, so nothing else is even read off the table.
-    </p>
-    <table>
-      <thead>
-        <tr><th>Field</th><th>Type</th><th>Default if missing</th><th>Note</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><code>productId</code></td><td>int</td><td>0</td><td>&nbsp;</td></tr>
-        <tr><td><code>planId</code></td><td>int</td><td>0</td><td>&nbsp;</td></tr>
-        <tr><td><code>serviceId</code></td><td>int</td><td>0</td><td>&nbsp;</td></tr>
-        <tr><td><code>serviceCode</code></td><td>string</td><td>""</td><td>&nbsp;</td></tr>
-        <tr><td><code>quantity</code></td><td>int</td><td>1</td><td>&nbsp;</td></tr>
-        <tr><td><code>price</code></td><td>number</td><td>0.0</td><td>Always serialized as float, even for whole amounts (e.g. <code>899.0</code>, never <code>899</code>).</td></tr>
-        <tr><td><code>discount</code></td><td>number</td><td>0.0</td><td>Always serialized as float.</td></tr>
-        <tr><td><code>total</code></td><td>number</td><td>0.0</td><td>Always serialized as float.</td></tr>
-        <tr><td><code>buyNow</code></td><td>boolean</td><td>false</td><td>&nbsp;</td></tr>
-        <tr><td><code>payAsGuest</code></td><td>boolean</td><td>true</td><td>&nbsp;</td></tr>
-        <tr><td><code>billingCycle</code></td><td>string</td><td>""</td><td>&nbsp;</td></tr>
-        <tr><td><code>subscription</code></td><td>boolean</td><td>false</td><td>&nbsp;</td></tr>
-        <tr><td><code>pageLink</code></td><td>string</td><td>""</td><td>&nbsp;</td></tr>
-        <tr><td><code>guestId</code></td><td>string</td><td>""</td><td>The session the item was saved under. Equals the <code>guest_id</code> query parameter for items matched that way; may differ from it for items matched via <code>user_id</code>.</td></tr>
-        <tr><td><code>userId</code></td><td>int</td><td>0</td><td><code>0</code> for a pure guest checkout with no logged-in user. Equals the <code>user_id</code> query parameter for items matched that way.</td></tr>
-      </tbody>
-    </table>
-    <p class="lead" style="margin-top:14px;">
-      "Default if missing" only applies to legacy/edge-case records that lack an attribute —
-      every item in <code>data</code> always has the full 15-field shape, merged in by the
-      Lambda, so client-side code never has to guard against a missing key.
-    </p>
-  </section>
-
-  <section id="validation">
-    <h2><span class="idx">05</span> Validation &amp; rejection</h2>
-    <ul class="err-list">
-      <li>Neither <code>guest_id</code> nor <code>user_id</code> present in the query string → 400.</li>
-      <li><code>guest_id</code> present but blank/whitespace-only → 400.</li>
-      <li><code>guest_id</code> containing anything outside <code>[A-Za-z0-9_-]</code>, or longer than 100 characters → 400.</li>
-      <li><code>user_id</code> present but blank/whitespace-only → 400.</li>
-      <li><code>user_id</code> non-numeric, more than 20 digits, or not <code>&gt; 0</code> (e.g. <code>0</code>, <code>-3</code>, <code>12x</code>) → 400.</li>
-    </ul>
-    <p class="lead" style="margin-top:8px; font-size:0.8rem;">
-      Each parameter is validated independently: a present-but-malformed value is a <code>400</code>
-      even if the other parameter is valid.
-    </p>
-    <h3>Common rejection messages</h3>
-    <ul class="err-list">
+    <p><strong class="s2xx">200</strong> — empty cart (no error; a never-used or fully-emptied <code>guest_id</code>/<code>user_id</code> is not distinguishable, and isn't treated as one):</p>
+    <pre><code>{ "success": true, "message": "", "errors": null, "data": [] }</code></pre>
+    <p><strong class="s4xx">400</strong> — one of:</p>
+    <ul>
       <li><code>Provide at least one of query parameters 'guest_id' or 'user_id'</code></li>
       <li><code>Query parameter 'guest_id' must not be blank</code></li>
       <li><code>Query parameter 'guest_id' contains invalid characters</code></li>
       <li><code>Query parameter 'user_id' must not be blank</code></li>
       <li><code>Query parameter 'user_id' must be a positive integer</code></li>
     </ul>
-    <p class="lead" style="margin-top:8px; font-size:0.8rem;">
-      A <code>guest_id</code>/<code>user_id</code> that passes validation but has never been used
-      (or whose cart is empty) is <strong>not</strong> an error — it returns <code>200</code> with
-      <code>"data": []</code>. There is no way (and no need) to distinguish "never used" from
-      "emptied cart".
-    </p>
-  </section>
+    <p><strong class="s5xx">500</strong> — <code>Internal server error</code> (see Status summary above).</p>
+  </details>
 
-  <section id="examples">
-    <h2><span class="idx">06</span> Example requests</h2>
+  <details id="delete-cart">
+    <summary>DELETE /website/cart</summary>
+    <p>Deletes a single cart item by <code>item_id</code>, scoped to <code>guest_id</code> and/or <code>user_id</code>.</p>
 
-    <h3>✅ Valid — by guest_id</h3>
-    <pre><code><span class="kw">GET</span> /cart?<span class="str">guest_id</span>=guest_a1b2c3d4</code></pre>
+    <h3>Request</h3>
+    <p>Testing URL: <code>https://api.vidyaone.com/website/cart</code></p>
+    <p>No headers required. Query parameters: <code>item_id</code> (below) plus <code>guest_id</code>/<code>user_id</code> from Common rules above.</p>
+    <table>
+      <thead><tr><th>Parameter</th><th>Type</th><th>Requirement</th><th>Rule</th></tr></thead>
+      <tbody>
+        <tr><td><code>item_id</code></td><td>string</td><td><span class="req">required</span></td><td>Non-blank after trim, 1–100 chars, <code>^[A-Za-z0-9_-]+$</code> only.</td></tr>
+      </tbody>
+    </table>
 
-    <h3>✅ Valid — by user_id</h3>
-    <pre><code><span class="kw">GET</span> /cart?<span class="str">user_id</span>=4071</code></pre>
+    <h3>Sample request</h3>
+    <pre><code>DELETE /website/cart?item_id=a1b2c3d4-5e6f-4a1b-9c3d-7f8e9a0b1c2d   // required, string, 1-100 chars, ^[A-Za-z0-9_-]+$
+    &amp;guest_id=guest_a1b2c3d4                                        // conditional, string, 1-100 chars, ^[A-Za-z0-9_-]+$ — required unless user_id is given
+    &amp;user_id=4071                                                   // conditional, integer as string, 1-20 digits, &gt; 0 — required unless guest_id is given</code></pre>
 
-    <h3>✅ Valid — both (merged + de-duplicated)</h3>
-    <pre><code><span class="kw">GET</span> /cart?<span class="str">guest_id</span>=guest_a1b2c3d4&amp;<span class="str">user_id</span>=4071</code></pre>
-
-    <h3>✅ Valid — empty cart</h3>
-    <pre><code><span class="kw">GET</span> /cart?<span class="str">guest_id</span>=guest_never_used</code></pre>
-
-    <h3>❌ Rejected — no lookup key</h3>
-    <pre><code><span class="kw">GET</span> /cart
-<span class="comment">// 400 — "Provide at least one of query parameters 'guest_id' or 'user_id'"</span></code></pre>
-
-    <h3>❌ Rejected — blank guest_id</h3>
-    <pre><code><span class="kw">GET</span> /cart?<span class="str">guest_id</span>=
-<span class="comment">// 400 — "Query parameter 'guest_id' must not be blank"</span></code></pre>
-
-    <h3>❌ Rejected — disallowed characters</h3>
-    <pre><code><span class="kw">GET</span> /cart?<span class="str">guest_id</span>=&lt;script&gt;
-<span class="comment">// 400 — "Query parameter 'guest_id' contains invalid characters"</span></code></pre>
-
-    <h3>❌ Rejected — non-numeric user_id</h3>
-    <pre><code><span class="kw">GET</span> /cart?<span class="str">user_id</span>=abc
-<span class="comment">// 400 — "Query parameter 'user_id' must be a positive integer"</span></code></pre>
-  </section>
-
-  <section id="responses">
-    <h2><span class="idx">07</span> Responses</h2>
-
-    <div class="status s204">204 No Content</div>
-    <p class="lead" style="margin-top:0;">OPTIONS preflight — returned immediately, no processing.</p>
-
-    <div class="status s200" style="margin-top:22px;">200 OK — cart with items</div>
-    <pre><code><span class="kw">{</span>
-  <span class="str">"success"</span>: <span class="lit">true</span>,
-  <span class="str">"message"</span>: <span class="str">""</span>,
-  <span class="str">"errors"</span>:  <span class="lit">null</span>,
-  <span class="str">"data"</span>:    <span class="kw">[</span>
-    <span class="kw">{</span>
-      <span class="str">"productId"</span>:    <span class="num">1042</span>,
-      <span class="str">"planId"</span>:       <span class="num">3</span>,
-      <span class="str">"serviceId"</span>:    <span class="num">0</span>,
-      <span class="str">"serviceCode"</span>:  <span class="str">""</span>,
-      <span class="str">"quantity"</span>:     <span class="num">1</span>,
-      <span class="str">"price"</span>:        <span class="num">999.0</span>,
-      <span class="str">"discount"</span>:     <span class="num">100.0</span>,
-      <span class="str">"total"</span>:        <span class="num">899.0</span>,
-      <span class="str">"buyNow"</span>:       <span class="lit">false</span>,
-      <span class="str">"payAsGuest"</span>:   <span class="lit">true</span>,
-      <span class="str">"billingCycle"</span>: <span class="str">"monthly"</span>,
-      <span class="str">"subscription"</span>: <span class="lit">true</span>,
-      <span class="str">"pageLink"</span>:     <span class="str">"https://vidyaone.com/plans/pro"</span>,
-      <span class="str">"guestId"</span>:      <span class="str">"guest_a1b2c3d4"</span>,
-      <span class="str">"userId"</span>:       <span class="num">0</span>
-    <span class="kw">}</span>
-  <span class="kw">]</span>
-<span class="kw">}</span></code></pre>
-
-    <div class="status s200" style="margin-top:22px;">200 OK — empty cart</div>
-    <pre><code><span class="kw">{</span> <span class="str">"success"</span>: <span class="lit">true</span>, <span class="str">"message"</span>: <span class="str">""</span>, <span class="str">"errors"</span>: <span class="lit">null</span>, <span class="str">"data"</span>: <span class="kw">[]</span> <span class="kw">}</span></code></pre>
-
-    <div class="status s400" style="margin-top:22px;">400 Bad Request</div>
-    <pre><code><span class="kw">{</span>
-  <span class="str">"success"</span>: <span class="lit">false</span>,
-  <span class="str">"message"</span>: <span class="str">"Provide at least one of query parameters 'guest_id' or 'user_id'"</span>,
-  <span class="str">"errors"</span>:  <span class="lit">null</span>,
-  <span class="str">"data"</span>:    <span class="kw">[]</span>
-<span class="kw">}</span></code></pre>
-    <p class="lead">Returned for any <code>guest_id</code> / <code>user_id</code> validation failure (see §05); <code>message</code> carries the specific reason.</p>
-
-    <div class="status s500" style="margin-top:22px;">500 Internal Server Error</div>
-    <pre><code><span class="kw">{</span>
-  <span class="str">"success"</span>: <span class="lit">false</span>,
-  <span class="str">"message"</span>: <span class="str">"Internal server error"</span>,
-  <span class="str">"errors"</span>:  <span class="lit">null</span>,
-  <span class="str">"data"</span>:    <span class="kw">[]</span>
-<span class="kw">}</span></code></pre>
-    <p class="lead">
-      Returned only for an unexpected exception (DynamoDB outage, missing IAM permission — the
-      role needs both <code>dynamodb:Query</code> and <code>dynamodb:Scan</code> — bad table
-      config, etc.). The specific cause is logged in CloudWatch with an actionable hint — never
-      leaked to the caller.
-    </p>
-
-    <h3>CORS headers</h3>
-    <p class="lead" style="margin-top:0;">
-      Applied to every response (200/400/500/204) when the request's <code>Origin</code> header
-      is <code>https://vidyaone.com</code> or any <code>https://*.vidyaone.com</code> subdomain —
-      <code>http</code> and unrecognized origins get no CORS headers at all, so a browser blocks
-      the page from reading the response. Non-browser callers (no <code>Origin</code> header) are
-      unaffected — the response body is still returned normally.
-    </p>
-    <ul class="err-list">
-      <li><code>Access-Control-Allow-Origin</code> — reflected request origin (only if allowed)</li>
-      <li><code>Access-Control-Allow-Methods: GET,OPTIONS</code></li>
-      <li><code>Access-Control-Allow-Headers: Content-Type</code></li>
-      <li><code>X-Content-Type-Options: nosniff</code>, <code>X-Frame-Options: DENY</code>, <code>Strict-Transport-Security</code>, <code>Cache-Control: no-store, no-cache, must-revalidate</code> — always present, regardless of origin</li>
+    <h3>Response</h3>
+    <p><strong class="s2xx">200</strong> — item found and deleted:</p>
+    <pre><code>{
+  "success": true,
+  "message": "Item deleted",
+  "errors": null,
+  "data": { "itemId": "a1b2c3d4-5e6f-4a1b-9c3d-7f8e9a0b1c2d" }
+}</code></pre>
+    <p><strong class="s4xx">404</strong> — no item matched <code>item_id</code> for the given <code>guest_id</code>/<code>user_id</code> (never existed, already deleted, or belongs to a different guest/user):</p>
+    <pre><code>{ "success": false, "message": "Item not found", "errors": null, "data": [] }</code></pre>
+    <p><strong class="s4xx">400</strong> — one of:</p>
+    <ul>
+      <li><code>Query parameter 'item_id' is required</code></li>
+      <li><code>Query parameter 'item_id' must not be blank</code></li>
+      <li><code>Query parameter 'item_id' contains invalid characters</code></li>
+      <li><code>Provide at least one of query parameters 'guest_id' or 'user_id'</code></li>
+      <li><code>Query parameter 'guest_id' must not be blank</code></li>
+      <li><code>Query parameter 'guest_id' contains invalid characters</code></li>
+      <li><code>Query parameter 'user_id' must not be blank</code></li>
+      <li><code>Query parameter 'user_id' must be a positive integer</code></li>
     </ul>
-  </section>
+    <p><strong class="s5xx">500</strong> — <code>Internal server error</code> (see Status summary above).</p>
+  </details>
 
-  <section id="flow">
-    <h2><span class="idx">08</span> Request flow</h2>
-    <div class="flow"><span class="step">Request → lambda_handler</span>
-  │
-  ├─ method == OPTIONS? → <span class="final">204</span>, no processing
-  │
-  └─ GET → EventParser.parse(event)
-       │
-       ├─ <span class="gate">guest_id</span>   if present: non-blank + ^[A-Za-z0-9_-]{1,100}$, else 400
-       ├─ <span class="gate">user_id</span>    if present: non-blank + ^[0-9]{1,20}$ + &gt; 0, else 400
-       ├─ <span class="gate">at least one</span> of guest_id / user_id present, else 400
-       │
-       └─ DbHelper.get_items(guest_id, user_id)
-            │
-            ├─ guest_id → Query   pk = GUEST#&lt;guest_id&gt;
-            ├─ user_id  → <span class="gate">Scan</span>  FilterExpression userId = &lt;n&gt;   (no GSI — full-table scan, logged [WARN])
-            ├─ ProjectionExpression   original-payload fields + sk (sk used only for de-dup)
-            ├─ paginate each read via LastEvaluatedKey, <span class="gate">each capped at MAX_ITEMS_PER_GUEST (1000)</span>
-            ├─ merge both result sets, <span class="gate">de-dupe on sk</span> (guest_id copy wins), re-cap at 1000
-            ├─ strip sk; Decimal → float/int  (price/discount/total always float)
-            ├─ merge item defaults for any attribute missing on a legacy record
-            │
-            └─ <span class="final">200</span> { success: true, message: "", errors: null, data: [...items] }</div>
-    <p class="lead" style="margin-top:14px;">
-      Any exception raised while building the DB client or running the query — not just the
-      query itself — is caught by the same handler and mapped to a <code>500</code>, so an
-      infrastructure failure never produces an unhandled/malformed response.
-    </p>
-  </section>
+</section>
 
 </main>
-
-<footer>vone-cart-get-lambda · ap-south-1 · internal developer reference, not for external distribution</footer>
-
 </body>
 </html>

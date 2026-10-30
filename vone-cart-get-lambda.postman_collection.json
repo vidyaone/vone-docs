@@ -1,0 +1,52 @@
+{
+  "info": {
+    "name": "vone-cart-get-lambda",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://api.vidyaone.com", "description": "Testing base URL — provided directly, not read from config.py (this Lambda has no knowledge of its own API Gateway invoke URL)." }
+  ],
+  "item": [
+    {
+      "name": "Cart",
+      "item": [
+        {
+          "name": "GET /website/cart",
+          "request": {
+            "method": "GET",
+            "description": "Returns every cart item saved for guest_id and/or user_id. Each item in the response's data array includes an itemId field (string) identifying it — pass that value as the item_id query param on DELETE /website/cart to remove it.",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/website/cart?guest_id=guest_a1b2c3d4&user_id=4071",
+              "host": ["{{baseUrl}}"],
+              "path": ["website", "cart"],
+              "query": [
+                { "key": "guest_id", "value": "guest_a1b2c3d4", "description": "conditional, string, 1-100 chars, ^[A-Za-z0-9_-]+$ — required unless user_id is given" },
+                { "key": "user_id", "value": "4071", "description": "conditional, integer as string, 1-20 digits, > 0 — required unless guest_id is given" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /website/cart",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/website/cart?item_id=a1b2c3d4-5e6f-4a1b-9c3d-7f8e9a0b1c2d&guest_id=guest_a1b2c3d4&user_id=4071",
+              "host": ["{{baseUrl}}"],
+              "path": ["website", "cart"],
+              "query": [
+                { "key": "item_id", "value": "a1b2c3d4-5e6f-4a1b-9c3d-7f8e9a0b1c2d", "description": "required, string, 1-100 chars, ^[A-Za-z0-9_-]+$" },
+                { "key": "guest_id", "value": "guest_a1b2c3d4", "description": "conditional, string, 1-100 chars, ^[A-Za-z0-9_-]+$ — required unless user_id is given" },
+                { "key": "user_id", "value": "4071", "description": "conditional, integer as string, 1-20 digits, > 0 — required unless guest_id is given" }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
