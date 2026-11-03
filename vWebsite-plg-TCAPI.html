@@ -89,12 +89,18 @@
       <li><a href="#tc-delete"><code>DELETE /tc</code></a></li>
     </ul>
   </div>
+  <div class="menu">
+    <a href="#template">Template</a>
+    <ul class="submenu">
+      <li><a href="#template-verify"><code>POST /template/verify</code></a></li>
+    </ul>
+  </div>
   <a class="download" href="vWebsite-plg-TCAPI.postman_collection.json" download>&#8595; Postman collection</a>
 </nav>
 
 <main>
 <h1>vWebsite-plg-TCAPI — Developer Guide</h1>
-<p class="small">Documents the <strong>TC</strong> (Transfer Certificate) resource.</p>
+<p class="small">Documents the <strong>TC</strong> (Transfer Certificate) and <strong>Template</strong> resources.</p>
 
 <section id="postman-setup">
 <h2>Postman setup guide</h2>
@@ -123,14 +129,14 @@
 <h2>Common request &amp; response rules</h2>
 
 <h4>Authentication</h4>
-<p>Authentication required on every route documented in this guide.</p>
+<p>Authentication required on every route documented in this guide, except <a href="#template-verify"><code>POST /template/verify</code></a>, which requires no authentication.</p>
 
 <h4>Headers required on every request</h4>
 <table>
   <thead><tr><th>Header</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>Content-Type: application/json</code></td><td class="req">writes only</td><td>Required on any request that carries a body.</td></tr>
-    <tr><td><code>Idempotency-Key</code></td><td class="req">mutating requests</td><td>A UUID the caller generates per request. Required on every <code>POST</code> / <code>PUT</code> / <code>DELETE</code> below. See the Idempotency line under each endpoint for what happens if you resend the same key/body.</td></tr>
+    <tr><td><code>Content-Type: application/json</code></td><td class="req">writes only</td><td>Required on any request that carries a body, including <a href="#template-verify"><code>POST /template/verify</code></a>.</td></tr>
+    <tr><td><code>Idempotency-Key</code></td><td class="req">mutating requests</td><td>A UUID the caller generates per request. Required on every <code>POST</code> / <code>PUT</code> / <code>DELETE</code> below that writes data. See the Idempotency line under each endpoint for what happens if you resend the same key/body. Not required on <a href="#template-verify"><code>POST /template/verify</code></a>, which performs no write.</td></tr>
   </tbody>
 </table>
 
@@ -138,7 +144,7 @@
 <table>
   <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>product</code></td><td>string</td><td class="req">yes</td><td>Calling client-app identifier, e.g. <code>scl-website</code>. Required on every route below.</td></tr>
+    <tr><td><code>product</code></td><td>string</td><td class="req">yes</td><td>Calling client-app identifier, e.g. <code>scl-website</code>. Required on every route below except <a href="#template-verify"><code>POST /template/verify</code></a>, which takes no query parameters.</td></tr>
   </tbody>
 </table>
 
@@ -676,6 +682,69 @@
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and the same <code>tcIds</code> again returns <span class="status-ok">200 OK</span> with every id now reported <code>success: false</code> (already deleted).</p>
+
+</details>
+</section>
+
+<section id="template">
+<h2>Template</h2>
+<p>This route requires no authentication and no <code>product</code> query parameter.</p>
+
+<!-- ========================= Verify TC ========================= -->
+<details id="template-verify">
+<summary><span class="method">POST</span> <code>/template/verify</code></summary>
+<p>Verifies a TC by domain plus date of birth plus <code>regNo</code>/<code>srNo</code> (either). Not matching anything is a normal result, not an error.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/plugin/template/verify</code></td></tr>
+    <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/plugin/template/verify</code></td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request body</h4>
+<pre><code>{
+  "domain": "myschool.edusite.in",   // required, string &mdash; matched against the subdomain when it contains "edusite.in", otherwise against the custom domain name
+  "regNo": "REG-2026-0042",          // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
+  "srNo": "SR-1123",                 // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
+  "dob": "2015-04-12T00:00:00Z"      // required, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; any other offset fails validation
+}</code></pre>
+<p class="small"><code>regNo</code>/<code>srNo</code> is a single either/or requirement — sending one without the other is valid; sending both requires only one of them to match (not both).</p>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<p><strong>Match found</strong>:</p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "tcId": 301,
+    "studentName": "Asha Mehta",
+    "regNo": "REG-2026-0042",
+    "srNo": "SR-1123",
+    "dob": "2015-04-12T00:00:00+00:00",
+    "fatherName": "Raj Mehta",
+    "className": "8",
+    "sectionName": "B",
+    "fileSrc": "tc-asha-mehta.pdf",
+    "imageSrc": "asha-mehta.jpg",
+    "instSaaSId": 321,
+    "creatorUserId": 42,
+    "audit": { "isActive": true, "inactiveAt": null, "createdAt": "2026-10-10T08:00:00+00:00", "updatedAt": "2026-10-10T08:00:00+00:00" }
+  }
+}</code></pre>
+<p><strong>No match</strong> (still <span class="status-ok">200 OK</span>, not an error):</p>
+<pre><code>{ "success": false, "message": "Tc not found.", "errors": null, "data": null }</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>domain</code> missing, <code>dob</code> missing or not UTC (offset <code>+00:00</code>), neither <code>regNo</code> nor <code>srNo</code> given, or either exceeds 50 characters, or the body is missing / invalid.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency.</strong> This route performs no write — sending the same request again returns the same result (match or no match) each time; no <code>Idempotency-Key</code> is required.</p>
 
 </details>
 </section>

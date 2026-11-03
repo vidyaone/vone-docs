@@ -158,6 +158,29 @@
           }
         }
       ]
+    },
+    {
+      "name": "Template",
+      "item": [
+        {
+          "name": "POST /template/verify",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}template/verify",
+              "host": ["{{baseUrl}}template", "verify"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"domain\": \"myschool.edusite.in\",\n  \"regNo\": \"REG-2026-0042\",\n  \"srNo\": \"SR-1123\",\n  \"dob\": \"2015-04-12T00:00:00Z\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        }
+      ]
     }
   ]
 }
