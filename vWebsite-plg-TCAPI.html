@@ -706,7 +706,7 @@
 
 <h4>Sample request body</h4>
 <pre><code>{
-  "domain": "myschool.edusite.in",   // required, string &mdash; matched against the subdomain when it contains "edusite.in", otherwise against the custom domain name
+  "domain": "myschool.edusite.in",   // required, string &mdash; the institution's edusite.in subdomain (e.g. "vishal.edusite.in") or custom domain (e.g. "domain.com"); optional http(s):// scheme and www. prefix
   "regNo": "REG-2026-0042",          // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
   "srNo": "SR-1123",                 // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
   "dob": "2015-04-12T00:00:00Z"      // required, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; any other offset fails validation
@@ -741,7 +741,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>domain</code> missing, <code>dob</code> missing or not UTC (offset <code>+00:00</code>), neither <code>regNo</code> nor <code>srNo</code> given, or either exceeds 50 characters, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>domain</code> missing, not a valid hostname (e.g. contains a port, path, query string, or an unrecognized scheme), a bare <code>edusite.in</code>/<code>www.edusite.in</code> with no subdomain label, <code>dob</code> missing or not UTC (offset <code>+00:00</code>), neither <code>regNo</code> nor <code>srNo</code> given, or either exceeds 50 characters, or the body is missing / invalid.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> This route performs no write — sending the same request again returns the same result (match or no match) each time; no <code>Idempotency-Key</code> is required.</p>
