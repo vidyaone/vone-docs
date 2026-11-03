@@ -10,6 +10,11 @@
       "description": "Testing environment. Source: appsettings.Testing.json → App:BaseUrl"
     },
     {
+      "key": "templateBaseUrl",
+      "value": "https://api-vweb.vidyaone.com/template/",
+      "description": "Source: appsettings.Testing.json → App:TemplateBaseUrl (same value in appsettings.json for Production)"
+    },
+    {
       "key": "product",
       "value": "scl-website",
       "description": "Calling client-app identifier (used consistently in this project's dev guide samples; not sourced from a TCAPI config key — confirm if this should be a different value)"
@@ -163,13 +168,13 @@
       "name": "Template",
       "item": [
         {
-          "name": "GET /tc/template/verify",
+          "name": "GET /tc/verify",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}tc/template/verify?domain=myschool.edusite.in&regNo=REG-2026-0042&srNo=SR-1123&dob=2015-04-12T00:00:00Z",
-              "host": ["{{baseUrl}}tc", "template", "verify"],
+              "raw": "{{templateBaseUrl}}tc/verify?domain=myschool.edusite.in&regNo=REG-2026-0042&srNo=SR-1123&dob=2015-04-12T00:00:00Z",
+              "host": ["{{templateBaseUrl}}tc", "verify"],
               "query": [
                 { "key": "domain", "value": "myschool.edusite.in" },
                 { "key": "regNo", "value": "REG-2026-0042" },
