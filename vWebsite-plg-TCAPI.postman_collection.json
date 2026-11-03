@@ -163,20 +163,19 @@
       "name": "Template",
       "item": [
         {
-          "name": "POST /template/verify",
+          "name": "GET /tc/template/verify",
           "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "method": "GET",
+            "header": [],
             "url": {
-              "raw": "{{baseUrl}}template/verify",
-              "host": ["{{baseUrl}}template", "verify"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"domain\": \"myschool.edusite.in\",\n  \"regNo\": \"REG-2026-0042\",\n  \"srNo\": \"SR-1123\",\n  \"dob\": \"2015-04-12T00:00:00Z\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{{baseUrl}}tc/template/verify?domain=myschool.edusite.in&regNo=REG-2026-0042&srNo=SR-1123&dob=2015-04-12T00:00:00Z",
+              "host": ["{{baseUrl}}tc", "template", "verify"],
+              "query": [
+                { "key": "domain", "value": "myschool.edusite.in" },
+                { "key": "regNo", "value": "REG-2026-0042" },
+                { "key": "srNo", "value": "SR-1123" },
+                { "key": "dob", "value": "2015-04-12T00:00:00Z" }
+              ]
             }
           }
         }

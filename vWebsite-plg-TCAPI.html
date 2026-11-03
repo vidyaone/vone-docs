@@ -92,7 +92,7 @@
   <div class="menu">
     <a href="#template">Template</a>
     <ul class="submenu">
-      <li><a href="#template-verify"><code>POST /template/verify</code></a></li>
+      <li><a href="#template-verify"><code>GET /tc/template/verify</code></a></li>
     </ul>
   </div>
   <a class="download" href="vWebsite-plg-TCAPI.postman_collection.json" download>&#8595; Postman collection</a>
@@ -129,14 +129,14 @@
 <h2>Common request &amp; response rules</h2>
 
 <h4>Authentication</h4>
-<p>Authentication required on every route documented in this guide, except <a href="#template-verify"><code>POST /template/verify</code></a>, which requires no authentication.</p>
+<p>Authentication required on every route documented in this guide, except <a href="#template-verify"><code>GET /tc/template/verify</code></a>, which requires no authentication.</p>
 
 <h4>Headers required on every request</h4>
 <table>
   <thead><tr><th>Header</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>Content-Type: application/json</code></td><td class="req">writes only</td><td>Required on any request that carries a body, including <a href="#template-verify"><code>POST /template/verify</code></a>.</td></tr>
-    <tr><td><code>Idempotency-Key</code></td><td class="req">mutating requests</td><td>A UUID the caller generates per request. Required on every <code>POST</code> / <code>PUT</code> / <code>DELETE</code> below that writes data. See the Idempotency line under each endpoint for what happens if you resend the same key/body. Not required on <a href="#template-verify"><code>POST /template/verify</code></a>, which performs no write.</td></tr>
+    <tr><td><code>Content-Type: application/json</code></td><td class="req">writes only</td><td>Required on any request that carries a body.</td></tr>
+    <tr><td><code>Idempotency-Key</code></td><td class="req">mutating requests</td><td>A UUID the caller generates per request. Required on every <code>POST</code> / <code>PUT</code> / <code>DELETE</code> below that writes data. See the Idempotency line under each endpoint for what happens if you resend the same key/body. Not required on <a href="#template-verify"><code>GET /tc/template/verify</code></a>, which performs no write.</td></tr>
   </tbody>
 </table>
 
@@ -144,7 +144,7 @@
 <table>
   <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>product</code></td><td>string</td><td class="req">yes</td><td>Calling client-app identifier, e.g. <code>scl-website</code>. Required on every route below except <a href="#template-verify"><code>POST /template/verify</code></a>, which takes no query parameters.</td></tr>
+    <tr><td><code>product</code></td><td>string</td><td class="req">yes</td><td>Calling client-app identifier, e.g. <code>scl-website</code>. Required on every route below except <a href="#template-verify"><code>GET /tc/template/verify</code></a>, which takes no <code>product</code> parameter.</td></tr>
   </tbody>
 </table>
 
@@ -692,25 +692,24 @@
 
 <!-- ========================= Verify TC ========================= -->
 <details id="template-verify">
-<summary><span class="method">POST</span> <code>/template/verify</code></summary>
+<summary><span class="method">GET</span> <code>/tc/template/verify</code></summary>
 <p>Verifies a TC by domain plus date of birth plus <code>regNo</code>/<code>srNo</code> (either). Not matching anything is a normal result, not an error.</p>
 
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/plugin/template/verify</code></td></tr>
-    <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/plugin/template/verify</code></td></tr>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/tc/template/verify</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/tc/template/verify</code></td></tr>
   </tbody>
 </table>
 
-<h4>Sample request body</h4>
-<pre><code>{
-  "domain": "myschool.edusite.in",   // required, string &mdash; the institution's edusite.in subdomain (e.g. "vishal.edusite.in") or custom domain (e.g. "domain.com"); optional http(s):// scheme and www. prefix
-  "regNo": "REG-2026-0042",          // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
-  "srNo": "SR-1123",                 // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
-  "dob": "2015-04-12T00:00:00Z"      // required, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; any other offset fails validation
-}</code></pre>
+<h4>Sample request</h4>
+<pre><code>GET /tc/template/verify?domain=myschool.edusite.in&amp;regNo=REG-2026-0042&amp;srNo=SR-1123&amp;dob=2015-04-12T00:00:00Z
+    domain=myschool.edusite.in   // required, string &mdash; the institution's edusite.in subdomain (e.g. "vishal.edusite.in") or custom domain (e.g. "domain.com"); optional http(s):// scheme and www. prefix
+    regNo=REG-2026-0042          // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
+    srNo=SR-1123                 // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
+    dob=2015-04-12T00:00:00Z     // required, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; any other offset fails validation</code></pre>
 <p class="small"><code>regNo</code>/<code>srNo</code> is a single either/or requirement — sending one without the other is valid; sending both requires only one of them to match (not both).</p>
 
 <h4>Response</h4>
