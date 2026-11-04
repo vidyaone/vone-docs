@@ -217,6 +217,7 @@
     <pre><code>GET /website/cart?guest_id=guest_a1b2c3d4   // conditional, string, 1-100 chars, ^[A-Za-z0-9_-]+$ — required unless user_id is given
     &amp;user_id=4071                            // conditional, integer as string, 1-20 digits, &gt; 0 — required unless guest_id is given</code></pre>
     <p>Supplying both merges the two lookups and de-duplicates the result (the <code>guest_id</code> copy of a match wins). Supplying either alone is equally valid.</p>
+    <p>An item is left out of the result entirely once its checkout has moved past the cart stage — there is no field or flag in the response marking this; it simply isn't returned.</p>
 
     <h3>Response</h3>
     <p><strong class="s2xx">200</strong> — items returned newest-first, sorted by <code>savedAt</code> descending:</p>
@@ -283,7 +284,7 @@
         <tr><td><code>itemCode</code></td><td>string</td><td>""</td></tr>
       </tbody>
     </table>
-    <p><strong class="s2xx">200</strong> — empty cart (no error; a never-used or fully-emptied <code>guest_id</code>/<code>user_id</code> is not distinguishable, and isn't treated as one):</p>
+    <p><strong class="s2xx">200</strong> — empty cart (no error; a never-used <code>guest_id</code>/<code>user_id</code>, a fully-emptied one, and one whose remaining items were all left out per the note above are not distinguishable from each other, and none is treated as an error):</p>
     <pre><code>{ "success": true, "message": "", "errors": null, "data": [] }</code></pre>
     <p><strong class="s4xx">400</strong> — one of:</p>
     <ul>
