@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vone-cart-payasguest-lambda — Developer Guide</title>
+<style>
+  :root {
+    --bg:     #fafafa;
+    --text:   #1a1a1a;
+    --dim:    #5b5b5b;
+    --accent: #2563eb;
+    --ok:     #15803d;
+    --err:    #b91c1c;
+    --border: #d9d9d9;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+  h1 { font-size: 1.6rem; margin: 28px 0 4px; }
+  h2 { font-size: 1.2rem; margin: 0 0 8px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  h3 { font-size: 1rem; margin: 20px 0 6px; }
+  section { margin: 40px 0; }
+  p { margin: 8px 0; }
+  code {
+    font-family: var(--mono);
+    font-size: 0.9em;
+    background: none;
+    padding: 0;
+  }
+  pre {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    background: #f1f1f1;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    line-height: 1.55;
+  }
+  pre code { background: none; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.9rem; max-width: 100%; overflow-x: auto; display: block; }
+  table thead, table tbody { display: table; width: 100%; table-layout: fixed; }
+  th, td { text-align: left; padding: 7px 10px; border: 1px solid var(--border); vertical-align: top; }
+  th { font-weight: 700; }
+  .req  { color: var(--accent); font-weight: 600; }
+  .cond { color: var(--accent); font-weight: 600; }
+  .opt  { color: var(--dim); }
+  .s2xx { color: var(--ok); font-weight: 700; }
+  .s4xx, .s5xx { color: var(--err); font-weight: 700; }
+  .comment { color: var(--dim); }
+  details {
+    margin: 0;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  details:last-of-type { border-bottom: none; }
+  summary {
+    font-weight: 700;
+    color: var(--accent);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 1rem;
+    list-style: revert;
+  }
+  details > *:not(summary) { margin-top: 12px; }
+  nav.top {
+    position: sticky; top: 0;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 16px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 24px;
+    z-index: 10;
+  }
+  nav.top a { color: var(--text); text-decoration: none; font-size: 0.9rem; }
+  nav.top a:hover { color: var(--accent); }
+  nav.top .title { font-weight: 700; margin-right: 8px; }
+  nav.top .spacer { flex: 1 1 auto; }
+  nav.top .download { font-weight: 700; color: var(--accent); }
+  .menu {
+    position: relative;
+    padding-bottom: 10px;
+    margin-bottom: -10px;
+  }
+  .menu > a { display: inline-block; }
+  .submenu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin: 0;
+    padding: 6px 0;
+    list-style: none;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    min-width: 200px;
+  }
+  .menu:hover .submenu, .menu:focus-within .submenu { display: block; }
+  .submenu li { padding: 0; }
+  .submenu a { display: block; padding: 6px 14px; font-family: var(--mono); font-size: 0.82rem; white-space: nowrap; }
+  .submenu a:hover { background: #f0f0f0; }
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <span class="title">vone-cart-payasguest-lambda</span>
+  <a href="https://vidyaone.github.io/vone-docs/">Home</a>
+  <a href="#postman">Postman setup</a>
+  <a href="#base-urls">Base URLs</a>
+  <a href="#common">Common rules</a>
+  <div class="menu">
+    <a href="#cart">Cart</a>
+    <ul class="submenu">
+      <li><a href="#get-payasguest">GET /website/cart/payasguest</a></li>
+      <li><a href="#post-payasguest">POST /website/cart/payasguest</a></li>
+    </ul>
+  </div>
+  <span class="spacer"></span>
+  <a class="download" href="vone-cart-payasguest-lambda.postman_collection.json" download>Download Postman collection</a>
+</nav>
+
+<main>
+
+<h1>vone-cart-payasguest-lambda</h1>
+<p>Returns a guest's pay-as-guest cart summary and totals, and records a Razorpay payment for that guest.</p>
+
+<section id="postman">
+  <h2>Postman setup</h2>
+  <ol>
+    <li>Use Postman for web (<a href="https://web.postman.co">web.postman.co</a>), not the desktop app.</li>
+    <li>Install the <a href="https://chromewebstore.google.com/detail/postman-interceptor/aicmkgpgakddgnaphhhpliifpcfhicfo">Postman Interceptor</a> Chrome extension — it lets Postman's web app read cookies from your Chrome session.</li>
+    <li>Enable Interceptor, then log into the product normally in Chrome. Once logged in, your session is available to Postman automatically — no auth header or cookie to set by hand.</li>
+    <li>Download the collection from the link in the navbar above and import it into Postman, then send requests — it's pre-configured for Testing.</li>
+  </ol>
+</section>
+
+<section id="base-urls">
+  <h2>Base URLs</h2>
+  <table>
+    <thead><tr><th>Environment</th><th>Base URL</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td>Testing</td><td><code>https://api.vidyaone.com</code></td><td>Provided directly — not read from <code>config.py</code> (this Lambda has no knowledge of its own API Gateway invoke URL)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="common">
+  <h2>Common rules</h2>
+
+  <h3>Headers</h3>
+  <p><code>GET /website/cart/payasguest</code> takes no request body, so no <code>Content-Type</code> is needed. <code>POST /website/cart/payasguest</code> requires <code>Content-Type: application/json</code>.</p>
+  <p><strong>No <code>Idempotency-Key</code> header is read on either route.</strong> Repeating the same <code>POST</code> body (same <code>payment_transaction_id</code>) does not return a conflict — it silently overwrites the previously saved record for that <code>guest_id</code>/<code>payment_transaction_id</code> pair with the new body.</p>
+  <p><strong>No authentication is required on either route</strong> — both are reachable by anyone who supplies a valid <code>guest_id</code>.</p>
+
+  <h3>Response envelope</h3>
+  <p>Every response (except the <strong class="s2xx">204</strong> OPTIONS preflight) is shaped:</p>
+  <pre><code>{ "success": bool, "message": string, "errors": null, "data": {} }</code></pre>
+  <p>Success example:</p>
+  <pre><code>{ "success": true, "message": "", "errors": null, "data": { } }</code></pre>
+  <p>Error example:</p>
+  <pre><code>{ "success": false, "message": "Query parameter 'guest_id' is required", "errors": null, "data": {} }</code></pre>
+  <p>There is no <code>code</code> field in this project — only HTTP status and a human-readable <code>message</code>. <code>errors</code> is always <code>null</code>. <code>data</code> is always an object: on <code>GET</code> success it's the summary/totals object; on <code>POST</code> success it's the exact body that was sent, echoed back unchanged; on any error from either route it's <code>{}</code>.</p>
+
+  <h3>Status summary</h3>
+  <table>
+    <thead><tr><th>Status</th><th>Route(s)</th><th>Condition</th></tr></thead>
+    <tbody>
+      <tr><td><span class="s2xx">204</span></td><td>any</td><td>OPTIONS preflight — returned immediately, no processing, no body.</td></tr>
+      <tr><td><span class="s2xx">200</span></td><td><code>GET</code></td><td>At least one pay-as-guest item is awaiting payment for the given <code>guest_id</code>.</td></tr>
+      <tr><td><span class="s2xx">200</span></td><td><code>POST</code></td><td>The payment record was saved.</td></tr>
+      <tr><td><span class="s4xx">400</span></td><td>any</td><td>Request input missing/malformed — see each route's Request section.</td></tr>
+      <tr><td><span class="s4xx">404</span></td><td><code>GET</code></td><td>No pay-as-guest item is currently awaiting payment for the given <code>guest_id</code>.</td></tr>
+      <tr><td><span class="s4xx">405</span></td><td>any</td><td>Method other than <code>GET</code>, <code>POST</code>, or <code>OPTIONS</code>.</td></tr>
+      <tr><td><span class="s5xx">500</span></td><td>any</td><td>Unexpected error (DynamoDB outage, missing IAM permission, bad table config, etc.). The real cause is logged server-side only — the response never leaks it.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>CORS</h3>
+  <p>Applied only when the request's <code>Origin</code> header is <code>https://vidyaone.com</code> or any <code>https://*.vidyaone.com</code> subdomain — plain <code>http</code> and unrecognized origins get no CORS headers, so a browser blocks the page from reading the response (non-browser callers are unaffected; the body is still returned). <code>Access-Control-Allow-Methods: GET,POST,OPTIONS</code>. An <code>OPTIONS</code> request always gets an immediate <strong class="s2xx">204</strong> with no body, before any input validation runs.</p>
+</section>
+
+<section id="cart">
+  <h2>Cart</h2>
+
+  <details id="get-payasguest">
+    <summary>GET /website/cart/payasguest</summary>
+    <p>Returns a summarized line list plus aggregated totals for every pay-as-guest cart item currently awaiting payment for <code>guest_id</code>.</p>
+
+    <h3>Request</h3>
+    <p>Testing URL: <code>https://api.vidyaone.com/website/cart/payasguest</code></p>
+    <p>No headers required.</p>
+    <table>
+      <thead><tr><th>Parameter</th><th>Type</th><th>Requirement</th><th>Rule</th></tr></thead>
+      <tbody>
+        <tr><td><code>guest_id</code></td><td>string</td><td><span class="req">required</span></td><td>Non-blank after trim, 1–100 chars, <code>^[A-Za-z0-9_-]+$</code> only.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Sample request</h3>
+    <pre><code>GET /website/cart/payasguest?guest_id=guest_a1b2c3d4   // required, string, 1-100 chars, ^[A-Za-z0-9_-]+$</code></pre>
+    <p>An item keeps appearing in this response on every call, including ones where it already appeared before, until a <code>POST /website/cart/payasguest</code> call records a payment that covers it — after that, it stops appearing here.</p>
+
+    <h3>Response</h3>
+    <p><strong class="s2xx">200</strong>:</p>
+    <pre><code>{
+  "success": true,
+  "message": "",
+  "errors": null,
+  "data": {
+    "guestId": "guest_a1b2c3d4",
+    "prodSummery": "1. Pro Plan-Pro - Monthly VidyaOne Pro Plan 999.00\n2. School Website-Premium Support Starter Pack 4999.00",
+    "totalAmt": 5998.00,
+    "totalDis": 600.00,
+    "netPayable": 5398.00
+  }
+}</code></pre>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>guestId</code></td><td>string</td><td>Echoes the <code>guest_id</code> query parameter.</td></tr>
+        <tr><td><code>prodSummery</code></td><td>string</td><td>One line per item, newline-separated, formatted <code>&lt;position&gt;. &lt;productName&gt;-&lt;planName&gt; &lt;itemName&gt; &lt;price&gt;</code> (price with 2 decimals).</td></tr>
+        <tr><td><code>totalAmt</code></td><td>number</td><td>Sum of every item's <code>price</code>, rounded to 2 decimals.</td></tr>
+        <tr><td><code>totalDis</code></td><td>number</td><td>Sum of every item's <code>discount</code>, rounded to 2 decimals.</td></tr>
+        <tr><td><code>netPayable</code></td><td>number</td><td><code>totalAmt - totalDis</code>, rounded to 2 decimals.</td></tr>
+      </tbody>
+    </table>
+    <p><strong class="s4xx">404</strong> — no pay-as-guest item is currently awaiting payment for <code>guest_id</code> (never added one, already paid for all of them, or none are flagged pay-as-guest):</p>
+    <pre><code>{ "success": false, "message": "No pay-as-guest cart items found for this guest", "errors": null, "data": {} }</code></pre>
+    <p><strong class="s4xx">400</strong> — one of:</p>
+    <ul>
+      <li><code>Query parameter 'guest_id' is required</code></li>
+      <li><code>Query parameter 'guest_id' must not be blank</code></li>
+      <li><code>Query parameter 'guest_id' contains invalid characters</code></li>
+    </ul>
+    <p><strong class="s5xx">500</strong> — <code>Internal server error</code> (see Status summary above).</p>
+  </details>
+
+  <details id="post-payasguest">
+    <summary>POST /website/cart/payasguest</summary>
+    <p>Records a Razorpay payment for a guest. When the body includes both <code>guest_id</code> and <code>payment_transaction_id</code>, every pay-as-guest item this <code>guest_id</code> currently has awaiting payment (per <code>GET /website/cart/payasguest</code> above) is marked paid immediately after this call succeeds, stamped with <code>payment_transaction_id</code> — a subsequent <code>GET</code> no longer returns those items.</p>
+
+    <h3>Request</h3>
+    <p>Testing URL: <code>https://api.vidyaone.com/website/cart/payasguest</code></p>
+    <p>Headers: <code>Content-Type: application/json</code>.</p>
+    <p>No field in the body is enforced by the server — any JSON object is accepted and saved as-is. <code>guest_id</code> and <code>payment_transaction_id</code> are the only two fields that have any effect beyond being stored: both must be present and non-blank for the paid-item update described above to run.</p>
+
+    <h3>Sample request</h3>
+    <pre><code>{
+  "school_name": "This is a test submission",       // optional, string — stored as-is
+  "email_id": "richardjohnson@zylker.com",           // optional, string — stored as-is
+  "mobile_no": "xxxxxxxxxx",                          // optional, string — stored as-is
+  "payment_amount": "50.00",                          // optional, string — stored as-is, not verified against the cart total
+  "payment_status": "Completed",                      // optional, string — stored as-is; its value has no effect on whether items are marked paid
+  "payment_transaction_id": "xxxxxxxxxx",             // conditional, string — combined with guest_id, drives the paid-item update
+  "time": "10.00 AM",                                 // optional, string — stored as-is
+  "guest_id": "This is a test submission",            // conditional, string — combined with payment_transaction_id, drives the paid-item update
+  "saas_code": "This is a test submission",           // optional, string — stored as-is
+  "institute_address": "This is a test submission",  // optional, string — stored as-is
+  "total_amount": "0.12",                              // optional, string — stored as-is
+  "total_discount": "0.12",                            // optional, string — stored as-is
+  "net_payable": "100",                                 // optional, string — stored as-is
+  "payment_currency": "USD",                            // optional, string — stored as-is
+  "ip_address": "xxx.xxx.xxx.xxx"                        // optional, string — stored as-is
+}</code></pre>
+
+    <h3>Response</h3>
+    <p><strong class="s2xx">200</strong> — <code>data</code> is exactly the request body, unchanged:</p>
+    <pre><code>{
+  "success": true,
+  "message": "",
+  "errors": null,
+  "data": {
+    "school_name": "This is a test submission",
+    "email_id": "richardjohnson@zylker.com",
+    "mobile_no": "xxxxxxxxxx",
+    "payment_amount": "50.00",
+    "payment_status": "Completed",
+    "payment_transaction_id": "xxxxxxxxxx",
+    "time": "10.00 AM",
+    "guest_id": "This is a test submission",
+    "saas_code": "This is a test submission",
+    "institute_address": "This is a test submission",
+    "total_amount": "0.12",
+    "total_discount": "0.12",
+    "net_payable": "100",
+    "payment_currency": "USD",
+    "ip_address": "xxx.xxx.xxx.xxx"
+  }
+}</code></pre>
+    <p><strong class="s4xx">400</strong> — one of:</p>
+    <ul>
+      <li><code>Request body is required</code></li>
+      <li><code>Request body is not valid base64: &lt;detail&gt;</code></li>
+      <li><code>Request body must be valid JSON: &lt;detail&gt;</code></li>
+      <li><code>Request body must be a JSON object</code></li>
+    </ul>
+    <p><strong class="s5xx">500</strong> — <code>Internal server error</code> (see Status summary above).</p>
+  </details>
+
+</section>
+
+</main>
+</body>
+</html>

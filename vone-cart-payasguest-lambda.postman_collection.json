@@ -1,0 +1,54 @@
+{
+  "info": {
+    "name": "vone-cart-payasguest-lambda",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://api.vidyaone.com", "description": "Testing base URL — provided directly, not read from config.py (this Lambda has no knowledge of its own API Gateway invoke URL)." }
+  ],
+  "item": [
+    {
+      "name": "Cart",
+      "item": [
+        {
+          "name": "GET /website/cart/payasguest",
+          "request": {
+            "method": "GET",
+            "description": "Returns a summarized line list plus aggregated totals for every pay-as-guest cart item currently awaiting payment for guest_id.",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/website/cart/payasguest?guest_id=guest_a1b2c3d4",
+              "host": ["{{baseUrl}}"],
+              "path": ["website", "cart", "payasguest"],
+              "query": [
+                { "key": "guest_id", "value": "guest_a1b2c3d4", "description": "required, string, 1-100 chars, ^[A-Za-z0-9_-]+$" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /website/cart/payasguest",
+          "request": {
+            "method": "POST",
+            "description": "Records a Razorpay payment for a guest. When guest_id and payment_transaction_id are both present, every pay-as-guest item this guest_id currently has awaiting payment is marked paid and stamped with payment_transaction_id.",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/website/cart/payasguest",
+              "host": ["{{baseUrl}}"],
+              "path": ["website", "cart", "payasguest"]
+            },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"school_name\": \"This is a test submission\",\n  \"email_id\": \"richardjohnson@zylker.com\",\n  \"mobile_no\": \"xxxxxxxxxx\",\n  \"payment_amount\": \"50.00\",\n  \"payment_status\": \"Completed\",\n  \"payment_transaction_id\": \"xxxxxxxxxx\",\n  \"time\": \"10.00 AM\",\n  \"guest_id\": \"This is a test submission\",\n  \"saas_code\": \"This is a test submission\",\n  \"institute_address\": \"This is a test submission\",\n  \"total_amount\": \"0.12\",\n  \"total_discount\": \"0.12\",\n  \"net_payable\": \"100\",\n  \"payment_currency\": \"USD\",\n  \"ip_address\": \"xxx.xxx.xxx.xxx\"\n}"
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
