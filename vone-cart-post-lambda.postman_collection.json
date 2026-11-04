@@ -1,0 +1,41 @@
+{
+  "info": {
+    "name": "vone-cart-post-lambda",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.vidyaone.com",
+      "description": "Testing environment base URL — provided directly; this project's config.py has no base-URL constant."
+    }
+  ],
+  "item": [
+    {
+      "name": "Cart",
+      "item": [
+        {
+          "name": "POST /website/cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "123e4567-e89b-12d3-a456-426614174000" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/website/cart",
+              "host": ["{{baseUrl}}"],
+              "path": ["website", "cart"]
+            },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"productId\": 1024,\n  \"serviceId\": 0,\n  \"productName\": \"School Website\",\n  \"serviceName\": \"\",\n  \"itemName\": \"Starter Pack\",\n  \"itemCode\": \"SP-100\",\n  \"guestId\": \"guest_a1b2c3d4\",\n  \"planId\": 2,\n  \"planName\": \"Premium Support\",\n  \"serviceCode\": \"\",\n  \"quantity\": 1,\n  \"price\": 4999.00,\n  \"discount\": 500.00,\n  \"total\": 4499.00,\n  \"buyNow\": true,\n  \"payAsGuest\": true,\n  \"billingCycle\": \"yearly\",\n  \"subscription\": true,\n  \"pageLink\": \"https://vidyaone.com/product/1024\",\n  \"userId\": 0,\n  \"instSaaSId\": 0,\n  \"instSaaSCode\": \"\"\n}"
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
