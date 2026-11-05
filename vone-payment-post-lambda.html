@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vone-payment-post-lambda — Developer Guide</title>
+<style>
+  :root {
+    --bg:     #fdfdfc;
+    --text:   #1d1f24;
+    --muted:  #6b7280;
+    --accent: #3457d5;
+    --ok:     #1f7a4d;
+    --err:    #b3392c;
+    --border: #e2e2e0;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  header { padding: 28px clamp(16px, 5vw, 48px) 10px; }
+  header h1 { margin: 0 0 6px; font-size: 1.5rem; }
+  header p { margin: 0; color: var(--muted); }
+  nav.top {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+    padding: 10px clamp(16px, 5vw, 48px);
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+  nav.top a { color: var(--text); text-decoration: none; font-size: 0.9rem; }
+  nav.top a:hover { color: var(--accent); }
+  nav.top .title { font-weight: 700; margin-right: 6px; }
+  nav.top .spacer { flex: 1 1 auto; }
+  nav.top .download { font-weight: 700; color: var(--accent); }
+  .menu { position: relative; padding-bottom: 10px; margin-bottom: -10px; }
+  .submenu {
+    display: none;
+    position: absolute; top: 100%; left: 0; margin: 0;
+    list-style: none; padding: 6px 0;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    min-width: 220px;
+    z-index: 20;
+  }
+  .menu:hover .submenu, .menu:focus-within .submenu { display: block; }
+  .submenu li { padding: 0; }
+  .submenu a { display: block; padding: 6px 14px; font-size: 0.85rem; white-space: nowrap; }
+  .submenu a:hover { background: var(--border); }
+  main { padding: 10px clamp(16px, 5vw, 48px) 80px; max-width: 900px; margin: 0 auto; }
+  section { padding: 30px 0; border-bottom: 1px solid var(--border); }
+  section:last-child { border-bottom: none; }
+  h2 { font-size: 1.15rem; margin: 0 0 10px; }
+  h3 { font-size: 0.95rem; margin: 20px 0 6px; }
+  p { margin: 8px 0; }
+  code {
+    font-family: var(--mono);
+    font-size: 0.9em;
+  }
+  pre {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    background: #f5f5f3;
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+    overflow-x: auto;
+    max-width: 100%;
+    line-height: 1.55;
+  }
+  pre code { background: none; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    font-size: 0.88rem;
+    max-width: 100%;
+    overflow-x: auto;
+    display: block;
+  }
+  table thead, table tbody { display: table; width: 100%; table-layout: fixed; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-weight: 700; }
+  .required { color: var(--accent); font-weight: 600; }
+  .s2xx { color: var(--ok); font-weight: 600; }
+  .s4xx, .s5xx { color: var(--err); font-weight: 600; }
+  details { margin: 0; }
+  details + details { margin-top: 0; }
+  summary {
+    font-weight: 700;
+    color: var(--accent);
+    cursor: pointer;
+    padding: 14px 0;
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    list-style: revert;
+  }
+  details[open] summary { padding-bottom: 8px; }
+  details > *:not(summary) { margin-left: 2px; }
+  .route-body { padding-bottom: 18px; }
+  footer { padding: 24px clamp(16px, 5vw, 48px) 40px; color: var(--muted); font-size: 0.8rem; text-align: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>vone-payment-post-lambda — Developer Guide</h1>
+  <p>Payment event ingest endpoint for vidyaone.com.</p>
+</header>
+
+<nav class="top">
+  <span class="title">vone-payment-post-lambda</span>
+  <a href="https://vidyaone.github.io/vone-docs/">Home</a>
+  <a href="#postman-setup">Postman setup</a>
+  <a href="#base-urls">Base URLs</a>
+  <a href="#common-rules">Common rules</a>
+  <div class="menu">
+    <a href="#payment">Payment</a>
+    <ul class="submenu">
+      <li><a href="#post-payment">POST /</a></li>
+      <li><a href="#post-payasguest">POST /payasguest</a></li>
+    </ul>
+  </div>
+  <span class="spacer"></span>
+  <a class="download" href="vone-payment-post-lambda.postman_collection.json" download>Download Postman collection</a>
+</nav>
+
+<main>
+
+  <section id="postman-setup">
+    <h2>Postman setup</h2>
+    <ol>
+      <li>Use Postman for web (<a href="https://web.postman.co">web.postman.co</a>), not the desktop app.</li>
+      <li>Install the <a href="https://chromewebstore.google.com/detail/postman-interceptor/aicmkgpgakddgnaphhhpliifpcfhicfo">Postman Interceptor</a> Chrome extension — it lets Postman's web app read cookies from your Chrome session.</li>
+      <li>Enable Interceptor, then log into the product normally in Chrome. Once logged in, your session is available to Postman automatically.</li>
+      <li>Download the collection from the link in the navbar above and import it into Postman, then send requests — it's pre-configured for Testing.</li>
+    </ol>
+    <p>These endpoints have no authentication requirement (see <a href="#common-rules">Common rules</a>), so Interceptor/cookies aren't actually needed to call them — step 2–3 are only relevant if you also use this same Postman workspace against authenticated vOne endpoints.</p>
+  </section>
+
+  <section id="base-urls">
+    <h2>Base URLs</h2>
+    <table>
+      <thead><tr><th>Environment</th><th>Base URL</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td>Testing</td><td><code>https://api.vidyaone.com/payment</code></td><td>provided directly — this project's <code>config.py</code> has no base-URL constant (the Lambda doesn't know its own API Gateway URL)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="common-rules">
+    <h2>Common rules</h2>
+
+    <h3>Headers</h3>
+    <table>
+      <thead><tr><th>Header</th><th>Requirement</th><th>Rule</th></tr></thead>
+      <tbody>
+        <tr><td><code>Content-Type</code></td><td>optional</td><td><code>application/json</code> expected. If API Gateway delivers the body base64-encoded, it's decoded automatically before parsing.</td></tr>
+        <tr><td><code>Origin</code></td><td>optional</td><td>Only affects CORS response headers (echoed back when it's <code>https://vidyaone.com</code> or a subdomain, https only). Not a request gate — a non-browser client with no <code>Origin</code> is still processed.</td></tr>
+        <tr><td><code>Authorization</code></td><td>optional</td><td>Accepted but not verified — these endpoints have no authentication requirement.</td></tr>
+      </tbody>
+    </table>
+    <p>No authentication is required to call these endpoints.</p>
+
+    <h3>Request body</h3>
+    <p>The body is <strong>not field-validated</strong> — it must be a JSON object (otherwise <code>400</code>), and that object is forwarded to the downstream queue consumer exactly as sent. There is no required/optional field list; any JSON object is accepted.</p>
+    <p>Repeating the same request does not deduplicate — each successful call queues a new message, even if the body is identical to a previous call.</p>
+
+    <h3>Response envelope</h3>
+    <p>Success: <code>{ "message": string, "requestId": string }</code> (<code>200</code>). Error: <code>{ "error": string, "requestId": string }</code>.</p>
+    <pre><code>// success (200)
+{ "message": "Payment event received", "requestId": "c4d1e2..." }
+
+// error (400/404/405/500)
+{ "error": "Request body is required", "requestId": "c4d1e2..." }</code></pre>
+
+    <h3>Status overview</h3>
+    <table>
+      <thead><tr><th>Status</th><th>When</th></tr></thead>
+      <tbody>
+        <tr><td class="s2xx">204</td><td><code>OPTIONS</code> preflight — returned immediately, no body, no processing.</td></tr>
+        <tr><td class="s2xx">200</td><td>The request body validated as a JSON object and was queued successfully.</td></tr>
+        <tr><td class="s4xx">400</td><td>Body missing, too large, not valid JSON, or not a JSON object — see the route below for the exact messages.</td></tr>
+        <tr><td class="s4xx">404</td><td>The request path is neither <code>/</code> nor <code>/payasguest</code>.</td></tr>
+        <tr><td class="s4xx">405</td><td>Method other than <code>POST</code>/<code>OPTIONS</code>.</td></tr>
+        <tr><td class="s5xx">500</td><td>The event failed to queue to SQS (outage/permissions), or an unexpected error occurred.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="payment">
+    <h2>Payment</h2>
+
+    <details id="post-payment">
+      <summary>POST /</summary>
+      <div class="route-body">
+        <p>Accepts a payment event and queues it (mandatory) for downstream processing. The body is not field-validated — see <a href="#common-rules">Common rules</a>.</p>
+
+        <h3>Request</h3>
+        <p>URL (Testing): <code>https://api.vidyaone.com/payment</code></p>
+        <p>Headers: see <a href="#common-rules">Common rules</a>.</p>
+
+        <h3>Sample request</h3>
+        <p>Body shape is not fixed — any JSON object is accepted and forwarded as-is. The following is illustrative only:</p>
+        <pre><code>{
+  "transactionId": "pay_9F3kL2Q",
+  "amount": 4999.00,
+  "currency": "INR",
+  "status": "success",
+  "userId": 10234
+}</code></pre>
+
+        <h3>Response</h3>
+        <p class="s2xx"><strong>200</strong> — after the event is written to the queue.</p>
+        <pre><code>{ "message": "Payment event received", "requestId": "c4d1e2..." }</code></pre>
+
+        <p class="s4xx"><strong>400</strong> — one of:</p>
+        <ul>
+          <li><code>"Request body is required"</code> — body missing.</li>
+          <li><code>"Request body is not valid base64: ..."</code> — body marked base64-encoded but isn't valid base64/UTF-8.</li>
+          <li><code>"Request body exceeds 900000 bytes"</code> — body larger than the configured cap.</li>
+          <li><code>"Request body must be valid JSON: ..."</code> — body isn't valid JSON.</li>
+          <li><code>"Request body must be a JSON object"</code> — body parsed but isn't a JSON object (e.g. an array or a bare string/number).</li>
+        </ul>
+
+        <p class="s5xx"><strong>500</strong> — <code>"Internal server error"</code>. The event failed to queue, or an unexpected error occurred.</p>
+
+        <h3>Events</h3>
+        <p>Queues the event (mandatory) before the response is returned.</p>
+      </div>
+    </details>
+
+    <details id="post-payasguest">
+      <summary>POST /payasguest</summary>
+      <div class="route-body">
+        <p>Accepts a guest payment event and queues it (mandatory) for downstream processing, to a separate queue from <code>POST /</code>. The body is not field-validated — see <a href="#common-rules">Common rules</a>.</p>
+
+        <h3>Request</h3>
+        <p>URL (Testing): <code>https://api.vidyaone.com/payment/payasguest</code></p>
+        <p>Headers: see <a href="#common-rules">Common rules</a>.</p>
+
+        <h3>Sample request</h3>
+        <p>Body shape is not fixed — any JSON object is accepted and forwarded as-is. The following is illustrative only:</p>
+        <pre><code>{
+  "transactionId": "pay_9F3kL2Q",
+  "amount": 4999.00,
+  "currency": "INR",
+  "status": "success",
+  "userId": 10234
+}</code></pre>
+
+        <h3>Response</h3>
+        <p class="s2xx"><strong>200</strong> — after the event is written to the queue.</p>
+        <pre><code>{ "message": "Payment event received", "requestId": "c4d1e2..." }</code></pre>
+
+        <p class="s4xx"><strong>400</strong> — same messages as <a href="#post-payment">POST /</a>.</p>
+
+        <p class="s5xx"><strong>500</strong> — <code>"Internal server error"</code>. The event failed to queue, or an unexpected error occurred.</p>
+
+        <h3>Events</h3>
+        <p>Queues the event (mandatory) before the response is returned.</p>
+      </div>
+    </details>
+
+  </section>
+
+</main>
+
+<footer>vone-payment-post-lambda · internal developer reference</footer>
+
+</body>
+</html>

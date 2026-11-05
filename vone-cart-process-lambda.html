@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vone-cart-process-lambda — Developer Guide</title>
+<style>
+  :root {
+    --bg:     #fdfdfc;
+    --text:   #1d1f24;
+    --muted:  #6b7280;
+    --accent: #3457d5;
+    --ok:     #1f7a4d;
+    --err:    #b3392c;
+    --border: #e2e2e0;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  header { padding: 28px clamp(16px, 5vw, 48px) 10px; }
+  header h1 { margin: 0 0 6px; font-size: 1.5rem; }
+  header p { margin: 0; color: var(--muted); }
+  nav.top {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+    padding: 10px clamp(16px, 5vw, 48px);
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+  nav.top a { color: var(--text); text-decoration: none; font-size: 0.9rem; }
+  nav.top a:hover { color: var(--accent); }
+  nav.top .title { font-weight: 700; margin-right: 6px; }
+  nav.top .spacer { flex: 1 1 auto; }
+  nav.top .download { font-weight: 700; color: var(--accent); }
+  .menu { position: relative; padding-bottom: 10px; margin-bottom: -10px; }
+  .submenu {
+    display: none;
+    position: absolute; top: 100%; left: 0; margin: 0;
+    list-style: none; padding: 6px 0;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    min-width: 220px;
+    z-index: 20;
+  }
+  .menu:hover .submenu, .menu:focus-within .submenu { display: block; }
+  .submenu li { padding: 0; }
+  .submenu a { display: block; padding: 6px 14px; font-size: 0.85rem; white-space: nowrap; }
+  .submenu a:hover { background: var(--border); }
+  main { padding: 10px clamp(16px, 5vw, 48px) 80px; max-width: 900px; margin: 0 auto; }
+  section { padding: 30px 0; border-bottom: 1px solid var(--border); }
+  section:last-child { border-bottom: none; }
+  h2 { font-size: 1.15rem; margin: 0 0 10px; }
+  h3 { font-size: 0.95rem; margin: 20px 0 6px; }
+  p { margin: 8px 0; }
+  code {
+    font-family: var(--mono);
+    font-size: 0.9em;
+  }
+  pre {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    background: #f5f5f3;
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+    overflow-x: auto;
+    max-width: 100%;
+    line-height: 1.55;
+  }
+  pre code { background: none; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    font-size: 0.88rem;
+    max-width: 100%;
+    overflow-x: auto;
+    display: block;
+  }
+  table thead, table tbody { display: table; width: 100%; table-layout: fixed; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-weight: 700; }
+  .required { color: var(--accent); font-weight: 600; }
+  .s2xx { color: var(--ok); font-weight: 600; }
+  .s4xx, .s5xx { color: var(--err); font-weight: 600; }
+  details { margin: 0; }
+  details + details { margin-top: 0; }
+  summary {
+    font-weight: 700;
+    color: var(--accent);
+    cursor: pointer;
+    padding: 14px 0;
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    list-style: revert;
+  }
+  details[open] summary { padding-bottom: 8px; }
+  details > *:not(summary) { margin-left: 2px; }
+  .route-body { padding-bottom: 18px; }
+  footer { padding: 24px clamp(16px, 5vw, 48px) 40px; color: var(--muted); font-size: 0.8rem; text-align: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>vone-cart-process-lambda — Developer Guide</h1>
+  <p>Cart item read/delete and pay-as-guest checkout summary endpoints for vidyaone.com.</p>
+</header>
+
+<nav class="top">
+  <span class="title">vone-cart-process-lambda</span>
+  <a href="https://vidyaone.github.io/vone-docs/">Home</a>
+  <a href="#postman-setup">Postman setup</a>
+  <a href="#base-urls">Base URLs</a>
+  <a href="#common-rules">Common rules</a>
+  <div class="menu">
+    <a href="#cart">Cart</a>
+    <ul class="submenu">
+      <li><a href="#get-cart">GET /website/cart</a></li>
+      <li><a href="#get-payasguest">GET /payment/payasguest</a></li>
+      <li><a href="#delete-cart">DELETE /website/cart</a></li>
+    </ul>
+  </div>
+  <span class="spacer"></span>
+  <a class="download" href="vone-cart-process-lambda.postman_collection.json" download>Download Postman collection</a>
+</nav>
+
+<main>
+
+  <section id="postman-setup">
+    <h2>Postman setup</h2>
+    <ol>
+      <li>Use Postman for web (<a href="https://web.postman.co">web.postman.co</a>), not the desktop app.</li>
+      <li>Install the <a href="https://chromewebstore.google.com/detail/postman-interceptor/aicmkgpgakddgnaphhhpliifpcfhicfo">Postman Interceptor</a> Chrome extension — it lets Postman's web app read cookies from your Chrome session.</li>
+      <li>Enable Interceptor, then log into the product normally in Chrome. Once logged in, your session is available to Postman automatically.</li>
+      <li>Download the collection from the link in the navbar above and import it into Postman, then send requests — it's pre-configured for Testing.</li>
+    </ol>
+    <p>These endpoints have no authentication requirement (see <a href="#common-rules">Common rules</a>), so Interceptor/cookies aren't actually needed to call them — steps 2–3 are only relevant if you also use this same Postman workspace against authenticated vOne endpoints.</p>
+  </section>
+
+  <section id="base-urls">
+    <h2>Base URLs</h2>
+    <table>
+      <thead><tr><th>Routes</th><th>Environment</th><th>Base URL</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td>GET / DELETE cart</td><td>Testing</td><td><code>https://api.vidyaone.com/website/cart</code></td><td><code>config.py</code> → <code>API_BASE_URL</code></td></tr>
+        <tr><td>GET pay-as-guest</td><td>Testing</td><td><code>https://api.vidyaone.com/payment/payasguest</code></td><td><code>config.py</code> → <code>PAY_AS_GUEST_BASE_URL</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="common-rules">
+    <h2>Common rules</h2>
+
+    <h3>Headers</h3>
+    <table>
+      <thead><tr><th>Header</th><th>Requirement</th><th>Rule</th></tr></thead>
+      <tbody>
+        <tr><td><code>Origin</code></td><td>optional</td><td>Only affects CORS response headers — echoed back as <code>Access-Control-Allow-Origin</code> when it's <code>https://vidyaone.com</code> or a subdomain, https only. Not a request gate.</td></tr>
+      </tbody>
+    </table>
+    <p>No request headers are required. No authentication is required to call any of these endpoints.</p>
+
+    <h3>Query parameters (shared)</h3>
+    <p>Every route below requires at least one of <code>guest_id</code> / <code>user_id</code>. Missing both → <code>400</code>.</p>
+
+    <h3>Response envelope</h3>
+    <p>Every response is <code>{ "success": boolean, "message": string, "errors": null, "data": ... }</code>. <code>errors</code> is always <code>null</code> in practice — there is no separate error-code field; distinguish error cases by HTTP status and the <code>message</code> text.</p>
+    <pre><code>// success (200) — shape of "data" varies by route, see each route below
+{ "success": true, "message": "", "errors": null, "data": [ /* ... */ ] }
+
+// error (400/404/409/500)
+{ "success": false, "message": "Query parameter 'guest_id' must not be blank", "errors": null, "data": [] }</code></pre>
+    <p><code>data</code> on an error response is <code>[]</code> for <strong>GET /website/cart</strong>, and <code>{}</code> for <strong>GET /payment/payasguest</strong> and <strong>DELETE /website/cart</strong> (matching each route's own success shape).</p>
+
+    <h3>Status overview</h3>
+    <table>
+      <thead><tr><th>Status</th><th>When</th></tr></thead>
+      <tbody>
+        <tr><td class="s2xx">204</td><td><code>OPTIONS</code> preflight — returned immediately, no body.</td></tr>
+        <tr><td class="s2xx">200</td><td>Request validated and processed successfully.</td></tr>
+        <tr><td class="s4xx">400</td><td>Missing/invalid <code>guest_id</code>, <code>user_id</code> or <code>item_id</code> — see the route below for exact messages.</td></tr>
+        <tr><td class="s4xx">404</td><td>No matching data found (route-specific — see below).</td></tr>
+        <tr><td class="s4xx">405</td><td>Method other than <code>GET</code>/<code>DELETE</code>/<code>OPTIONS</code>.</td></tr>
+        <tr><td class="s4xx">409</td><td><strong>DELETE</strong> only — the item is already paid.</td></tr>
+        <tr><td class="s5xx">500</td><td>Unexpected error.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="cart">
+    <h2>Cart</h2>
+
+    <details id="get-cart">
+      <summary>GET /website/cart</summary>
+      <div class="route-body">
+        <p>Returns the current (unpaid) cart items for a guest and/or logged-in user, newest first.</p>
+
+        <h3>Request</h3>
+        <p>URL (Testing): <code>https://api.vidyaone.com/website/cart</code></p>
+        <table>
+          <thead><tr><th>Param</th><th>Type</th><th>Required</th><th>Constraint</th></tr></thead>
+          <tbody>
+            <tr><td><code>guest_id</code></td><td>string</td><td>conditional</td><td>1–100 chars, pattern <code>^[A-Za-z0-9_-]+$</code> — required if <code>user_id</code> is omitted</td></tr>
+            <tr><td><code>user_id</code></td><td>integer</td><td>conditional</td><td>&gt; 0 — required if <code>guest_id</code> is omitted</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Sample request</h3>
+        <pre><code>GET https://api.vidyaone.com/website/cart
+    ?guest_id=guest_a1b2c3d4   // conditional, string, 1-100 chars, pattern ^[A-Za-z0-9_-]+$ — required if user_id is omitted
+    &user_id=10234             // conditional, integer, > 0 — required if guest_id is omitted</code></pre>
+
+        <h3>Response</h3>
+        <p class="s2xx"><strong>200</strong></p>
+        <pre><code>{
+  "success": true,
+  "message": "",
+  "errors": null,
+  "data": [
+    {
+      "productId": 1024,
+      "productName": "School Website",
+      "planId": 2,
+      "planName": "Premium Support",
+      "serviceId": 0,
+      "serviceName": "",
+      "serviceCode": "",
+      "quantity": 1,
+      "price": 4999.0,
+      "discount": 500.0,
+      "total": 4499.0,
+      "buyNow": false,
+      "payAsGuest": true,
+      "billingCycle": "yearly",
+      "subscription": true,
+      "pageLink": "https://vidyaone.com/product/1024",
+      "guestId": "guest_a1b2c3d4",
+      "userId": 0,
+      "instSaaSId": 0,
+      "instSaaSCode": "",
+      "savedAt": "2026-11-05T09:12:03.512341+00:00",
+      "itemId": "c4d1e2f3-9a8b-4c5d-8e7f-1a2b3c4d5e6f",
+      "itemName": "Starter Pack",
+      "itemCode": "SP-100"
+    }
+  ]
+}</code></pre>
+        <p>An empty cart returns <code>200</code> with <code>"data": []</code> — not a <code>404</code>.</p>
+
+        <p class="s4xx"><strong>400</strong>:</p>
+        <ul>
+          <li><code>"Provide at least one of query parameters 'guest_id' or 'user_id'"</code> — neither supplied.</li>
+          <li><code>"Query parameter 'guest_id' must not be blank"</code></li>
+          <li><code>"Query parameter 'guest_id' contains invalid characters"</code></li>
+          <li><code>"Query parameter 'user_id' must not be blank"</code></li>
+          <li><code>"Query parameter 'user_id' must be a positive integer"</code></li>
+        </ul>
+
+        <p class="s5xx"><strong>500</strong> — <code>"Internal server error"</code>.</p>
+      </div>
+    </details>
+
+    <details id="get-payasguest">
+      <summary>GET /payment/payasguest</summary>
+      <div class="route-body">
+        <p>Returns a summarized pay-as-guest checkout total (only cart items marked <code>payAsGuest</code>) for a guest and/or logged-in user.</p>
+
+        <h3>Request</h3>
+        <p>URL (Testing): <code>https://api.vidyaone.com/payment/payasguest</code></p>
+        <table>
+          <thead><tr><th>Param</th><th>Type</th><th>Required</th><th>Constraint</th></tr></thead>
+          <tbody>
+            <tr><td><code>guest_id</code></td><td>string</td><td>conditional</td><td>1–100 chars, pattern <code>^[A-Za-z0-9_-]+$</code> — required if <code>user_id</code> is omitted</td></tr>
+            <tr><td><code>user_id</code></td><td>integer</td><td>conditional</td><td>&gt; 0 — required if <code>guest_id</code> is omitted</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Sample request</h3>
+        <pre><code>GET https://api.vidyaone.com/payment/payasguest
+    ?guest_id=guest_a1b2c3d4   // conditional, string, 1-100 chars, pattern ^[A-Za-z0-9_-]+$ — required if user_id is omitted
+    &user_id=10234             // conditional, integer, > 0 — required if guest_id is omitted</code></pre>
+
+        <h3>Response</h3>
+        <p class="s2xx"><strong>200</strong></p>
+        <pre><code>{
+  "success": true,
+  "message": "",
+  "errors": null,
+  "data": {
+    "guestId": "guest_a1b2c3d4",
+    "prodSummery": "1. School Website-Premium Support Starter Pack 4999.00",
+    "totalAmt": 4999.0,
+    "totalDis": 500.0,
+    "netPayable": 4499.0
+  }
+}</code></pre>
+        <p><code>prodSummery</code> is a newline-separated list, one <code>"&lt;n&gt;. &lt;productName&gt;-&lt;planName&gt; &lt;itemName&gt; &lt;price&gt;"</code> line per matched item — it does not include <code>serviceName</code>, so a service-based item's line shows a blank product/plan segment.</p>
+
+        <p class="s4xx"><strong>400</strong> — same messages as <a href="#get-cart">GET /website/cart</a> above.</p>
+        <p class="s4xx"><strong>404</strong> — <code>"No pay-as-guest cart items found for this guest"</code> — no matching items.</p>
+        <p class="s5xx"><strong>500</strong> — <code>"Internal server error"</code>.</p>
+      </div>
+    </details>
+
+    <details id="delete-cart">
+      <summary>DELETE /website/cart</summary>
+      <div class="route-body">
+        <p>Deletes one cart item by <code>item_id</code>, unless it has already been paid.</p>
+
+        <h3>Request</h3>
+        <p>URL (Testing): <code>https://api.vidyaone.com/website/cart</code></p>
+        <table>
+          <thead><tr><th>Param</th><th>Type</th><th>Required</th><th>Constraint</th></tr></thead>
+          <tbody>
+            <tr><td><code>guest_id</code></td><td>string</td><td>conditional</td><td>1–100 chars, pattern <code>^[A-Za-z0-9_-]+$</code> — required if <code>user_id</code> is omitted</td></tr>
+            <tr><td><code>user_id</code></td><td>integer</td><td>conditional</td><td>&gt; 0 — required if <code>guest_id</code> is omitted</td></tr>
+            <tr><td><code>item_id</code></td><td>string</td><td class="required">required</td><td>1–100 chars, pattern <code>^[A-Za-z0-9_-]+$</code></td></tr>
+          </tbody>
+        </table>
+
+        <h3>Sample request</h3>
+        <pre><code>DELETE https://api.vidyaone.com/website/cart
+    ?guest_id=guest_a1b2c3d4                          // conditional, string, 1-100 chars, pattern ^[A-Za-z0-9_-]+$ — required if user_id is omitted
+    &user_id=10234                                    // conditional, integer, > 0 — required if guest_id is omitted
+    &item_id=c4d1e2f3-9a8b-4c5d-8e7f-1a2b3c4d5e6f      // required, string, 1-100 chars, pattern ^[A-Za-z0-9_-]+$</code></pre>
+
+        <h3>Response</h3>
+        <p class="s2xx"><strong>200</strong></p>
+        <pre><code>{
+  "success": true,
+  "message": "Item deleted",
+  "errors": null,
+  "data": { "itemId": "c4d1e2f3-9a8b-4c5d-8e7f-1a2b3c4d5e6f" }
+}</code></pre>
+
+        <p class="s4xx"><strong>400</strong>:</p>
+        <ul>
+          <li>Same <code>guest_id</code>/<code>user_id</code> messages as <a href="#get-cart">GET /website/cart</a> above.</li>
+          <li><code>"Query parameter 'item_id' is required"</code></li>
+          <li><code>"Query parameter 'item_id' must not be blank"</code></li>
+          <li><code>"Query parameter 'item_id' contains invalid characters"</code></li>
+        </ul>
+
+        <p class="s4xx"><strong>404</strong> — <code>"Item not found"</code>.</p>
+        <p class="s4xx"><strong>409</strong> — <code>"Item has already been paid and cannot be deleted"</code>.</p>
+        <p class="s5xx"><strong>500</strong> — <code>"Internal server error"</code>.</p>
+      </div>
+    </details>
+
+  </section>
+
+</main>
+
+<footer>vone-cart-process-lambda · internal developer reference</footer>
+
+</body>
+</html>

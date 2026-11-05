@@ -1,0 +1,60 @@
+{
+  "info": {
+    "name": "vone-payment-post-lambda",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.vidyaone.com/payment",
+      "description": "Testing environment base URL — provided directly; this project's config.py has no base-URL constant."
+    }
+  ],
+  "item": [
+    {
+      "name": "Payment",
+      "item": [
+        {
+          "name": "POST /",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"transactionId\": \"pay_9F3kL2Q\",\n  \"amount\": 4999.00,\n  \"currency\": \"INR\",\n  \"status\": \"success\",\n  \"userId\": 10234\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /payasguest",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payasguest",
+              "host": ["{{baseUrl}}"],
+              "path": ["payasguest"]
+            },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"transactionId\": \"pay_9F3kL2Q\",\n  \"amount\": 4999.00,\n  \"currency\": \"INR\",\n  \"status\": \"success\",\n  \"userId\": 10234\n}"
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
