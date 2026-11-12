@@ -150,12 +150,12 @@
   "data":    { ... } | [ ... ] | true | false | null
 }</code></pre>
 <p><strong>Success example</strong>:</p>
-<pre><code>{ "success": true, "message": null, "errors": null, "data": { "announcementId": 801, "imagePresign": null } }</code></pre>
+<pre><code>{ "success": true, "message": "Success.", "errors": null, "data": { "announcementId": 801, "imagePresign": null } }</code></pre>
 <p><strong>Error example</strong>:</p>
 <pre><code>{
   "success": false,
   "message": "Validation failed.",
-  "errors": [ { "code": "VALIDATION_FAILED", "message": "title is required and must be at most 200 characters.", "field": "Announcement.Title" } ],
+  "errors": [ { "code": "VALIDATION_FAILED", "message": "title is required and must be at most 200 characters.", "field": "PostDTO.Title" } ],
   "data": null
 }</code></pre>
 <p>Each entry in <code>errors[]</code> has a machine-readable <code>code</code> — switch on <code>code</code>, not on <code>message</code> text.</p>
@@ -168,9 +168,11 @@
     <tr><td class="status-ok">200</td><td>—</td><td>Success.</td></tr>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A request field fails validation (see each endpoint), or the body is missing / not valid JSON.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> is missing from the query string.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadImageFileName</code> has an unsupported or unsafe value (see <a href="#announcement-post">Create announcement</a>).</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadImageFileName</code> has an unsupported or unsafe value (see <a href="#announcement-post">Create announcement</a>), or a submitted value is not allowed when saving.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td>A required value is missing when saving.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The announcement doesn't exist for the calling institution (missing or already deleted).</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record does not exist when saving.</td></tr>
     <tr><td class="status-err">500</td><td><code>INTERNAL_ERROR</code></td><td>Unexpected server error.</td></tr>
   </tbody>
 </table>
@@ -183,7 +185,7 @@
 <!-- ========================= List announcements ========================= -->
 <details id="announcement-get">
 <summary><span class="method">GET</span> <code>/announcement</code></summary>
-<p>Returns a page of active, non-deleted announcements for the calling institution, most recently published first. <code>createdDate</code>, <code>publishDate</code>, <code>publishState</code> and <code>hasImage</code> are optional filters. Reads from the <code>vw_plg_announcement_list</code> read model.</p>
+<p>Returns a page of active, non-deleted announcements for the calling institution, most recently published first. <code>createdDate</code>, <code>publishDate</code>, <code>publishState</code> and <code>hasImage</code> are optional filters.</p>
 
 <h4>Request</h4>
 <table>
@@ -262,7 +264,7 @@
 <!-- ========================= Get announcement (edit) ========================= -->
 <details id="announcement-edit">
 <summary><span class="method">GET</span> <code>/announcement/edit</code></summary>
-<p>Returns one announcement in a flat, editable shape that can be sent straight back to <a href="#announcement-put">Update announcement</a>. Reads the table directly (not a view).</p>
+<p>Returns one announcement in a flat, editable shape that can be sent straight back to <a href="#announcement-put">Update announcement</a> (inside <code>putDTO</code>).</p>
 
 <h4>Request</h4>
 <table>
@@ -312,7 +314,7 @@
 <!-- ========================= Get announcement (view) ========================= -->
 <details id="announcement-view">
 <summary><span class="method">GET</span> <code>/announcement/view</code></summary>
-<p>Returns one announcement in a detailed, read-only shape, including audit info. Reads from the <code>vw_plg_announcement_view</code> read model.</p>
+<p>Returns one announcement in a detailed, read-only shape, including audit info.</p>
 
 <h4>Request</h4>
 <table>
@@ -347,8 +349,6 @@
     "publishDate": "2026-11-01T00:00:00+00:00",
     "expiryDate": "2026-12-15T00:00:00+00:00",
     "publishState": "Live",
-    "instSaaSId": 321,
-    "creatorUserId": 42,
     "audit": { "isActive": true, "inactiveAt": null, "createdAt": "2026-10-10T08:00:00+00:00", "updatedAt": "2026-10-10T08:00:00+00:00" }
   }
 }</code></pre>
@@ -380,10 +380,10 @@
 
 <h4>Sample request body</h4>
 <pre><code>{
-  "announcement": {
+  "postDTO": {                                                                // required object
     "title": "Admissions Open for 2026-27",                                   // required, string, max 200 chars
     "description": "We are now accepting admission applications for the 2026-27 academic year. Apply before the last date to secure your seat.", // required, string
-    "imageSrc": "admissions-2026.jpg", // optional, string, max 500 chars &mdash; a bare, safe file name only (no URL, no path); see "Uploading an image" below &mdash; independent of uploadImageFileName, never required to match it
+    "imageSrc": "admissions-2026.jpg", // optional, string, max 500 chars &mdash; a plain file name only (no URL, no path); see "Uploading an image" below &mdash; independent of uploadImageFileName, never required to match it
     "publishDate": "2026-11-01T00:00:00Z",                                    // required, string, ISO-8601 date-time, must be UTC (offset +00:00)
     "expiryDate": "2026-12-15T00:00:00Z"                                      // optional, string, ISO-8601 date-time, must be UTC (offset +00:00) &mdash; must be on or after publishDate
   },
@@ -392,7 +392,7 @@
 
 <h4>Uploading an image</h4>
 <p><code>imageSrc</code> and <code>uploadImageFileName</code> are unrelated fields &mdash; <code>imageSrc</code> is stored exactly as sent, and this API never requires it to match anything the upload flow produces.</p>
-<p>Sending <code>uploadImageFileName</code> returns a presigned S3 upload in the response, resolved <strong>after</strong> the announcement is already created &mdash; an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code>, but <strong>the announcement has already been created</strong> by that point (<code>data.announcementId</code> in the error is not returned, but the record exists &mdash; look it up via <a href="#announcement-get">List announcements</a> or <a href="#announcement-view">Get announcement (view)</a> if this happens). On success, <code>POST</code> the raw file bytes plus every field in <code>data.imagePresign.post.fields</code> directly to <code>data.imagePresign.post.url</code> (as multipart form fields, file field last) within <code>expiresIn</code> seconds. Re-uploading the same file name for the same institution overwrites the previous object at that key.</p>
+<p>Sending <code>uploadImageFileName</code> returns a presigned S3 upload in the response. The file name is checked <strong>before</strong> anything is saved &mdash; an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code> and <strong>no announcement is created</strong>. On success, <code>POST</code> the raw file bytes plus every field in <code>data.imagePresign.post.fields</code> directly to <code>data.imagePresign.post.url</code> (as multipart form fields, file field last) within <code>expiresIn</code> seconds. Re-uploading the same file name for the same institution overwrites the previous object at that key.</p>
 <table>
   <thead><tr><th>Allowed extensions (case-insensitive)</th><th>Max size</th></tr></thead>
   <tbody>
@@ -405,7 +405,7 @@
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
   "success": true,
-  "message": null,
+  "message": "Success.",
   "errors": null,
   "data": {
     "announcementId": 801,
@@ -433,10 +433,11 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails, or the body is missing / invalid.</td></tr>
-    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails, <code>postDTO</code> is missing or <code>null</code>, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or a required value is missing when saving.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading an image" above) &mdash; nothing is created. Also returned when a submitted value is not allowed when saving.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading an image" above) &mdash; the announcement is still created; only the upload slot fails.</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record does not exist when saving.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again creates a second, separate announcement &mdash; no duplicate detection is performed.</p>
@@ -457,11 +458,11 @@
     <tr><td>Production</td><td><code>PUT https://api-vweb.vidyaone.com/plugin/announcement?product={product}</code></td></tr>
   </tbody>
 </table>
-<p>Same shape as <a href="#announcement-post">Create announcement</a>, plus <code>announcement.announcementId</code>.</p>
+<p>Same fields as <a href="#announcement-post">Create announcement</a>, wrapped in <code>putDTO</code> instead of <code>postDTO</code>, plus <code>putDTO.announcementId</code>.</p>
 
 <h4>Sample request body</h4>
 <pre><code>{
-  "announcement": {
+  "putDTO": {                                                                 // required object
     "announcementId": 801,                                                    // required, integer, > 0 &mdash; must belong to the caller's institution
     "title": "Admissions Open for 2026-27 (Extended)",                        // required, string, max 200 chars
     "description": "We are now accepting admission applications for the 2026-27 academic year &mdash; deadline extended.", // required, string
@@ -473,7 +474,7 @@
 }</code></pre>
 
 <h4>Uploading an image</h4>
-<p>Same rules as <a href="#announcement-post">Create announcement</a>'s "Uploading an image" &mdash; <code>imageSrc</code> and <code>uploadImageFileName</code> are unrelated. Sending <code>uploadImageFileName</code> returns a presigned S3 upload, resolved <strong>after</strong> the update is already written &mdash; an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code>, but <strong>the update has already been applied</strong> by that point.</p>
+<p>Same rules as <a href="#announcement-post">Create announcement</a>'s "Uploading an image" &mdash; <code>imageSrc</code> and <code>uploadImageFileName</code> are unrelated. Sending <code>uploadImageFileName</code> returns a presigned S3 upload. The file name is checked <strong>before</strong> anything is saved &mdash; an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code> and <strong>the announcement is not updated</strong>. This check runs before the announcement is looked up, so a bad file name returns <code>INVALID_INPUT</code> even when <code>putDTO.announcementId</code> doesn't exist.</p>
 <table>
   <thead><tr><th>Allowed extensions (case-insensitive)</th><th>Max size</th></tr></thead>
   <tbody>
@@ -486,10 +487,9 @@
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
   "success": true,
-  "message": null,
+  "message": "Announcement updated successfully.",
   "errors": null,
   "data": {
-    "updated": true,
     "imagePresign": {
       "key": "vWebsite/plugin_cdn/announcement/5a5roCjQmv/admissions-2026-v2-raw.jpg",
       "post": { "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/", "fields": { "...": "..." } },
@@ -503,11 +503,12 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails, <code>announcement.announcementId</code> missing or not &gt; 0, or the body is missing / invalid.</td></tr>
-    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails, <code>putDTO.announcementId</code> missing or not &gt; 0, <code>putDTO</code> is missing or <code>null</code>, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or a required value is missing when saving.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading an image" above) &mdash; nothing is updated. Also returned when a submitted value is not allowed when saving.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No matching announcement for this institution.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading an image" above) &mdash; the update is still applied; only the upload slot fails.</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record does not exist when saving.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the announcement in the same final state.</p>
@@ -524,28 +525,27 @@
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>DELETE https://api-vweb.vidyaone.com/test/plugin/announcement?product={product}&amp;announcementId={announcementId}</code></td></tr>
-    <tr><td>Production</td><td><code>DELETE https://api-vweb.vidyaone.com/plugin/announcement?product={product}&amp;announcementId={announcementId}</code></td></tr>
+    <tr><td>Testing</td><td><code>DELETE https://api-vweb.vidyaone.com/test/plugin/announcement?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>DELETE https://api-vweb.vidyaone.com/plugin/announcement?product={product}</code></td></tr>
   </tbody>
 </table>
-<table>
-  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
-  <tbody>
-    <tr><td><code>announcementId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0.</td></tr>
-  </tbody>
-</table>
+<p>The announcement id goes in a JSON body (not the query string) &mdash; send <code>Content-Type: application/json</code>.</p>
 
 <h4>Sample request</h4>
-<pre><code>DELETE /announcement?product=scl-website
-    &amp;announcementId=801    // required, integer, > 0</code></pre>
+<pre><code>DELETE /announcement?product=scl-website</code></pre>
+
+<h4>Sample request body</h4>
+<pre><code>{
+  "announcementId": 801    // required, integer, > 0 &mdash; must belong to the caller's institution
+}</code></pre>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
-<pre><code>{ "success": true, "message": null, "errors": null, "data": true }</code></pre>
+<pre><code>{ "success": true, "message": "Announcement deleted successfully.", "errors": null, "data": true }</code></pre>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>announcementId</code> missing or not &gt; 0.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>announcementId</code> missing or not &gt; 0, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No matching announcement for this institution (missing or already deleted).</td></tr>
