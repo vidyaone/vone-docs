@@ -31,19 +31,54 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}tc?product={{product}}&pageNumber=1&pageSize=50&studentName=Asha&fatherName=Raj&className=8&regNo=REG-2026-0042&srNo=SR-1123&dob=2015-04-12T00:00:00Z&hasImage=true&hasFile=true",
-              "host": ["{{baseUrl}}tc"],
+              "host": [
+                "{{baseUrl}}tc"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" },
-                { "key": "pageNumber", "value": "1" },
-                { "key": "pageSize", "value": "50" },
-                { "key": "studentName", "value": "Asha" },
-                { "key": "fatherName", "value": "Raj" },
-                { "key": "className", "value": "8" },
-                { "key": "regNo", "value": "REG-2026-0042" },
-                { "key": "srNo", "value": "SR-1123" },
-                { "key": "dob", "value": "2015-04-12T00:00:00Z" },
-                { "key": "hasImage", "value": "true" },
-                { "key": "hasFile", "value": "true" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                },
+                {
+                  "key": "studentName",
+                  "value": "Asha"
+                },
+                {
+                  "key": "fatherName",
+                  "value": "Raj"
+                },
+                {
+                  "key": "className",
+                  "value": "8"
+                },
+                {
+                  "key": "regNo",
+                  "value": "REG-2026-0042"
+                },
+                {
+                  "key": "srNo",
+                  "value": "SR-1123"
+                },
+                {
+                  "key": "dob",
+                  "value": "2015-04-12T00:00:00Z"
+                },
+                {
+                  "key": "hasImage",
+                  "value": "true"
+                },
+                {
+                  "key": "hasFile",
+                  "value": "true"
+                }
               ]
             }
           }
@@ -55,10 +90,19 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}tc/edit?product={{product}}&tcId=301",
-              "host": ["{{baseUrl}}tc", "edit"],
+              "host": [
+                "{{baseUrl}}tc",
+                "edit"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" },
-                { "key": "tcId", "value": "301" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                },
+                {
+                  "key": "tcId",
+                  "value": "301"
+                }
               ]
             }
           }
@@ -70,10 +114,19 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}tc/view?product={{product}}&tcId=301",
-              "host": ["{{baseUrl}}tc", "view"],
+              "host": [
+                "{{baseUrl}}tc",
+                "view"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" },
-                { "key": "tcId", "value": "301" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                },
+                {
+                  "key": "tcId",
+                  "value": "301"
+                }
               ]
             }
           }
@@ -83,20 +136,35 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}tc?product={{product}}",
-              "host": ["{{baseUrl}}tc"],
+              "host": [
+                "{{baseUrl}}tc"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
               ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tc\": {\n    \"studentName\": \"Asha Mehta\",\n    \"regNo\": \"REG-2026-0042\",\n    \"srNo\": \"SR-1123\",\n    \"dob\": \"2015-04-12T00:00:00Z\",\n    \"fatherName\": \"Raj Mehta\",\n    \"className\": \"8\",\n    \"sectionName\": \"B\",\n    \"fileSrc\": \"tc-asha-mehta.pdf\",\n    \"imageSrc\": \"asha-mehta.jpg\"\n  },\n  \"uploadFileFileName\": \"asha-mehta-tc-raw.pdf\",\n  \"uploadImageFileName\": \"asha-mehta-raw.jpg\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"postDTO\": {\n    \"studentName\": \"Asha Mehta\",\n    \"regNo\": \"REG-2026-0042\",\n    \"srNo\": \"SR-1123\",\n    \"dob\": \"2015-04-12T00:00:00Z\",\n    \"fatherName\": \"Raj Mehta\",\n    \"className\": \"8\",\n    \"sectionName\": \"B\",\n    \"fileSrc\": \"tc-asha-mehta.pdf\",\n    \"imageSrc\": \"asha-mehta.jpg\"\n  },\n  \"uploadFileFileName\": \"asha-mehta-tc-raw.pdf\",\n  \"uploadImageFileName\": \"asha-mehta-raw.jpg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           }
         },
@@ -105,20 +173,36 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}tc/bulk?product={{product}}",
-              "host": ["{{baseUrl}}tc", "bulk"],
+              "host": [
+                "{{baseUrl}}tc",
+                "bulk"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
               ]
             },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"items\": [\n    {\n      \"studentName\": \"Asha Mehta\",\n      \"regNo\": \"REG-2026-0042\",\n      \"srNo\": \"SR-1123\",\n      \"dob\": \"2015-04-12T00:00:00Z\",\n      \"fatherName\": \"Raj Mehta\",\n      \"className\": \"8\",\n      \"sectionName\": \"B\",\n      \"fileSrc\": \"tc-asha-mehta.pdf\",\n      \"imageSrc\": \"asha-mehta.jpg\"\n    },\n    {\n      \"studentName\": \"Rohan Iyer\",\n      \"regNo\": \"REG-2026-0043\",\n      \"srNo\": \"SR-1124\",\n      \"dob\": \"2014-08-30T00:00:00Z\",\n      \"fatherName\": \"Suresh Iyer\",\n      \"className\": \"8\",\n      \"sectionName\": \"B\",\n      \"fileSrc\": \"tc-rohan-iyer.pdf\",\n      \"imageSrc\": null\n    }\n  ]\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           }
         },
@@ -127,20 +211,35 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}tc?product={{product}}",
-              "host": ["{{baseUrl}}tc"],
+              "host": [
+                "{{baseUrl}}tc"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
               ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tc\": {\n    \"tcId\": 301,\n    \"studentName\": \"Asha Mehta\",\n    \"regNo\": \"REG-2026-0042\",\n    \"srNo\": \"SR-1123\",\n    \"dob\": \"2015-04-12T00:00:00Z\",\n    \"fatherName\": \"Raj Mehta\",\n    \"className\": \"9\",\n    \"sectionName\": \"B\",\n    \"fileSrc\": \"tc-asha-mehta-v2.pdf\",\n    \"imageSrc\": \"asha-mehta.jpg\"\n  },\n  \"uploadFileFileName\": \"asha-mehta-tc-v2-raw.pdf\",\n  \"uploadImageFileName\": null\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"putDTO\": {\n    \"tcId\": 301,\n    \"studentName\": \"Asha Mehta\",\n    \"regNo\": \"REG-2026-0042\",\n    \"srNo\": \"SR-1123\",\n    \"dob\": \"2015-04-12T00:00:00Z\",\n    \"fatherName\": \"Raj Mehta\",\n    \"className\": \"9\",\n    \"sectionName\": \"B\",\n    \"fileSrc\": \"tc-asha-mehta-v2.pdf\",\n    \"imageSrc\": \"asha-mehta.jpg\"\n  },\n  \"uploadFileFileName\": \"asha-mehta-tc-v2-raw.pdf\",\n  \"uploadImageFileName\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           }
         },
@@ -149,16 +248,35 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": {
-              "raw": "{{baseUrl}}tc?product={{product}}&tcIds=301&tcIds=302",
-              "host": ["{{baseUrl}}tc"],
+              "raw": "{{baseUrl}}tc?product={{product}}",
+              "host": [
+                "{{baseUrl}}tc"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" },
-                { "key": "tcIds", "value": "301" },
-                { "key": "tcIds", "value": "302" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
               ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tcIds\": [\n    301,\n    302\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           }
         }
@@ -174,12 +292,27 @@
             "header": [],
             "url": {
               "raw": "{{templateBaseUrl}}tc/verify?domain=myschool.edusite.in&regNo=REG-2026-0042&srNo=SR-1123&dob=2015-04-12T00:00:00Z",
-              "host": ["{{templateBaseUrl}}tc", "verify"],
+              "host": [
+                "{{templateBaseUrl}}tc",
+                "verify"
+              ],
               "query": [
-                { "key": "domain", "value": "myschool.edusite.in" },
-                { "key": "regNo", "value": "REG-2026-0042" },
-                { "key": "srNo", "value": "SR-1123" },
-                { "key": "dob", "value": "2015-04-12T00:00:00Z" }
+                {
+                  "key": "domain",
+                  "value": "myschool.edusite.in"
+                },
+                {
+                  "key": "regNo",
+                  "value": "REG-2026-0042"
+                },
+                {
+                  "key": "srNo",
+                  "value": "SR-1123"
+                },
+                {
+                  "key": "dob",
+                  "value": "2015-04-12T00:00:00Z"
+                }
               ]
             }
           }

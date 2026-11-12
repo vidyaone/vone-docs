@@ -157,12 +157,12 @@
   "data":    { ... } | [ ... ] | true | false | null
 }</code></pre>
 <p><strong>Success example</strong>:</p>
-<pre><code>{ "success": true, "message": null, "errors": null, "data": { "tcId": 301, "wasUpdated": false, "filePresign": null, "imagePresign": null } }</code></pre>
+<pre><code>{ "success": true, "message": "Success.", "errors": null, "data": { "tcId": 301, "wasUpdated": false, "fileUploadPresign": null, "imageUploadPresign": null } }</code></pre>
 <p><strong>Error example</strong>:</p>
 <pre><code>{
   "success": false,
   "message": "Validation failed.",
-  "errors": [ { "code": "VALIDATION_FAILED", "message": "studentName is required.", "field": "Tc.StudentName" } ],
+  "errors": [ { "code": "VALIDATION_FAILED", "message": "studentName is required.", "field": "PostDTO.StudentName" } ],
   "data": null
 }</code></pre>
 <p>Each entry in <code>errors[]</code> has a machine-readable <code>code</code> — switch on <code>code</code>, not on <code>message</code> text.</p>
@@ -175,10 +175,10 @@
     <tr><td class="status-ok">200</td><td>—</td><td>Success.</td></tr>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A request field fails validation (see each endpoint), or the body is missing / not valid JSON.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> is missing from the query string.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadFileFileName</code> / <code>uploadImageFileName</code> has an unsupported or unsafe value (see <a href="#tc-post">Create TC</a>).</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadFileFileName</code> / <code>uploadImageFileName</code> has an unsupported or unsafe value (see <a href="#tc-post">Create TC</a>) — rejected before anything is saved.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The TC doesn't exist for the calling institution (missing or already deleted).</td></tr>
-    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>regNo</code> or <code>srNo</code> is already in use by another record for this institution — including when they each match a <em>different</em> existing record (see <a href="#tc-post">Create TC</a>).</td></tr>
+    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>regNo</code> or <code>srNo</code> is already in use by another record for this institution (the error names the field and the submitted value) — including when they each match a <em>different</em> existing record (see <a href="#tc-post">Create TC</a>).</td></tr>
     <tr><td class="status-err">500</td><td><code>INTERNAL_ERROR</code></td><td>Unexpected server error.</td></tr>
   </tbody>
 </table>
@@ -191,7 +191,7 @@
 <!-- ========================= List TCs ========================= -->
 <details id="tc-get">
 <summary><span class="method">GET</span> <code>/tc</code></summary>
-<p>Returns a page of active, non-deleted TC records for the calling institution, most recently created first. Reads from the <code>vw_plg_tc_list</code> read model.</p>
+<p>Returns a page of active, non-deleted TC records for the calling institution, most recently created first.</p>
 
 <h4>Request</h4>
 <table>
@@ -206,11 +206,11 @@
   <tbody>
     <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. Must be &gt; 0. A value past the last page is clamped back onto the last page.</td></tr>
     <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. Must be &gt; 0 and &le; <code>200</code>.</td></tr>
-    <tr><td><code>studentName</code></td><td>string</td><td class="opt">no</td><td>Substring match.</td></tr>
-    <tr><td><code>fatherName</code></td><td>string</td><td class="opt">no</td><td>Substring match.</td></tr>
-    <tr><td><code>className</code></td><td>string</td><td class="opt">no</td><td>Substring match.</td></tr>
-    <tr><td><code>regNo</code></td><td>string</td><td class="opt">no</td><td>Exact match.</td></tr>
-    <tr><td><code>srNo</code></td><td>string</td><td class="opt">no</td><td>Exact match.</td></tr>
+    <tr><td><code>studentName</code></td><td>string</td><td class="opt">no</td><td>Max 150 chars. Case-insensitive substring match; leading/trailing spaces ignored.</td></tr>
+    <tr><td><code>fatherName</code></td><td>string</td><td class="opt">no</td><td>Max 150 chars. Case-insensitive substring match; leading/trailing spaces ignored.</td></tr>
+    <tr><td><code>className</code></td><td>string</td><td class="opt">no</td><td>Max 20 chars. Case-insensitive substring match; leading/trailing spaces ignored.</td></tr>
+    <tr><td><code>regNo</code></td><td>string</td><td class="opt">no</td><td>Max 50 chars. Exact match.</td></tr>
+    <tr><td><code>srNo</code></td><td>string</td><td class="opt">no</td><td>Max 50 chars. Exact match.</td></tr>
     <tr><td><code>dob</code></td><td>string, date-time</td><td class="opt">no</td><td>ISO-8601 date-time, UTC only (offset <code>+00:00</code> or <code>Z</code>) — any other offset fails validation. Matches records whose <code>dob</code> falls on the same UTC calendar day as this value (time-of-day is ignored).</td></tr>
     <tr><td><code>hasImage</code></td><td>boolean</td><td class="opt">no</td><td><code>true</code> returns only records with a non-empty <code>imageSrc</code>; <code>false</code> returns only those without.</td></tr>
     <tr><td><code>hasFile</code></td><td>boolean</td><td class="opt">no</td><td><code>true</code> returns only records with a non-empty <code>fileSrc</code>; <code>false</code> returns only those without.</td></tr>
@@ -221,11 +221,11 @@
 <pre><code>GET /tc?product=scl-website
     &amp;pageNumber=1               // optional, integer, default 1, > 0
     &amp;pageSize=50                // optional, integer, default 50, > 0, max 200
-    &amp;studentName=Asha           // optional, string, substring match
-    &amp;fatherName=Raj             // optional, string, substring match
-    &amp;className=8                // optional, string, substring match
-    &amp;regNo=REG-2026-0042        // optional, string, exact match
-    &amp;srNo=SR-1123               // optional, string, exact match
+    &amp;studentName=Asha           // optional, string, max 150 chars, case-insensitive substring match
+    &amp;fatherName=Raj             // optional, string, max 150 chars, case-insensitive substring match
+    &amp;className=8                // optional, string, max 20 chars, case-insensitive substring match
+    &amp;regNo=REG-2026-0042        // optional, string, max 50 chars, exact match
+    &amp;srNo=SR-1123               // optional, string, max 50 chars, exact match
     &amp;dob=2015-04-12T00:00:00Z   // optional, string, ISO-8601 date-time, UTC only — matches records whose dob falls on the same UTC calendar day
     &amp;hasImage=true              // optional, boolean
     &amp;hasFile=true               // optional, boolean</code></pre>
@@ -240,7 +240,6 @@
     "records": [
       {
         "tcId": 301,
-        "instSaaSId": 321,
         "studentName": "Asha Mehta",
         "regNo": "REG-2026-0042",
         "srNo": "SR-1123",
@@ -269,7 +268,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageNumber</code> not &gt; 0, <code>pageSize</code> not &gt; 0 or over <code>200</code>, or <code>dob</code> not UTC (offset <code>+00:00</code>).</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageNumber</code> not &gt; 0, <code>pageSize</code> not &gt; 0 or over <code>200</code>, a filter over its max length, or <code>dob</code> not UTC (offset <code>+00:00</code>).</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
   </tbody>
@@ -279,7 +278,7 @@
 <!-- ========================= Get TC (edit) ========================= -->
 <details id="tc-edit">
 <summary><span class="method">GET</span> <code>/tc/edit</code></summary>
-<p>Returns one TC in a flat, editable shape that can be sent straight back to <a href="#tc-put">Update TC</a>. Reads the table directly (not a view).</p>
+<p>Returns one TC in a flat, editable shape that can be sent straight back to <a href="#tc-put">Update TC</a>.</p>
 
 <h4>Request</h4>
 <table>
@@ -333,7 +332,7 @@
 <!-- ========================= Get TC (view) ========================= -->
 <details id="tc-view">
 <summary><span class="method">GET</span> <code>/tc/view</code></summary>
-<p>Returns one TC in a detailed, read-only shape, including audit info. Reads from the <code>vw_plg_tc_view</code> read model.</p>
+<p>Returns one TC in a detailed, read-only shape, including audit info.</p>
 
 <h4>Request</h4>
 <table>
@@ -371,8 +370,6 @@
     "sectionName": "B",
     "fileSrc": "tc-asha-mehta.pdf",
     "imageSrc": "asha-mehta.jpg",
-    "instSaaSId": 321,
-    "creatorUserId": 42,
     "audit": { "isActive": true, "inactiveAt": null, "createdAt": "2026-10-10T08:00:00+00:00", "updatedAt": "2026-10-10T08:00:00+00:00" }
   }
 }</code></pre>
@@ -391,7 +388,7 @@
 <!-- ========================= Create TC ========================= -->
 <details id="tc-post">
 <summary><span class="method">POST</span> <code>/tc</code></summary>
-<p>Creates a TC for the calling institution — or, if <code>regNo</code> or <code>srNo</code> matches a record that already exists for this institution, updates that record in place instead of creating a duplicate (an upsert).</p>
+<p>Creates a TC for the calling institution — or, if <code>regNo</code> or <code>srNo</code> matches a record that already exists for this institution, updates that record in place instead of creating a duplicate (an upsert). When a match is found, every field of that record is replaced with the values sent — fields sent as <code>null</code> or omitted are cleared.</p>
 
 <h4>Request</h4>
 <table>
@@ -404,7 +401,7 @@
 
 <h4>Sample request body</h4>
 <pre><code>{
-  "tc": {
+  "postDTO": {                           // required object
     "studentName": "Asha Mehta",         // required, string, max 150 chars
     "regNo": "REG-2026-0042",            // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
     "srNo": "SR-1123",                   // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
@@ -415,14 +412,14 @@
     "fileSrc": "tc-asha-mehta.pdf",       // optional, string, max 500 chars &mdash; a plain file name only, never a URL or a path; see "Uploading a document or image" below &mdash; independent of uploadFileFileName/uploadImageFileName, never required to match either
     "imageSrc": "asha-mehta.jpg"          // optional, string, max 500 chars &mdash; a plain file name only, never a URL or a path; see "Uploading a document or image" below
   },
-  "uploadFileFileName": "asha-mehta-tc-raw.pdf",  // optional, string, max 200 chars &mdash; requests a document upload slot; see "Uploading a document or image" below
-  "uploadImageFileName": "asha-mehta-raw.jpg"     // optional, string, max 200 chars &mdash; requests an image upload slot; see "Uploading a document or image" below
+  "uploadFileFileName": "asha-mehta-tc-raw.pdf",  // optional, string, max 255 chars &mdash; requests a document upload slot; see "Uploading a document or image" below
+  "uploadImageFileName": "asha-mehta-raw.jpg"     // optional, string, max 255 chars &mdash; requests an image upload slot; see "Uploading a document or image" below
 }</code></pre>
 <p class="small"><code>regNo</code>/<code>srNo</code> is a single either/or requirement — sending one without the other is valid. <code>fileSrc</code>/<code>imageSrc</code> are each independently optional — either, both, or neither may be sent.</p>
 
 <h4>Uploading a document or image</h4>
 <p><code>fileSrc</code>/<code>imageSrc</code> and <code>uploadFileFileName</code>/<code>uploadImageFileName</code> are unrelated fields — <code>fileSrc</code>/<code>imageSrc</code> are stored exactly as sent, and this API never requires either to match anything the upload flow produces.</p>
-<p>Sending <code>uploadFileFileName</code> and/or <code>uploadImageFileName</code> returns a presigned S3 upload for each, resolved <strong>after</strong> the TC is already created/updated — an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code>, but <strong>the TC has already been saved</strong> by that point (look it up via <a href="#tc-get">List TCs</a> or <a href="#tc-view">Get TC (view)</a> if this happens). On success, <code>POST</code> the raw file bytes plus every field in <code>data.filePresign.post.fields</code> / <code>data.imagePresign.post.fields</code> directly to the matching <code>post.url</code> (as multipart form fields, file field last) within <code>expiresIn</code> seconds. Re-uploading the same file name for the same institution overwrites the previous object at that key.</p>
+<p>Sending <code>uploadFileFileName</code> and/or <code>uploadImageFileName</code> returns a presigned S3 upload for each. Upload names are checked <strong>before</strong> the TC is written — an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code> and <strong>nothing is saved</strong>. On success, <code>POST</code> the raw file bytes plus every field in <code>data.fileUploadPresign.post.fields</code> / <code>data.imageUploadPresign.post.fields</code> directly to the matching <code>post.url</code> (as multipart form fields, file field last) within <code>expiresIn</code> seconds. Re-uploading the same file name for the same institution overwrites the previous object at that key.</p>
 <table>
   <thead><tr><th>Upload</th><th>Allowed extensions (case-insensitive)</th><th>Max size</th></tr></thead>
   <tbody>
@@ -430,18 +427,18 @@
     <tr><td><code>uploadImageFileName</code></td><td><code>jpg</code>, <code>jpeg</code>, <code>png</code>, <code>gif</code>, <code>webp</code>, <code>bmp</code></td><td>10 MB (<code>10485760</code> bytes)</td></tr>
   </tbody>
 </table>
-<p class="small">Also rejected, after the 200-character check above (so still possible after the TC is already saved): a name containing a path separator (<code>/</code> or <code>\</code>), <code>..</code>, a control character, a missing extension, or a second, disguised extension (e.g. <code>invoice.php.jpg</code>).</p>
+<p class="small">Also rejected (<code>INVALID_INPUT</code>, nothing saved): a name longer than 200 characters, a name containing a path separator (<code>/</code> or <code>\</code>), <code>..</code>, a control character, a missing extension, or a second, disguised extension (e.g. <code>invoice.php.jpg</code>).</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
   "success": true,
-  "message": null,
+  "message": "Success.",
   "errors": null,
   "data": {
     "tcId": 301,
     "wasUpdated": false,
-    "filePresign": {
+    "fileUploadPresign": {
       "key": "vWebsite/plugin_cdn/tc_files/SAASX7Y8Z9/asha-mehta-tc-raw.pdf",
       "post": {
         "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/",
@@ -459,7 +456,7 @@
       "maxFileSize": 10485760,
       "contentTypePrefix": "application/"
     },
-    "imagePresign": {
+    "imageUploadPresign": {
       "key": "vWebsite/plugin_cdn/tc_images/SAASX7Y8Z9/asha-mehta-raw.jpg",
       "post": { "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/", "fields": { "...": "..." } },
       "expiresIn": 120,
@@ -468,15 +465,15 @@
     }
   }
 }</code></pre>
-<p><code>filePresign</code>/<code>imagePresign</code> are each <code>null</code> unless the matching <code>uploadFileFileName</code>/<code>uploadImageFileName</code> was sent. <code>wasUpdated</code> is <code>true</code> when <code>regNo</code> or <code>srNo</code> matched an existing record for this institution and that record was updated in place rather than a new one created — <code>tcId</code> is then the existing record's id.</p>
+<p><code>fileUploadPresign</code>/<code>imageUploadPresign</code> are each <code>null</code> unless the matching <code>uploadFileFileName</code>/<code>uploadImageFileName</code> was sent. <code>wasUpdated</code> is <code>true</code> when <code>regNo</code> or <code>srNo</code> matched an existing record for this institution and that record was updated in place rather than a new one created — <code>tcId</code> is then the existing record's id.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including the either/or rule on <code>regNo</code>/<code>srNo</code>), or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including the either/or rule on <code>regNo</code>/<code>srNo</code>), <code>postDTO</code> is missing, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadFileFileName</code>/<code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading a document or image" above) — nothing is saved.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>regNo</code> matches one existing record for this institution and <code>srNo</code> matches a <em>different</em> existing record — ambiguous, so neither is updated.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadFileFileName</code>/<code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading a document or image" above) — the TC is still saved; only the affected upload slot fails.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>regNo</code> matches one existing record for this institution and <code>srNo</code> matches a <em>different</em> existing record — ambiguous, so neither is updated. Also when the submitted <code>regNo</code>/<code>srNo</code> collides with another record while saving (the error names the field and value).</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again: since at least one of <code>regNo</code>/<code>srNo</code> is always present and now matches the record just created, the second call updates that same record in place (<code>data.wasUpdated: true</code>) rather than creating a duplicate — <code>tcId</code> is unchanged.</p>
@@ -498,7 +495,7 @@
 
 <h4>Sample request body</h4>
 <pre><code>{
-  "items": [                              // required, array, 1&ndash;200 items
+  "items": [                              // required, array, 1&ndash;200 items &mdash; a null entry fails only that row
     {
       "studentName": "Asha Mehta",         // required, string, max 150 chars
       "regNo": "REG-2026-0042",            // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required per item
@@ -523,13 +520,13 @@
     }
   ]
 }</code></pre>
-<p class="small">Each item follows the same field rules as <a href="#tc-post">Create TC</a>'s <code>tc</code> object — including the either/or requirement on <code>regNo</code>/<code>srNo</code> — applied per item, not to the batch as a whole.</p>
+<p class="small">Each item follows the same field rules as <a href="#tc-post">Create TC</a>'s <code>postDTO</code> object — including the either/or requirement on <code>regNo</code>/<code>srNo</code> — applied per item, not to the batch as a whole.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
   "success": true,
-  "message": null,
+  "message": "Success.",
   "errors": null,
   "data": {
     "totalCount": 2,
@@ -537,11 +534,11 @@
     "failureCount": 1,
     "results": [
       { "index": 0, "success": true, "tcId": 301, "wasUpdated": false, "error": null },
-      { "index": 1, "success": false, "tcId": null, "wasUpdated": false, "error": "regNo matches one existing record for this institution and srNo matches a different existing record; cannot determine which to update." }
+      { "index": 1, "success": false, "tcId": null, "wasUpdated": false, "error": "Tc regNo and srNo match different existing records; cannot determine which to update." }
     ]
   }
 }</code></pre>
-<p><code>index</code> matches the item's position in the request's <code>items</code> array. <code>error</code> is a human-readable message, not a machine-readable code — it carries either a field-validation message or a match-conflict message for that row only; it never aborts the rest of the batch. <code>wasUpdated</code> has the same meaning per row as on <a href="#tc-post">Create TC</a>.</p>
+<p><code>results</code> are in request order; <code>index</code> matches the item's position in the request's <code>items</code> array. <code>error</code> is a human-readable message, not a machine-readable code — it applies to that row only and never aborts the rest of the batch. Possible row errors: a field-validation message; <code>"Row is empty."</code> (null entry); the ambiguous-match message above; <code>"Another row in this request already matches the same existing record."</code> (two items resolve to the same existing record — only the first is applied); a duplicate message naming the field and value; or <code>"Unexpected error while saving this row."</code>. <code>wasUpdated</code> has the same meaning per row as on <a href="#tc-post">Create TC</a>.</p>
 <p>If two items in the same request share the same <code>regNo</code> or <code>srNo</code> and neither matches a record that already existed before this request, only the first succeeds — the second fails (<code>success: false</code>) with a duplicate error for that field, rather than updating the first item's row.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
@@ -567,11 +564,11 @@
     <tr><td>Production</td><td><code>PUT https://api-vweb.vidyaone.com/plugin/tc?product={product}</code></td></tr>
   </tbody>
 </table>
-<p>Same shape as <a href="#tc-post">Create TC</a>, plus <code>tc.tcId</code>.</p>
+<p>Same shape as <a href="#tc-post">Create TC</a>, with the record under <code>putDTO</code> plus <code>putDTO.tcId</code>.</p>
 
 <h4>Sample request body</h4>
 <pre><code>{
-  "tc": {
+  "putDTO": {                             // required object
     "tcId": 301,                           // required, integer, > 0 &mdash; must belong to the caller's institution
     "studentName": "Asha Mehta",           // required, string, max 150 chars
     "regNo": "REG-2026-0042",              // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
@@ -583,12 +580,12 @@
     "fileSrc": "tc-asha-mehta-v2.pdf",      // optional, string, max 500 chars
     "imageSrc": "asha-mehta.jpg"            // optional, string, max 500 chars
   },
-  "uploadFileFileName": "asha-mehta-tc-v2-raw.pdf",  // optional, string, max 200 chars &mdash; see "Uploading a document or image" on Create TC
-  "uploadImageFileName": null                        // optional, string, max 200 chars
+  "uploadFileFileName": "asha-mehta-tc-v2-raw.pdf",  // optional, string, max 255 chars &mdash; see "Uploading a document or image" on Create TC
+  "uploadImageFileName": null                        // optional, string, max 255 chars
 }</code></pre>
 
 <h4>Uploading a document or image</h4>
-<p>Same rules as <a href="#tc-post">Create TC</a>'s "Uploading a document or image" — <code>fileSrc</code>/<code>imageSrc</code> and <code>uploadFileFileName</code>/<code>uploadImageFileName</code> are unrelated. Sending either upload field returns a presigned S3 upload, resolved <strong>after</strong> the update is already written — an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code>, but <strong>the update has already been applied</strong> by that point.</p>
+<p>Same rules as <a href="#tc-post">Create TC</a>'s "Uploading a document or image" — <code>fileSrc</code>/<code>imageSrc</code> and <code>uploadFileFileName</code>/<code>uploadImageFileName</code> are unrelated. Sending either upload field returns a presigned S3 upload. Upload names are checked <strong>before</strong> the update is written — an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code> and <strong>nothing is changed</strong>.</p>
 <table>
   <thead><tr><th>Upload</th><th>Allowed extensions (case-insensitive)</th><th>Max size</th></tr></thead>
   <tbody>
@@ -596,36 +593,35 @@
     <tr><td><code>uploadImageFileName</code></td><td><code>jpg</code>, <code>jpeg</code>, <code>png</code>, <code>gif</code>, <code>webp</code>, <code>bmp</code></td><td>10 MB (<code>10485760</code> bytes)</td></tr>
   </tbody>
 </table>
-<p class="small">Also rejected, after the 200-character check above: a name containing a path separator (<code>/</code> or <code>\</code>), <code>..</code>, a control character, a missing extension, or a second, disguised extension (e.g. <code>invoice.php.jpg</code>).</p>
+<p class="small">Also rejected (<code>INVALID_INPUT</code>, nothing changed): a name longer than 200 characters, a name containing a path separator (<code>/</code> or <code>\</code>), <code>..</code>, a control character, a missing extension, or a second, disguised extension (e.g. <code>invoice.php.jpg</code>).</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
   "success": true,
-  "message": null,
+  "message": "Tc updated successfully.",
   "errors": null,
   "data": {
-    "updated": true,
-    "filePresign": {
+    "fileUploadPresign": {
       "key": "vWebsite/plugin_cdn/tc_files/SAASX7Y8Z9/asha-mehta-tc-v2-raw.pdf",
       "post": { "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/", "fields": { "...": "..." } },
       "expiresIn": 120,
       "maxFileSize": 10485760,
       "contentTypePrefix": "application/"
     },
-    "imagePresign": null
+    "imageUploadPresign": null
   }
 }</code></pre>
-<p><code>filePresign</code>/<code>imagePresign</code> are each <code>null</code> unless the matching <code>uploadFileFileName</code>/<code>uploadImageFileName</code> was sent.</p>
+<p><code>fileUploadPresign</code>/<code>imageUploadPresign</code> are each <code>null</code> unless the matching <code>uploadFileFileName</code>/<code>uploadImageFileName</code> was sent.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails, <code>tc.tcId</code> missing or not &gt; 0, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails, <code>putDTO</code> missing, <code>putDTO.tcId</code> missing or not &gt; 0, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No matching TC for this institution.</td></tr>
-    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>The <code>regNo</code> or <code>srNo</code> being set already belongs to a different TC for this institution.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadFileFileName</code>/<code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading a document or image" above) — the update is still applied; only the affected upload slot fails.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>The <code>regNo</code> or <code>srNo</code> being set already belongs to a different TC for this institution (the error names the field and value).</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadFileFileName</code>/<code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading a document or image" above) — nothing is changed.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the TC in the same final state.</p>
@@ -640,27 +636,25 @@
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>DELETE https://api-vweb.vidyaone.com/test/plugin/tc?product={product}&amp;tcIds={tcIds}</code></td></tr>
-    <tr><td>Production</td><td><code>DELETE https://api-vweb.vidyaone.com/plugin/tc?product={product}&amp;tcIds={tcIds}</code></td></tr>
+    <tr><td>Testing</td><td><code>DELETE https://api-vweb.vidyaone.com/test/plugin/tc?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>DELETE https://api-vweb.vidyaone.com/plugin/tc?product={product}</code></td></tr>
   </tbody>
 </table>
-<table>
-  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
-  <tbody>
-    <tr><td><code>tcIds</code></td><td>integer, repeated</td><td class="req">yes</td><td>1&ndash;200 values, each &gt; 0. Repeat the key for each id (<code>tcIds=301&amp;tcIds=302</code>). A value outside these constraints fails the whole request — it is not reported per-id.</td></tr>
-  </tbody>
-</table>
+<p>The ids go in a JSON body (send <code>Content-Type: application/json</code>), not in the query string.</p>
 
 <h4>Sample request</h4>
-<pre><code>DELETE /tc?product=scl-website
-    &amp;tcIds=301    // required, integer, > 0, repeat the key for multiple ids &mdash; 1-200 total
-    &amp;tcIds=302    // required (shown twice to illustrate the array)</code></pre>
+<pre><code>DELETE /tc?product=scl-website</code></pre>
+
+<h4>Sample request body</h4>
+<pre><code>{
+  "tcIds": [301, 302]    // required, array of integers, 1&ndash;200 values, each &gt; 0, no duplicates &mdash; an invalid list fails the whole request, not per-id
+}</code></pre>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
   "success": true,
-  "message": null,
+  "message": "Tc deleted successfully.",
   "errors": null,
   "data": {
     "totalCount": 2,
@@ -676,7 +670,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>tcIds</code> is empty or missing, contains more than 200 values, or contains a value not &gt; 0. (Whole-request failure — not reported per-id.)</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>tcIds</code> is empty or missing, contains more than 200 values, contains a duplicate, or contains a value not &gt; 0, or the body is missing / invalid. (Whole-request failure — not reported per-id.)</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
   </tbody>
@@ -707,7 +701,7 @@
 
 <h4>Sample request</h4>
 <pre><code>GET /tc/verify?domain=myschool.edusite.in&amp;regNo=REG-2026-0042&amp;srNo=SR-1123&amp;dob=2015-04-12T00:00:00Z
-    domain=myschool.edusite.in   // required, string &mdash; the institution's edusite.in subdomain (e.g. "vishal.edusite.in") or custom domain (e.g. "domain.com"); optional http(s):// scheme and www. prefix
+    domain=myschool.edusite.in   // required, string &mdash; the institution's edusite.in subdomain (e.g. "vishal.edusite.in") or custom domain (e.g. "domain.com"); optional http(s):// scheme and www. prefix; only a host ending in ".edusite.in" is treated as a subdomain
     regNo=REG-2026-0042          // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
     srNo=SR-1123                 // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
     dob=2015-04-12T00:00:00Z     // required, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; any other offset fails validation</code></pre>
@@ -731,8 +725,6 @@
     "sectionName": "B",
     "fileSrc": "tc-asha-mehta.pdf",
     "imageSrc": "asha-mehta.jpg",
-    "instSaaSId": 321,
-    "creatorUserId": 42,
     "audit": { "isActive": true, "inactiveAt": null, "createdAt": "2026-10-10T08:00:00+00:00", "updatedAt": "2026-10-10T08:00:00+00:00" }
   }
 }</code></pre>
@@ -741,7 +733,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>domain</code> missing, not a valid hostname (e.g. contains a port, path, query string, or an unrecognized scheme), a bare <code>edusite.in</code>/<code>www.edusite.in</code> with no subdomain label, <code>dob</code> missing or not UTC (offset <code>+00:00</code>), neither <code>regNo</code> nor <code>srNo</code> given, or either exceeds 50 characters, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>domain</code> missing, not a valid hostname (e.g. contains a port, path, query string, or an unrecognized scheme), a bare <code>edusite.in</code>/<code>www.edusite.in</code> with no subdomain label, <code>dob</code> missing or not UTC (offset <code>+00:00</code>), neither <code>regNo</code> nor <code>srNo</code> given, or either exceeds 50 characters.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> This route performs no write — sending the same request again returns the same result (match or no match) each time; no <code>Idempotency-Key</code> is required.</p>
