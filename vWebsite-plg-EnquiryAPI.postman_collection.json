@@ -1,0 +1,408 @@
+{
+  "info": {
+    "name": "vWebsite-plg-EnquiryAPI",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Enquiry",
+      "item": [
+        {
+          "name": "List enquiries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}enquiry?product={{product}}&pageNumber=1&pageSize=50&statusId=1&typeId=1&sourceId=1&categoryId=1&createdDateFrom=2026-11-01T00:00:00Z&createdDateTo=2026-11-30T00:00:00Z&mobile=98765&email=sharma",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enquiry"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                },
+                {
+                  "key": "statusId",
+                  "value": "1"
+                },
+                {
+                  "key": "typeId",
+                  "value": "1"
+                },
+                {
+                  "key": "sourceId",
+                  "value": "1"
+                },
+                {
+                  "key": "categoryId",
+                  "value": "1"
+                },
+                {
+                  "key": "createdDateFrom",
+                  "value": "2026-11-01T00:00:00Z"
+                },
+                {
+                  "key": "createdDateTo",
+                  "value": "2026-11-30T00:00:00Z"
+                },
+                {
+                  "key": "mobile",
+                  "value": "98765"
+                },
+                {
+                  "key": "email",
+                  "value": "sharma"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get enquiry (edit)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/edit?product={{product}}&enqId={{enqId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enquiry",
+                "edit"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                },
+                {
+                  "key": "enqId",
+                  "value": "{{enqId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get enquiry (view)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/view?product={{product}}&enqId={{enqId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enquiry",
+                "view"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                },
+                {
+                  "key": "enqId",
+                  "value": "{{enqId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create enquiry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}enquiry?product={{product}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enquiry"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"postDTO\": {\n    \"typeId\": 1,\n    \"categoryId\": 1,\n    \"statusId\": 1,\n    \"sourceId\": 1,\n    \"mobile\": \"9876543210\",\n    \"email\": \"meera.sharma@example.com\",\n    \"message\": \"Looking for admission in Class 2 for the coming session.\",\n    \"whatsApp\": true,\n    \"student\": {\n      \"studentName\": \"Aarav Sharma\",\n      \"dob\": \"2018-04-12T00:00:00Z\",\n      \"classAppliedFor\": \"Class 2\"\n    },\n    \"parent\": {\n      \"guardianName\": \"Meera Sharma\",\n      \"fatherName\": \"Rohit Sharma\"\n    },\n    \"job\": {\n      \"applicantName\": \"Priya Verma\",\n      \"positionAppliedFor\": \"Maths Teacher\",\n      \"qualification\": \"M.Sc, B.Ed\",\n      \"yearOfExperience\": 4.5\n    },\n    \"other\": {\n      \"contactPersonName\": \"Neha Gupta\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update enquiry",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}enquiry?product={{product}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enquiry"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"putDTO\": {\n    \"enqId\": {{enqId}},\n    \"mobile\": \"9876543210\",\n    \"email\": \"meera.sharma@example.com\",\n    \"message\": \"Looking for admission in Class 2 for the coming session.\",\n    \"whatsApp\": true,\n    \"student\": {\n      \"studentName\": \"Aarav Sharma\",\n      \"dob\": \"2018-04-12T00:00:00Z\",\n      \"classAppliedFor\": \"Class 2\"\n    },\n    \"parent\": {\n      \"guardianName\": \"Meera Sharma\",\n      \"fatherName\": \"Rohit Sharma\"\n    },\n    \"job\": {\n      \"applicantName\": \"Priya Verma\",\n      \"positionAppliedFor\": \"Maths Teacher\",\n      \"qualification\": \"M.Sc, B.Ed\",\n      \"yearOfExperience\": 4.5\n    },\n    \"other\": {\n      \"contactPersonName\": \"Neha Gupta\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update enquiry status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/status?product={{product}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enquiry",
+                "status"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enqIds\": [\n    {{enqId}},\n    102\n  ],\n  \"statusId\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete enquiries",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}enquiry?product={{product}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enquiry"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enqIds\": [\n    {{enqId}},\n    102\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Options",
+      "item": [
+        {
+          "name": "Status options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/options/status?product={{product}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enquiry",
+                "options",
+                "status"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Type options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/options/type?product={{product}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enquiry",
+                "options",
+                "type"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Category options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/options/category?product={{product}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enquiry",
+                "options",
+                "category"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Source options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/options/source?product={{product}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enquiry",
+                "options",
+                "source"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api-vweb.vidyaone.com/test/plugin/",
+      "description": "Testing environment (appsettings.Testing.json → App:BaseUrl). This collection targets Testing only."
+    },
+    {
+      "key": "product",
+      "value": "scl-website",
+      "description": "Calling product identifier — the identifier of whichever client app is calling this API. Not stored in this project's own config; supplied by each calling client app."
+    },
+    {
+      "key": "enqId",
+      "value": "101",
+      "description": "Sample enquiry id — replace with one you created via 'Create enquiry'."
+    }
+  ]
+}

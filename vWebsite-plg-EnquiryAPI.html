@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>vWebsite-plg-EnquiryAPI — Developer Guide</title>
+<style>
+  :root{
+    --accent:#0b6bcb;
+    --ink:#1c1e21;
+    --muted:#5b6470;
+    --line:#dfe3e8;
+    --bg:#fdfdfd;
+    --ok:#0a7d33;
+    --err:#b42318;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.65;
+    font-size:15px;
+  }
+  main{max-width:900px;margin:0 auto;padding:32px 24px 140px}
+  h1{font-size:24px;margin:28px 0 4px;color:var(--ink)}
+  h2{font-size:19px;margin:52px 0 14px;padding-top:14px;border-top:1px solid var(--line);color:var(--ink)}
+  h4{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:18px 0 6px}
+  p{margin:8px 0}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:13px}
+  pre{background:#f6f7f8;border:1px solid var(--line);border-radius:4px;padding:12px 14px;overflow-x:auto;max-width:100%;font-size:13px;line-height:1.5}
+  pre code{font-size:13px}
+  table{border-collapse:collapse;width:100%;max-width:100%;margin:10px 0;font-size:14px;overflow-x:auto;display:block}
+  table thead,table tbody{display:table;width:100%;table-layout:fixed}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+  th{font-weight:700}
+  td.req{color:var(--accent);font-weight:600;white-space:nowrap}
+  td.opt{color:var(--muted);white-space:nowrap}
+  .status-ok{color:var(--ok);font-weight:700}
+  .status-err{color:var(--err);font-weight:700}
+  .method{font-family:ui-monospace,monospace;font-weight:700}
+  .small{font-size:13px;color:var(--muted)}
+  nav.top{
+    position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);
+    padding:10px 24px;display:flex;flex-wrap:wrap;gap:4px 18px;align-items:baseline;
+  }
+  nav.top strong{color:var(--ink);white-space:nowrap;margin-right:6px}
+  nav.top a{white-space:nowrap;font-size:14px}
+  nav.top a.download{font-weight:700;margin-left:auto}
+  nav.top .menu{position:relative;padding-bottom:8px;margin-bottom:-8px}
+  nav.top .submenu{
+    display:none;position:absolute;top:100%;left:0;margin:0;padding:6px 0;
+    list-style:none;min-width:210px;background:#fff;border:1px solid var(--line);z-index:20;
+  }
+  nav.top .menu:hover .submenu,
+  nav.top .menu:focus-within .submenu{display:block}
+  nav.top .submenu li{margin:0}
+  nav.top .submenu a{display:block;padding:5px 14px;font-size:13px;white-space:nowrap}
+  details{margin:36px 0 0}
+  section details:first-of-type{margin-top:18px}
+  summary{font-size:16px;font-weight:700;color:var(--accent);cursor:pointer;margin:0}
+  summary::marker{color:var(--accent)}
+  details[open] summary{margin-bottom:8px}
+  ul.tight{margin:6px 0;padding-left:20px}
+  ul.tight li{margin:3px 0}
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <strong>vWebsite-plg-EnquiryAPI</strong>
+  <a href="https://vidyaone.github.io/vone-docs/">Home</a>
+  <a href="#postman-setup">Postman setup</a>
+  <a href="#base-urls">Base URLs</a>
+  <a href="#common-rules">Common rules</a>
+  <div class="menu">
+    <a href="#enquiry">Enquiry</a>
+    <ul class="submenu">
+      <li><a href="#enquiry-get"><code>GET /enquiry</code></a></li>
+      <li><a href="#enquiry-edit"><code>GET /enquiry/edit</code></a></li>
+      <li><a href="#enquiry-view"><code>GET /enquiry/view</code></a></li>
+      <li><a href="#enquiry-post"><code>POST /enquiry</code></a></li>
+      <li><a href="#enquiry-put"><code>PUT /enquiry</code></a></li>
+      <li><a href="#enquiry-put-status"><code>PUT /enquiry/status</code></a></li>
+      <li><a href="#enquiry-delete"><code>DELETE /enquiry</code></a></li>
+    </ul>
+  </div>
+  <div class="menu">
+    <a href="#options">Options</a>
+    <ul class="submenu">
+      <li><a href="#options-status"><code>GET /enquiry/options/status</code></a></li>
+      <li><a href="#options-type"><code>GET /enquiry/options/type</code></a></li>
+      <li><a href="#options-category"><code>GET /enquiry/options/category</code></a></li>
+      <li><a href="#options-source"><code>GET /enquiry/options/source</code></a></li>
+    </ul>
+  </div>
+  <a class="download" href="vWebsite-plg-EnquiryAPI.postman_collection.json" download>&#8595; Postman collection</a>
+</nav>
+
+<main>
+<h1>vWebsite-plg-EnquiryAPI — Developer Guide</h1>
+
+<section id="postman-setup">
+<h2>Postman setup guide</h2>
+<ol class="tight">
+  <li>Use Postman for web (<a href="https://web.postman.co">web.postman.co</a>), not the desktop app.</li>
+  <li>Install the <a href="https://chromewebstore.google.com/detail/postman-interceptor/aicmkgpgakddgnaphhhpliifpcfhicfo">Postman Interceptor</a> Chrome extension — it lets Postman's web app read cookies from your Chrome session.</li>
+  <li>Enable Interceptor, then log into the product normally in Chrome. Once logged in, your session is available to Postman automatically — you don't need to set any auth header or cookie by hand.</li>
+  <li>Download the collection from the link in the navbar above and import it into Postman, then send requests — it's pre-configured for Testing.</li>
+</ol>
+</section>
+
+<section id="base-urls">
+<h2>Base URLs</h2>
+<table>
+  <thead><tr><th>Environment</th><th>Base URL</th><th>Source</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>https://api-vweb.vidyaone.com/test/plugin/</code></td><td><code>appsettings.Testing.json</code></td></tr>
+    <tr><td>Production</td><td><code>https://api-vweb.vidyaone.com/plugin/</code></td><td><code>appsettings.json</code></td></tr>
+    <tr><td>Local (Development)</td><td><code>http://localhost:65084/</code></td><td><code>Properties/launchSettings.json</code> (routes are hit directly off the root)</td></tr>
+  </tbody>
+</table>
+<p class="small">Concatenate the base URL with the route shown in each endpoint below (e.g. <code>https://api-vweb.vidyaone.com/test/plugin/enquiry</code>). There is no version segment.</p>
+</section>
+
+<section id="common-rules">
+<h2>Common request &amp; response rules</h2>
+
+<h4>Authentication</h4>
+<p>Authentication required on every route documented in this guide.</p>
+
+<h4>Headers required on every request</h4>
+<table>
+  <thead><tr><th>Header</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>Content-Type: application/json</code></td><td class="req">writes only</td><td>Required on any request that carries a body.</td></tr>
+    <tr><td><code>Idempotency-Key</code></td><td class="req">mutating requests</td><td>A UUID the caller generates per request. Required on every <code>POST</code> / <code>PUT</code> / <code>DELETE</code> below. See the Idempotency line under each endpoint for what happens if you resend the same key/body.</td></tr>
+  </tbody>
+</table>
+
+<h4>Common query parameter</h4>
+<table>
+  <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>product</code></td><td>string</td><td class="req">yes</td><td>Calling client-app identifier, e.g. <code>scl-website</code>. Required on every route below.</td></tr>
+  </tbody>
+</table>
+
+<h4>Response envelope</h4>
+<p>Every response — success or failure — uses the same JSON shape:</p>
+<pre><code>{
+  "success": true | false,
+  "message": "human-readable string" | null,
+  "errors":  [ { "code": "...", "message": "...", "field": "..." } ] | null,
+  "data":    { ... } | [ ... ] | null
+}</code></pre>
+<p><strong>Success example</strong>:</p>
+<pre><code>{ "success": true, "message": "Success.", "errors": null, "data": { "enqId": 101 } }</code></pre>
+<p><strong>Error example</strong>:</p>
+<pre><code>{
+  "success": false,
+  "message": "Validation failed.",
+  "errors": [ { "code": "VALIDATION_FAILED", "message": "Either mobile or email is required.", "field": "PostDTO.mobile" } ],
+  "data": null
+}</code></pre>
+<p>Write routes return a short confirmation in <code>message</code> on success; read routes return <code>null</code>. Don't switch on it.</p>
+<p>Each entry in <code>errors[]</code> has a machine-readable <code>code</code> — switch on <code>code</code>, not on <code>message</code> text.</p>
+<p>JSON bodies accept numeric ids and numbers sent either as numbers or as quoted strings (<code>"enqId": 101</code> and <code>"enqId": "101"</code> are equivalent).</p>
+<p>All date-times are ISO-8601 and UTC. Request date-times must carry a UTC offset (<code>Z</code> or <code>+00:00</code>); any other offset fails with 400.</p>
+
+<h4>Status &amp; error codes used in this guide</h4>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-ok">200</td><td>—</td><td>Success (including partial success on the bulk routes — check each <code>results[]</code> entry).</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A request field fails validation (see each endpoint), or the body is missing / not valid JSON.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> is missing, or a required value is missing (see each endpoint).</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>A lookup id isn't an active option, or a submitted value is not allowed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The enquiry doesn't exist for the calling institution (missing or deleted).</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record was removed while the request was being processed.</td></tr>
+    <tr><td class="status-err">500</td><td><code>INTERNAL_ERROR</code></td><td>Unexpected server error.</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="enquiry">
+<h2>Enquiry</h2>
+<p>All routes below act only on enquiries belonging to the caller's own institution.</p>
+
+<details id="enquiry-get">
+<summary><span class="method">GET</span> <code>/enquiry</code></summary>
+<p>Returns a page of active, non-deleted enquiries for the calling institution, newest first (by creation date-time).</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/enquiry?product={product}&amp;pageNumber={pageNumber}&amp;pageSize={pageSize}&amp;statusId={statusId}&amp;typeId={typeId}&amp;sourceId={sourceId}&amp;categoryId={categoryId}&amp;createdDateFrom={createdDateFrom}&amp;createdDateTo={createdDateTo}&amp;mobile={mobile}&amp;email={email}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/enquiry?product={product}&amp;pageNumber={pageNumber}&amp;pageSize={pageSize}&amp;statusId={statusId}&amp;typeId={typeId}&amp;sourceId={sourceId}&amp;categoryId={categoryId}&amp;createdDateFrom={createdDateFrom}&amp;createdDateTo={createdDateTo}&amp;mobile={mobile}&amp;email={email}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. Must be &gt; 0. A value past the last page is clamped back onto the last page.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. Must be &gt; 0 and &le; <code>200</code>.</td></tr>
+    <tr><td><code>statusId</code></td><td>integer</td><td class="opt">no</td><td>&gt; 0. Exact match. Ids from <a href="#options-status">GET /enquiry/options/status</a>.</td></tr>
+    <tr><td><code>typeId</code></td><td>integer</td><td class="opt">no</td><td>&gt; 0. Exact match. Ids from <a href="#options-type">GET /enquiry/options/type</a>.</td></tr>
+    <tr><td><code>sourceId</code></td><td>integer</td><td class="opt">no</td><td>&gt; 0. Exact match. Ids from <a href="#options-source">GET /enquiry/options/source</a>.</td></tr>
+    <tr><td><code>categoryId</code></td><td>integer</td><td class="opt">no</td><td>&gt; 0. Exact match. Ids from <a href="#options-category">GET /enquiry/options/category</a>.</td></tr>
+    <tr><td><code>createdDateFrom</code></td><td>string, date-time</td><td class="opt">no</td><td>ISO-8601 date-time, UTC only (offset <code>Z</code> or <code>+00:00</code>). Matches enquiries created on or after the start of this UTC calendar day (time-of-day ignored). Must be on or before <code>createdDateTo</code>.</td></tr>
+    <tr><td><code>createdDateTo</code></td><td>string, date-time</td><td class="opt">no</td><td>ISO-8601 date-time, UTC only. Matches enquiries created up to the end of this UTC calendar day (inclusive, time-of-day ignored).</td></tr>
+    <tr><td><code>mobile</code></td><td>string</td><td class="opt">no</td><td>Max 10 chars. Case-insensitive "contains" match.</td></tr>
+    <tr><td><code>email</code></td><td>string</td><td class="opt">no</td><td>Max 100 chars. Case-insensitive "contains" match.</td></tr>
+  </tbody>
+</table>
+<p>All filters combine with AND. In a query string, send UTC date-times with <code>Z</code> (or encode <code>+</code> as <code>%2B</code>) — an unencoded <code>+</code> is read as a space and the request fails with 400.</p>
+
+<h4>Sample request</h4>
+<pre><code>GET /enquiry?product=scl-website
+    &amp;pageNumber=1                          // optional, integer, default 1, > 0
+    &amp;pageSize=50                           // optional, integer, default 50, > 0, max 200
+    &amp;statusId=1                            // optional, integer, > 0 — exact match
+    &amp;typeId=1                              // optional, integer, > 0 — exact match
+    &amp;sourceId=1                            // optional, integer, > 0 — exact match
+    &amp;categoryId=1                          // optional, integer, > 0 — exact match
+    &amp;createdDateFrom=2026-11-01T00:00:00Z  // optional, string, ISO-8601 date-time, UTC only — whole day, inclusive
+    &amp;createdDateTo=2026-11-30T00:00:00Z    // optional, string, ISO-8601 date-time, UTC only — whole day, inclusive; >= createdDateFrom
+    &amp;mobile=98765                         // optional, string, max 10 chars — contains, case-insensitive
+    &amp;email=sharma                         // optional, string, max 100 chars — contains, case-insensitive</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "records": [
+      {
+        "enqId": 101,
+        "typeId": 1,
+        "typeName": "Student",
+        "categoryId": 1,
+        "categoryName": "Category A",
+        "statusId": 1,
+        "statusName": "Open",
+        "sourceId": 1,
+        "sourceName": "Source A",
+        "contactName": "Aarav Sharma",
+        "mobile": "9876543210",
+        "email": "meera.sharma@example.com",
+        "whatsApp": true,
+        "shortMessage": "Looking for admission in Class 2 for the coming session.",
+        "isActive": true,
+        "createdAt": "2026-11-12T08:30:00+00:00",
+        "updatedAt": "2026-11-12T08:30:00+00:00"
+      }
+    ],
+    "metaData": {
+      "totalCount": 1,
+      "pageSize": 50,
+      "currentPage": 1,
+      "totalPages": 1,
+      "hasNext": false,
+      "hasPrevious": false
+    }
+  }
+}</code></pre>
+<p><code>contactName</code> is the name from the enquiry's detail object: student name, applicant name, contact person name, guardian name or father name (first non-empty). <code>shortMessage</code> is the first 150 characters of the message. <code>typeName</code>/<code>categoryName</code>/<code>statusName</code>/<code>sourceName</code>, <code>contactName</code>, <code>mobile</code>, <code>email</code> and <code>shortMessage</code> can be <code>null</code>. The names in the sample are illustrative — read real ones from the options routes.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageNumber</code> not &gt; 0; <code>pageSize</code> not &gt; 0 or over 200; any id filter not &gt; 0; <code>createdDateFrom</code>/<code>createdDateTo</code> not UTC or <code>createdDateFrom</code> after <code>createdDateTo</code>; <code>mobile</code> over 10 chars; <code>email</code> over 100 chars; a value that can't be parsed (e.g. a non-numeric id).</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+
+</details>
+<details id="enquiry-edit">
+<summary><span class="method">GET</span> <code>/enquiry/edit</code></summary>
+<p>Returns one enquiry in its editable shape, to pre-fill the update form. Only the detail object for the enquiry's stored type is filled; the other three are <code>null</code>.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/enquiry/edit?product={product}&amp;enqId={enqId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/enquiry/edit?product={product}&amp;enqId={enqId}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>enqId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0.</td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /enquiry/edit?product=scl-website
+    &amp;enqId=101   // required, integer, > 0</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "typeId": 1,
+    "categoryId": 1,
+    "statusId": 1,
+    "sourceId": 1,
+    "enqId": 101,
+    "mobile": "9876543210",
+    "email": "meera.sharma@example.com",
+    "message": "Looking for admission in Class 2 for the coming session.",
+    "whatsApp": true,
+      "student": {
+        "studentName": "Aarav Sharma",
+        "dob": "2018-04-12T00:00:00+00:00",
+        "classAppliedFor": "Class 2"
+      },
+      "parent": null,
+      "job": null,
+      "other": null
+  }
+}</code></pre>
+<p><code>typeId</code>/<code>categoryId</code>/<code>statusId</code>/<code>sourceId</code> are read-only context — <a href="#enquiry-put">PUT /enquiry</a> doesn't accept them. <code>typeId</code> tells you which detail object to show: 1 → <code>student</code>, 2 → <code>parent</code>, 3 → <code>job</code>, 4 → <code>other</code>.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enqId</code> missing or not &gt; 0.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No active enquiry with this id for the calling institution (missing or deleted).</td></tr>
+  </tbody>
+</table>
+
+</details>
+<details id="enquiry-view">
+<summary><span class="method">GET</span> <code>/enquiry/view</code></summary>
+<p>Returns one enquiry's full detail, with lookup names and audit info. Only the detail object for the enquiry's stored type is filled; the other three are <code>null</code>.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/enquiry/view?product={product}&amp;enqId={enqId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/enquiry/view?product={product}&amp;enqId={enqId}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>enqId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0.</td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /enquiry/view?product=scl-website
+    &amp;enqId=101   // required, integer, > 0</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "typeName": "Student",
+    "categoryName": "Category A",
+    "statusName": "Open",
+    "sourceName": "Source A",
+    "audit": {
+      "isActive": true,
+      "inactiveAt": null,
+      "createdAt": "2026-11-12T08:30:00+00:00",
+      "updatedAt": "2026-11-12T08:30:00+00:00"
+    },
+    "typeId": 1,
+    "categoryId": 1,
+    "statusId": 1,
+    "sourceId": 1,
+    "enqId": 101,
+    "mobile": "9876543210",
+    "email": "meera.sharma@example.com",
+    "message": "Looking for admission in Class 2 for the coming session.",
+    "whatsApp": true,
+      "student": {
+        "studentName": "Aarav Sharma",
+        "dob": "2018-04-12T00:00:00+00:00",
+        "classAppliedFor": "Class 2"
+      },
+      "parent": null,
+      "job": null,
+      "other": null
+  }
+}</code></pre>
+<p>The lookup names can be <code>null</code>. The names in the sample are illustrative.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enqId</code> missing or not &gt; 0.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No active enquiry with this id for the calling institution (missing or deleted).</td></tr>
+  </tbody>
+</table>
+
+</details>
+<details id="enquiry-post">
+<summary><span class="method">POST</span> <code>/enquiry</code></summary>
+<p>Creates an enquiry for the calling institution. <code>typeId</code> decides which detail object is required and saved: 1 Student → <code>student</code>, 2 Parent → <code>parent</code>, 3 Teacher → <code>job</code>, 4 Other → <code>other</code>. Any other detail object sent is ignored.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/plugin/enquiry?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/plugin/enquiry?product={product}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Header</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>Content-Type: application/json</code></td><td class="req">yes</td><td></td></tr>
+    <tr><td><code>Idempotency-Key</code></td><td class="req">yes</td><td>Caller-generated UUID.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency:</strong> resending the same body creates another enquiry (200, new <code>enqId</code>) — duplicates are not detected.</p>
+
+<h4>Sample request body</h4>
+<pre><code>{
+  "postDTO": {                                 // required object
+    "typeId": 1,                               // required, integer, one of 1 (Student), 2 (Parent), 3 (Teacher), 4 (Other)
+    "categoryId": 1,                           // required, integer, > 0 — an active id from GET /enquiry/options/category
+    "statusId": 1,                             // required, integer, > 0 — an active id from GET /enquiry/options/status
+    "sourceId": 1,                             // required, integer, > 0 — an active id from GET /enquiry/options/source
+    "mobile": "9876543210",                    // conditional, string, exactly 10 digits — mobile or email required; required when whatsApp=true
+    "email": "meera.sharma@example.com",       // conditional, string, valid email, max 100 chars — mobile or email required
+    "message": "Looking for admission in Class 2 for the coming session.", // optional, string
+    "whatsApp": true,                          // optional, boolean, default false — true requires mobile
+    "student": {                              // conditional object — required when the enquiry type is 1 (Student); ignored otherwise
+      "studentName": "Aarav Sharma",            // required, string, max 150 chars
+      "dob": "2018-04-12T00:00:00Z",            // optional, string, ISO-8601 date-time, UTC only
+      "classAppliedFor": "Class 2"              // optional, string, max 20 chars
+    },
+    "parent": {                               // conditional object — required when the enquiry type is 2 (Parent); ignored otherwise
+      "guardianName": "Meera Sharma",           // conditional, string, max 150 chars — guardianName or fatherName required
+      "fatherName": "Rohit Sharma"              // conditional, string, max 150 chars — guardianName or fatherName required
+    },
+    "job": {                                  // conditional object — required when the enquiry type is 3 (Teacher); ignored otherwise
+      "applicantName": "Priya Verma",           // required, string, max 150 chars
+      "positionAppliedFor": "Maths Teacher",    // optional, string, max 100 chars
+      "qualification": "M.Sc, B.Ed",            // optional, string, max 150 chars
+      "yearOfExperience": 4.5                   // optional, number, 0–999.9, one decimal place
+    },
+    "other": {                                // conditional object — required when the enquiry type is 4 (Other); ignored otherwise
+      "contactPersonName": "Neha Gupta"         // required, string, max 150 chars
+    }
+  }
+}</code></pre>
+<p>Contact rules (both create and update): at least one of <code>mobile</code> / <code>email</code> must be non-blank; <code>mobile</code> must be exactly 10 digits; <code>mobile</code> is required when <code>whatsApp</code> is <code>true</code>; <code>email</code> must be a valid address, max 100 chars. Text values are stored trimmed; blank optional text is stored as <code>null</code>.</p>
+<table>
+  <thead><tr><th>Sub-object</th><th>Field</th><th>Rule</th></tr></thead>
+  <tbody>
+    <tr><td><code>student</code></td><td><code>studentName</code></td><td class="req">required</td></tr>
+    <tr><td><code>student</code></td><td><code>studentName</code> · <code>dob</code> · <code>classAppliedFor</code></td><td>max 150 chars · ISO-8601 date-time, UTC only (offset <code>+00:00</code> / <code>Z</code>) · max 20 chars</td></tr>
+    <tr><td><code>parent</code></td><td><code>guardianName</code> / <code>fatherName</code></td><td><span class="req">at least one required</span>; each max 150 chars</td></tr>
+    <tr><td><code>job</code></td><td><code>applicantName</code></td><td class="req">required, max 150 chars</td></tr>
+    <tr><td><code>job</code></td><td><code>positionAppliedFor</code> · <code>qualification</code> · <code>yearOfExperience</code></td><td>max 100 chars · max 150 chars · number 0–999.9, at most one decimal place</td></tr>
+    <tr><td><code>other</code></td><td><code>contactPersonName</code></td><td class="req">required, max 150 chars</td></tr>
+  </tbody>
+</table>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": "Success.",
+  "errors": null,
+  "data": { "enqId": 101 }
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Any rule above fails (including <code>typeId</code> not 1–4, a lookup id not &gt; 0, or the detail object for <code>typeId</code> missing), or the body is missing / not valid JSON.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>typeId</code>, <code>categoryId</code>, <code>statusId</code> or <code>sourceId</code> isn't an active option, or a submitted value is not allowed.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or a required value is missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record was removed while the request was being processed.</td></tr>
+  </tbody>
+</table>
+
+<h4>Events</h4>
+<p>Fires <code>ENQUIRY_CREATED</code> after the enquiry is saved.</p>
+
+</details>
+<details id="enquiry-put">
+<summary><span class="method">PUT</span> <code>/enquiry</code></summary>
+<p>Updates an enquiry's contact fields, message and the detail object for its <strong>stored</strong> type. Type, category, status and source can't be changed here (use <a href="#enquiry-put-status">PUT /enquiry/status</a> for status).</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>PUT https://api-vweb.vidyaone.com/test/plugin/enquiry?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>PUT https://api-vweb.vidyaone.com/plugin/enquiry?product={product}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Header</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>Content-Type: application/json</code></td><td class="req">yes</td><td></td></tr>
+    <tr><td><code>Idempotency-Key</code></td><td class="req">yes</td><td>Caller-generated UUID.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency:</strong> resending the same body returns 200 and leaves the enquiry unchanged.</p>
+
+<h4>Sample request body</h4>
+<pre><code>{
+  "putDTO": {                                  // required object
+    "enqId": 101,                              // required, integer, > 0
+    "mobile": "9876543210",                    // conditional, string, exactly 10 digits — mobile or email required; required when whatsApp=true
+    "email": "meera.sharma@example.com",       // conditional, string, valid email, max 100 chars — mobile or email required
+    "message": "Looking for admission in Class 2 for the coming session.", // optional, string
+    "whatsApp": true,                          // optional, boolean, default false — true requires mobile
+    "student": {                              // conditional object — required when the stored enquiry type is 1 (Student); validated if sent, otherwise ignored
+      "studentName": "Aarav Sharma",            // required, string, max 150 chars
+      "dob": "2018-04-12T00:00:00Z",            // optional, string, ISO-8601 date-time, UTC only
+      "classAppliedFor": "Class 2"              // optional, string, max 20 chars
+    },
+    "parent": {                               // conditional object — required when the stored enquiry type is 2 (Parent); validated if sent, otherwise ignored
+      "guardianName": "Meera Sharma",           // conditional, string, max 150 chars — guardianName or fatherName required
+      "fatherName": "Rohit Sharma"              // conditional, string, max 150 chars — guardianName or fatherName required
+    },
+    "job": {                                  // conditional object — required when the stored enquiry type is 3 (Teacher); validated if sent, otherwise ignored
+      "applicantName": "Priya Verma",           // required, string, max 150 chars
+      "positionAppliedFor": "Maths Teacher",    // optional, string, max 100 chars
+      "qualification": "M.Sc, B.Ed",            // optional, string, max 150 chars
+      "yearOfExperience": 4.5                   // optional, number, 0–999.9, one decimal place
+    },
+    "other": {                                // conditional object — required when the stored enquiry type is 4 (Other); validated if sent, otherwise ignored
+      "contactPersonName": "Neha Gupta"         // required, string, max 150 chars
+    }
+  }
+}</code></pre>
+<p>Send the detail object that matches the enquiry's stored type (see <code>typeId</code> in <a href="#enquiry-edit">GET /enquiry/edit</a>); it replaces the saved values. Any other detail object sent is validated against the rules below but not saved.</p>
+<p>Contact rules (both create and update): at least one of <code>mobile</code> / <code>email</code> must be non-blank; <code>mobile</code> must be exactly 10 digits; <code>mobile</code> is required when <code>whatsApp</code> is <code>true</code>; <code>email</code> must be a valid address, max 100 chars. Text values are stored trimmed; blank optional text is stored as <code>null</code>.</p>
+<table>
+  <thead><tr><th>Sub-object</th><th>Field</th><th>Rule</th></tr></thead>
+  <tbody>
+    <tr><td><code>student</code></td><td><code>studentName</code></td><td class="req">required</td></tr>
+    <tr><td><code>student</code></td><td><code>studentName</code> · <code>dob</code> · <code>classAppliedFor</code></td><td>max 150 chars · ISO-8601 date-time, UTC only (offset <code>+00:00</code> / <code>Z</code>) · max 20 chars</td></tr>
+    <tr><td><code>parent</code></td><td><code>guardianName</code> / <code>fatherName</code></td><td><span class="req">at least one required</span>; each max 150 chars</td></tr>
+    <tr><td><code>job</code></td><td><code>applicantName</code></td><td class="req">required, max 150 chars</td></tr>
+    <tr><td><code>job</code></td><td><code>positionAppliedFor</code> · <code>qualification</code> · <code>yearOfExperience</code></td><td>max 100 chars · max 150 chars · number 0–999.9, at most one decimal place</td></tr>
+    <tr><td><code>other</code></td><td><code>contactPersonName</code></td><td class="req">required, max 150 chars</td></tr>
+  </tbody>
+</table>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": "Enquiry updated successfully.",
+  "errors": null,
+  "data": null
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Any rule above fails (including <code>enqId</code> not &gt; 0), or the body is missing / not valid JSON.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or the detail object for the enquiry's stored type wasn't sent (e.g. <code>student</code> for a Student enquiry), or a required value is missing.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>A submitted value is not allowed.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No active enquiry with this <code>enqId</code> for the calling institution (missing or deleted).</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record was removed while the request was being processed.</td></tr>
+  </tbody>
+</table>
+
+</details>
+<details id="enquiry-put-status">
+<summary><span class="method">PUT</span> <code>/enquiry/status</code></summary>
+<p>Sets one new status on up to 200 enquiries of the calling institution. Each id succeeds or fails on its own: an id that doesn't exist (or is deleted) is reported with <code>success: false</code> and doesn't fail the request.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>PUT https://api-vweb.vidyaone.com/test/plugin/enquiry/status?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>PUT https://api-vweb.vidyaone.com/plugin/enquiry/status?product={product}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Header</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>Content-Type: application/json</code></td><td class="req">yes</td><td></td></tr>
+    <tr><td><code>Idempotency-Key</code></td><td class="req">yes</td><td>Caller-generated UUID.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency:</strong> resending the same body returns 200 with the same per-id results; the enquiries keep the new status.</p>
+
+<h4>Sample request body</h4>
+<pre><code>{
+  "enqIds": [101, 102],   // required, array of integers, 1–200 items, each > 0, no duplicates
+  "statusId": 2           // required, integer, > 0 — an active id from GET /enquiry/options/status
+}</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": "Enquiry status updated successfully.",
+  "errors": null,
+  "data": {
+    "totalCount": 2,
+    "successCount": 1,
+    "failureCount": 1,
+    "results": [
+      { "enqId": 101, "success": true },
+      { "enqId": 102, "success": false }
+    ]
+  }
+}</code></pre>
+<p><code>results</code> has one entry per requested id, in request order.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enqIds</code> empty, more than 200 ids, contains duplicates, or any id not &gt; 0; <code>statusId</code> not &gt; 0; or the body is missing / not valid JSON.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>statusId</code> isn't an active status option.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+
+</details>
+<details id="enquiry-delete">
+<summary><span class="method">DELETE</span> <code>/enquiry</code></summary>
+<p>Deletes up to 200 enquiries of the calling institution. Each id succeeds or fails on its own: an id that doesn't exist (or is already deleted) is reported with <code>success: false</code> and doesn't fail the request. Deleted enquiries no longer appear in any route.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>DELETE https://api-vweb.vidyaone.com/test/plugin/enquiry?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>DELETE https://api-vweb.vidyaone.com/plugin/enquiry?product={product}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Header</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>Content-Type: application/json</code></td><td class="req">yes</td><td></td></tr>
+    <tr><td><code>Idempotency-Key</code></td><td class="req">yes</td><td>Caller-generated UUID.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency:</strong> resending the same body returns 200; ids deleted by the first call are reported with <code>success: false</code>.</p>
+
+<h4>Sample request body</h4>
+<pre><code>{
+  "enqIds": [101, 102]   // required, array of integers, 1–200 items, each > 0, no duplicates
+}</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": "Enquiry deleted successfully.",
+  "errors": null,
+  "data": {
+    "totalCount": 2,
+    "successCount": 1,
+    "failureCount": 1,
+    "results": [
+      { "enqId": 101, "success": true },
+      { "enqId": 102, "success": false }
+    ]
+  }
+}</code></pre>
+<p><code>results</code> has one entry per requested id, in request order.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enqIds</code> empty, more than 200 ids, contains duplicates, or any id not &gt; 0; or the body is missing / not valid JSON.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+
+</details>
+</section>
+
+<section id="options">
+<h2>Options</h2>
+<p>Dropdown values for the enquiry lookup ids. They're the same for every institution.</p>
+
+<details id="options-status">
+<summary><span class="method">GET</span> <code>/enquiry/options/status</code></summary>
+<p>Returns the active enquiry status options, in display order — use the ids in the enquiry routes. New or changed options can take a while to appear here.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/enquiry/options/status?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/enquiry/options/status?product={product}</code></td></tr>
+  </tbody>
+</table>
+<p>No parameters besides <code>product</code>.</p>
+
+<h4>Sample request</h4>
+<pre><code>GET /enquiry/options/status?product=scl-website   // product: required, string</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": [
+    { "id": 1, "name": "Open" },
+    { "id": 2, "name": "Status B" }
+  ]
+}</code></pre>
+<p><code>id</code> is an integer. Names in the sample are illustrative.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+
+</details>
+<details id="options-type">
+<summary><span class="method">GET</span> <code>/enquiry/options/type</code></summary>
+<p>Returns the active enquiry type options, in display order — use the ids in the enquiry routes. Type ids: 1 Student, 2 Parent, 3 Teacher, 4 Other. New or changed options can take a while to appear here.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/enquiry/options/type?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/enquiry/options/type?product={product}</code></td></tr>
+  </tbody>
+</table>
+<p>No parameters besides <code>product</code>.</p>
+
+<h4>Sample request</h4>
+<pre><code>GET /enquiry/options/type?product=scl-website   // product: required, string</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": [
+    { "id": 1, "name": "Student" },
+    { "id": 2, "name": "Parent" },
+    { "id": 3, "name": "Teacher" },
+    { "id": 4, "name": "Other" }
+  ]
+}</code></pre>
+<p><code>id</code> is an integer. Names in the sample are illustrative.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+
+</details>
+<details id="options-category">
+<summary><span class="method">GET</span> <code>/enquiry/options/category</code></summary>
+<p>Returns the active enquiry category options, in display order — use the ids in the enquiry routes. New or changed options can take a while to appear here.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/enquiry/options/category?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/enquiry/options/category?product={product}</code></td></tr>
+  </tbody>
+</table>
+<p>No parameters besides <code>product</code>.</p>
+
+<h4>Sample request</h4>
+<pre><code>GET /enquiry/options/category?product=scl-website   // product: required, string</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": [
+    { "id": 1, "name": "Category A" }
+  ]
+}</code></pre>
+<p><code>id</code> is an integer. Names in the sample are illustrative.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+
+</details>
+<details id="options-source">
+<summary><span class="method">GET</span> <code>/enquiry/options/source</code></summary>
+<p>Returns the active enquiry source options, in display order — use the ids in the enquiry routes. New or changed options can take a while to appear here.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/enquiry/options/source?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/enquiry/options/source?product={product}</code></td></tr>
+  </tbody>
+</table>
+<p>No parameters besides <code>product</code>.</p>
+
+<h4>Sample request</h4>
+<pre><code>GET /enquiry/options/source?product=scl-website   // product: required, string</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": [
+    { "id": 1, "name": "Source A" }
+  ]
+}</code></pre>
+<p><code>id</code> is an integer. Names in the sample are illustrative.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+
+</details>
+</section>
+</main>
+</body>
+</html>
