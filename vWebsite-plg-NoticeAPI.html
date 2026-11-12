@@ -155,9 +155,10 @@
 <pre><code>{
   "success": false,
   "message": "Validation failed.",
-  "errors": [ { "code": "VALIDATION_FAILED", "message": "title is required and must be at most 200 characters.", "field": "Notice.Title" } ],
+  "errors": [ { "code": "VALIDATION_FAILED", "message": "title is required and must be at most 200 characters.", "field": "PostDTO.Title" } ],
   "data": null
 }</code></pre>
+<p>Write routes (POST / PUT / DELETE) return a short confirmation in <code>message</code> on success; read routes return <code>null</code>. Don't switch on it.</p>
 <p>Each entry in <code>errors[]</code> has a machine-readable <code>code</code> — switch on <code>code</code>, not on <code>message</code> text.</p>
 <p>JSON bodies accept numeric ids and numbers sent either as numbers or as quoted strings (<code>"noticeId": 501</code> and <code>"noticeId": "501"</code> are equivalent).</p>
 
@@ -184,7 +185,7 @@
 <!-- ========================= List notices ========================= -->
 <details id="notice-get">
 <summary><span class="method">GET</span> <code>/notice</code></summary>
-<p>Returns a page of active, non-deleted notices for the calling institution, most recently published first. Reads from the <code>vw_plg_notice_list</code> read model.</p>
+<p>Returns a page of active, non-deleted notices for the calling institution, most recently published first.</p>
 
 <h4>Request</h4>
 <table>
@@ -261,7 +262,7 @@
 <!-- ========================= Get notice (edit) ========================= -->
 <details id="notice-edit">
 <summary><span class="method">GET</span> <code>/notice/edit</code></summary>
-<p>Returns one notice in a flat, editable shape that can be sent straight back to <a href="#notice-put">Update notice</a>. Reads the table directly (not a view).</p>
+<p>Returns one notice in a flat, editable shape that can be sent straight back to <a href="#notice-put">Update notice</a>.</p>
 
 <h4>Request</h4>
 <table>
@@ -311,7 +312,7 @@
 <!-- ========================= Get notice (view) ========================= -->
 <details id="notice-view">
 <summary><span class="method">GET</span> <code>/notice/view</code></summary>
-<p>Returns one notice in a detailed, read-only shape, including audit info. Reads from the <code>vw_plg_notice_view</code> read model.</p>
+<p>Returns one notice in a detailed, read-only shape, including audit info.</p>
 
 <h4>Request</h4>
 <table>
@@ -346,8 +347,6 @@
     "publishDate": "2026-11-01T09:00:00+00:00",
     "expiryDate": "2026-11-15T23:59:00+00:00",
     "publishState": "Live",
-    "instSaaSId": 321,
-    "creatorUserId": 42,
     "audit": { "isActive": true, "inactiveAt": null, "createdAt": "2026-10-10T08:00:00+00:00", "updatedAt": "2026-10-10T08:00:00+00:00" }
   }
 }</code></pre>
@@ -379,10 +378,10 @@
 
 <h4>Sample request body</h4>
 <pre><code>{
-  "notice": {
+  "postDTO": {                                                                // required object
     "title": "Annual Sports Day",                                             // required, string, max 200 chars
     "description": "Join us for the annual sports day on the school grounds.", // required, string
-    "imageSrc": "sports-day.jpg",                                             // optional, string, max 500 chars &mdash; a plain file name only, never a URL or a path; see "Uploading an image" below &mdash; independent of uploadImageFileName, never required to match it
+    "imageSrc": "sports-day.jpg",                                             // optional, string, max 500 chars when sent &mdash; a plain file name only, never a URL or a path; see "Uploading an image" below &mdash; independent of uploadImageFileName, never required to match it
     "publishDate": "2026-11-01T09:00:00Z",                                    // required, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; any other offset fails validation
     "expiryDate": "2026-11-15T23:59:00Z"                                      // optional, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; must be on or after publishDate
   },
@@ -391,7 +390,7 @@
 
 <h4>Uploading an image</h4>
 <p><code>imageSrc</code> and <code>uploadImageFileName</code> are unrelated fields &mdash; <code>imageSrc</code> is stored exactly as sent, and this API never requires it to match anything the upload flow produces.</p>
-<p>Sending <code>uploadImageFileName</code> returns a presigned S3 upload in the response, resolved <strong>after</strong> the notice is already created &mdash; an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code>, but <strong>the notice has already been created</strong> by that point (<code>data.noticeId</code> in the error is not returned, but the record exists &mdash; look it up via <a href="#notice-get">List notices</a> or <a href="#notice-view">Get notice (view)</a> if this happens). On success, <code>POST</code> the raw file bytes plus every field in <code>data.imagePresign.post.fields</code> directly to <code>data.imagePresign.post.url</code> (as multipart form fields, file field last) within <code>expiresIn</code> seconds. Re-uploading the same file name for the same institution overwrites the previous object at that key.</p>
+<p>Sending <code>uploadImageFileName</code> returns a presigned S3 upload in the response. The file name is checked <strong>before</strong> the notice is saved &mdash; an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code> and <strong>no notice is created</strong>. On success, <code>POST</code> the raw file bytes plus every field in <code>data.imagePresign.post.fields</code> directly to <code>data.imagePresign.post.url</code> (as multipart form fields, file field last) within <code>expiresIn</code> seconds. Re-uploading the same file name for the same institution overwrites the previous object at that key.</p>
 <table>
   <thead><tr><th>Allowed extensions (case-insensitive)</th><th>Max size</th></tr></thead>
   <tbody>
@@ -404,7 +403,7 @@
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
   "success": true,
-  "message": null,
+  "message": "Success.",
   "errors": null,
   "data": {
     "noticeId": 501,
@@ -435,7 +434,7 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading an image" above) &mdash; the notice is still created; only the upload slot fails.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading an image" above) &mdash; nothing is created.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again creates a second, separate notice &mdash; no duplicate detection is performed.</p>
@@ -456,15 +455,15 @@
     <tr><td>Production</td><td><code>PUT https://api-vweb.vidyaone.com/plugin/notice?product={product}</code></td></tr>
   </tbody>
 </table>
-<p>Same shape as <a href="#notice-post">Create notice</a>, plus <code>notice.noticeId</code>.</p>
+<p>Same fields as <a href="#notice-post">Create notice</a>, wrapped in <code>putDTO</code> instead of <code>postDTO</code>, plus <code>putDTO.noticeId</code>.</p>
 
 <h4>Sample request body</h4>
 <pre><code>{
-  "notice": {
+  "putDTO": {                                                                 // required object
     "noticeId": 501,                                                           // required, integer, > 0 &mdash; must belong to the caller's institution
     "title": "Annual Sports Day (Updated)",                                    // required, string, max 200 chars
     "description": "Join us for the annual sports day &mdash; now with a new venue.", // required, string
-    "imageSrc": "sports-day-v2.jpg",                                          // optional, string, max 500 chars &mdash; a plain file name only, never a URL or a path; see "Uploading an image" on Create notice &mdash; independent of uploadImageFileName
+    "imageSrc": "sports-day-v2.jpg",                                          // optional, string, max 500 chars when sent &mdash; a plain file name only, never a URL or a path; see "Uploading an image" on Create notice &mdash; independent of uploadImageFileName
     "publishDate": "2026-11-01T09:00:00Z",                                    // required, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; any other offset fails validation
     "expiryDate": "2026-11-20T23:59:00Z"                                      // optional, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; must be on or after publishDate
   },
@@ -472,7 +471,7 @@
 }</code></pre>
 
 <h4>Uploading an image</h4>
-<p>Same rules as <a href="#notice-post">Create notice</a>'s "Uploading an image" &mdash; <code>imageSrc</code> and <code>uploadImageFileName</code> are unrelated. Sending <code>uploadImageFileName</code> returns a presigned S3 upload, resolved <strong>after</strong> the update is already written &mdash; an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code>, but <strong>the update has already been applied</strong> by that point.</p>
+<p>Same rules as <a href="#notice-post">Create notice</a>'s "Uploading an image" &mdash; <code>imageSrc</code> and <code>uploadImageFileName</code> are unrelated. Sending <code>uploadImageFileName</code> returns a presigned S3 upload. The file name is checked <strong>before</strong> the update is saved &mdash; an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code> and <strong>the notice is left unchanged</strong>.</p>
 <table>
   <thead><tr><th>Allowed extensions (case-insensitive)</th><th>Max size</th></tr></thead>
   <tbody>
@@ -485,10 +484,9 @@
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
   "success": true,
-  "message": null,
+  "message": "Notice updated successfully.",
   "errors": null,
   "data": {
-    "updated": true,
     "imagePresign": {
       "key": "vWebsite/plugin_cdn/notice/SAASX7Y8Z9/sports-day-v2-raw.jpg",
       "post": { "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/", "fields": { "...": "..." } },
@@ -502,11 +500,11 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails, <code>notice.noticeId</code> missing or not &gt; 0, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails, <code>putDTO.noticeId</code> missing or not &gt; 0, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No matching notice for this institution.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading an image" above) &mdash; the update is still applied; only the upload slot fails.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading an image" above) &mdash; the notice is left unchanged.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again returns <span class="status-ok">200 OK</span> and leaves the notice in the same final state.</p>
@@ -523,28 +521,26 @@
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>DELETE https://api-vweb.vidyaone.com/test/plugin/notice?product={product}&amp;noticeId={noticeId}</code></td></tr>
-    <tr><td>Production</td><td><code>DELETE https://api-vweb.vidyaone.com/plugin/notice?product={product}&amp;noticeId={noticeId}</code></td></tr>
+    <tr><td>Testing</td><td><code>DELETE https://api-vweb.vidyaone.com/test/plugin/notice?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>DELETE https://api-vweb.vidyaone.com/plugin/notice?product={product}</code></td></tr>
   </tbody>
 </table>
-<table>
-  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
-  <tbody>
-    <tr><td><code>noticeId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0.</td></tr>
-  </tbody>
-</table>
+<p>The notice id goes in a JSON body (send <code>Content-Type: application/json</code>), not the query string.</p>
 
 <h4>Sample request</h4>
-<pre><code>DELETE /notice?product=scl-website
-    &amp;noticeId=501    // required, integer, > 0</code></pre>
+<pre><code>DELETE /notice?product=scl-website</code></pre>
+<h4>Sample request body</h4>
+<pre><code>{
+  "noticeId": 501    // required, integer, > 0 &mdash; must belong to the caller's institution
+}</code></pre>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
-<pre><code>{ "success": true, "message": null, "errors": null, "data": true }</code></pre>
+<pre><code>{ "success": true, "message": "Notice deleted successfully.", "errors": null, "data": true }</code></pre>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>noticeId</code> missing or not &gt; 0.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>noticeId</code> missing or not &gt; 0, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No matching notice for this institution (missing or already deleted).</td></tr>
