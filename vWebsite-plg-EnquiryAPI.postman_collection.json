@@ -287,6 +287,192 @@
       ]
     },
     {
+      "name": "Follow-up",
+      "item": [
+        {
+          "name": "List follow-ups",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/followup?product={{product}}&enqId={{enqId}}&pageNumber=1&pageSize=50&dateFrom=2026-11-01T00:00:00Z&dateTo=2026-11-30T00:00:00Z",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enquiry",
+                "followup"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                },
+                {
+                  "key": "enqId",
+                  "value": "{{enqId}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                },
+                {
+                  "key": "dateFrom",
+                  "value": "2026-11-01T00:00:00Z"
+                },
+                {
+                  "key": "dateTo",
+                  "value": "2026-11-30T00:00:00Z"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get follow-up (edit)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/followup/edit?product={{product}}&followupId={{followupId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enquiry",
+                "followup",
+                "edit"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                },
+                {
+                  "key": "followupId",
+                  "value": "{{followupId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get follow-up (view)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/followup/view?product={{product}}&followupId={{followupId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enquiry",
+                "followup",
+                "view"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                },
+                {
+                  "key": "followupId",
+                  "value": "{{followupId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create follow-up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/followup?product={{product}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enquiry",
+                "followup"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enqId\": {{enqId}},\n  \"followUp\": {\n    \"comment\": \"Called the parent; campus visit planned for next week.\",\n    \"date\": \"2026-11-14T10:00:00Z\"\n  },\n  \"statusId\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete follow-ups",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}enquiry/followup?product={{product}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enquiry",
+                "followup"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"followupIds\": [\n    {{followupId}},\n    202\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Options",
       "item": [
         {
@@ -403,6 +589,11 @@
       "key": "enqId",
       "value": "101",
       "description": "Sample enquiry id — replace with one you created via 'Create enquiry'."
+    },
+    {
+      "key": "followupId",
+      "value": "201",
+      "description": "Sample follow-up id — replace with one you created via 'Create follow-up'."
     }
   ]
 }

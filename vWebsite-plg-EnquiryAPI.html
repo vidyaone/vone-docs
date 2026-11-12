@@ -90,6 +90,16 @@
     </ul>
   </div>
   <div class="menu">
+    <a href="#followup">Follow-up</a>
+    <ul class="submenu">
+      <li><a href="#followup-get"><code>GET /enquiry/followup</code></a></li>
+      <li><a href="#followup-edit"><code>GET /enquiry/followup/edit</code></a></li>
+      <li><a href="#followup-view"><code>GET /enquiry/followup/view</code></a></li>
+      <li><a href="#followup-post"><code>POST /enquiry/followup</code></a></li>
+      <li><a href="#followup-delete"><code>DELETE /enquiry/followup</code></a></li>
+    </ul>
+  </div>
+  <div class="menu">
     <a href="#options">Options</a>
     <ul class="submenu">
       <li><a href="#options-status"><code>GET /enquiry/options/status</code></a></li>
@@ -181,7 +191,7 @@
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> is missing, or a required value is missing (see each endpoint).</td></tr>
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>A lookup id isn't an active option, or a submitted value is not allowed.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The enquiry doesn't exist for the calling institution (missing or deleted).</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The enquiry or follow-up doesn't exist for the calling institution (missing or deleted).</td></tr>
     <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record was removed while the request was being processed.</td></tr>
     <tr><td class="status-err">500</td><td><code>INTERNAL_ERROR</code></td><td>Unexpected server error.</td></tr>
   </tbody>
@@ -689,6 +699,288 @@
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enqIds</code> empty, more than 200 ids, contains duplicates, or any id not &gt; 0; or the body is missing / not valid JSON.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+
+</details>
+</section>
+
+<section id="followup">
+<h2>Follow-up</h2>
+<p>Follow-ups belong to an enquiry. All routes below act only on follow-ups of enquiries belonging to the caller's own institution.</p>
+
+<details id="followup-get">
+<summary><span class="method">GET</span> <code>/enquiry/followup</code></summary>
+<p>Returns a page of one enquiry's active follow-ups, latest follow-up date first. An enquiry that doesn't belong to the calling institution returns an empty page.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/enquiry/followup?product={product}&amp;enqId={enqId}&amp;pageNumber={pageNumber}&amp;pageSize={pageSize}&amp;dateFrom={dateFrom}&amp;dateTo={dateTo}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/enquiry/followup?product={product}&amp;enqId={enqId}&amp;pageNumber={pageNumber}&amp;pageSize={pageSize}&amp;dateFrom={dateFrom}&amp;dateTo={dateTo}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>enqId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0. The enquiry whose follow-ups are listed.</td></tr>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. Must be &gt; 0. A value past the last page is clamped back onto the last page.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. Must be &gt; 0 and &le; <code>200</code>.</td></tr>
+    <tr><td><code>dateFrom</code></td><td>string, date-time</td><td class="opt">no</td><td>ISO-8601 date-time, UTC only (offset <code>Z</code> or <code>+00:00</code>). Matches follow-ups whose <code>date</code> is on or after the start of this UTC calendar day (time-of-day ignored). Must be on or before <code>dateTo</code>.</td></tr>
+    <tr><td><code>dateTo</code></td><td>string, date-time</td><td class="opt">no</td><td>ISO-8601 date-time, UTC only. Matches follow-ups whose <code>date</code> is up to the end of this UTC calendar day (inclusive, time-of-day ignored).</td></tr>
+  </tbody>
+</table>
+<p>In a query string, send UTC date-times with <code>Z</code> (or encode <code>+</code> as <code>%2B</code>) — an unencoded <code>+</code> is read as a space and the request fails with 400.</p>
+
+<h4>Sample request</h4>
+<pre><code>GET /enquiry/followup?product=scl-website
+    &amp;enqId=101                      // required, integer, > 0
+    &amp;pageNumber=1                   // optional, integer, default 1, > 0
+    &amp;pageSize=50                    // optional, integer, default 50, > 0, max 200
+    &amp;dateFrom=2026-11-01T00:00:00Z  // optional, string, ISO-8601 date-time, UTC only — whole day, inclusive
+    &amp;dateTo=2026-11-30T00:00:00Z    // optional, string, ISO-8601 date-time, UTC only — whole day, inclusive; >= dateFrom</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "records": [
+      {
+        "followupId": 201,
+        "enqId": 101,
+        "shortComment": "Called the parent; campus visit planned for next week.",
+        "date": "2026-11-14T10:00:00+00:00",
+        "isActive": true,
+        "createdAt": "2026-11-12T09:15:00+00:00",
+        "updatedAt": "2026-11-12T09:15:00+00:00"
+      }
+    ],
+    "metaData": {
+      "totalCount": 1,
+      "pageSize": 50,
+      "currentPage": 1,
+      "totalPages": 1,
+      "hasNext": false,
+      "hasPrevious": false
+    }
+  }
+}</code></pre>
+<p><code>shortComment</code> is the first 150 characters of the comment. <code>date</code> is the follow-up date sent on create, always UTC.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enqId</code> missing or not &gt; 0; <code>pageNumber</code> not &gt; 0; <code>pageSize</code> not &gt; 0 or over 200; <code>dateFrom</code>/<code>dateTo</code> not UTC or <code>dateFrom</code> after <code>dateTo</code>; a value that can't be parsed.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+
+</details>
+<details id="followup-edit">
+<summary><span class="method">GET</span> <code>/enquiry/followup/edit</code></summary>
+<p>Returns one follow-up in its editable shape.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/enquiry/followup/edit?product={product}&amp;followupId={followupId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/enquiry/followup/edit?product={product}&amp;followupId={followupId}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>followupId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0.</td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /enquiry/followup/edit?product=scl-website
+    &amp;followupId=201   // required, integer, > 0</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "followupId": 201,
+    "enqId": 101,
+    "comment": "Called the parent; campus visit planned for next week.",
+    "date": "2026-11-14T10:00:00+00:00"
+  }
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>followupId</code> missing or not &gt; 0.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No active follow-up with this id for the calling institution (missing, deleted, or its enquiry is deleted).</td></tr>
+  </tbody>
+</table>
+
+</details>
+<details id="followup-view">
+<summary><span class="method">GET</span> <code>/enquiry/followup/view</code></summary>
+<p>Returns one follow-up's full detail, with audit info.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/plugin/enquiry/followup/view?product={product}&amp;followupId={followupId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/plugin/enquiry/followup/view?product={product}&amp;followupId={followupId}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>followupId</code></td><td>integer</td><td class="req">yes</td><td>&gt; 0.</td></tr>
+  </tbody>
+</table>
+
+<h4>Sample request</h4>
+<pre><code>GET /enquiry/followup/view?product=scl-website
+    &amp;followupId=201   // required, integer, > 0</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": {
+    "audit": {
+      "isActive": true,
+      "inactiveAt": null,
+      "createdAt": "2026-11-12T09:15:00+00:00",
+      "updatedAt": "2026-11-12T09:15:00+00:00"
+    },
+    "followupId": 201,
+    "enqId": 101,
+    "comment": "Called the parent; campus visit planned for next week.",
+    "date": "2026-11-14T10:00:00+00:00"
+  }
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>followupId</code> missing or not &gt; 0.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No active follow-up with this id for the calling institution (missing, deleted, or its enquiry is deleted).</td></tr>
+  </tbody>
+</table>
+
+</details>
+<details id="followup-post">
+<summary><span class="method">POST</span> <code>/enquiry/followup</code></summary>
+<p>Adds a follow-up to an enquiry of the calling institution. When <code>statusId</code> is sent (and &gt; 0), the enquiry's status is set to it in the same call — if either part fails, neither is saved. <code>statusId</code> <code>0</code> or omitted leaves the status unchanged.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/plugin/enquiry/followup?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/plugin/enquiry/followup?product={product}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Header</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>Content-Type: application/json</code></td><td class="req">yes</td><td></td></tr>
+    <tr><td><code>Idempotency-Key</code></td><td class="req">yes</td><td>Caller-generated UUID.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency:</strong> resending the same body adds another follow-up (200, new <code>followupId</code>) — duplicates are not detected.</p>
+
+<h4>Sample request body</h4>
+<pre><code>{
+  "enqId": 101,                                                     // required, integer, > 0
+  "followUp": {                                                     // required object
+    "comment": "Called the parent; campus visit planned for next week.", // required, string, stored trimmed
+    "date": "2026-11-14T10:00:00Z"                                  // required, string, ISO-8601 date-time, UTC only
+  },
+  "statusId": 2                                                     // optional, integer, >= 0 — an active id from GET /enquiry/options/status; 0 or omitted = keep the current status
+}</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": "Success.",
+  "errors": null,
+  "data": { "followupId": 201 }
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enqId</code> not &gt; 0; <code>followUp</code> missing; <code>followUp.comment</code> empty; <code>followUp.date</code> missing or not UTC; <code>statusId</code> negative; or the body is missing / not valid JSON.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>statusId</code> (&gt; 0) isn't an active status option, or a submitted value is not allowed.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or a required value is missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No active enquiry with this <code>enqId</code> for the calling institution (missing or deleted).</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record was removed while the request was being processed.</td></tr>
+  </tbody>
+</table>
+
+</details>
+<details id="followup-delete">
+<summary><span class="method">DELETE</span> <code>/enquiry/followup</code></summary>
+<p>Deletes up to 200 follow-ups of the calling institution's enquiries. Each id succeeds or fails on its own: an id that doesn't exist, is already deleted, or belongs to another institution's (or a deleted) enquiry is reported with <code>success: false</code> and doesn't fail the request. Deleted follow-ups no longer appear in any route.</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>DELETE https://api-vweb.vidyaone.com/test/plugin/enquiry/followup?product={product}</code></td></tr>
+    <tr><td>Production</td><td><code>DELETE https://api-vweb.vidyaone.com/plugin/enquiry/followup?product={product}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Header</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>Content-Type: application/json</code></td><td class="req">yes</td><td></td></tr>
+    <tr><td><code>Idempotency-Key</code></td><td class="req">yes</td><td>Caller-generated UUID.</td></tr>
+  </tbody>
+</table>
+<p><strong>Idempotency:</strong> resending the same body returns 200; ids deleted by the first call are reported with <code>success: false</code>.</p>
+
+<h4>Sample request body</h4>
+<pre><code>{
+  "followupIds": [201, 202]   // required, array of integers, 1–200 items, each > 0, no duplicates
+}</code></pre>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "message": "Enquiry follow-up deleted successfully.",
+  "errors": null,
+  "data": {
+    "totalCount": 2,
+    "successCount": 1,
+    "failureCount": 1,
+    "results": [
+      { "followupId": 201, "success": true },
+      { "followupId": 202, "success": false }
+    ]
+  }
+}</code></pre>
+<p><code>results</code> has one entry per requested id, in request order.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>followupIds</code> empty, more than 200 ids, contains duplicates, or any id not &gt; 0; or the body is missing / not valid JSON.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
   </tbody>
