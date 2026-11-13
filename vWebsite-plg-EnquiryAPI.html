@@ -108,6 +108,12 @@
       <li><a href="#options-source"><code>GET /enquiry/options/source</code></a></li>
     </ul>
   </div>
+  <div class="menu">
+    <a href="#form">Enquiry form</a>
+    <ul class="submenu">
+      <li><a href="#form-post"><code>POST /enquiry/form</code></a></li>
+    </ul>
+  </div>
   <a class="download" href="vWebsite-plg-EnquiryAPI.postman_collection.json" download>&#8595; Postman collection</a>
 </nav>
 
@@ -132,6 +138,7 @@
     <tr><td>Testing</td><td><code>https://api-vweb.vidyaone.com/test/plugin/</code></td><td><code>appsettings.Testing.json</code></td></tr>
     <tr><td>Production</td><td><code>https://api-vweb.vidyaone.com/plugin/</code></td><td><code>appsettings.json</code></td></tr>
     <tr><td>Local (Development)</td><td><code>http://localhost:65084/</code></td><td><code>Properties/launchSettings.json</code> (routes are hit directly off the root)</td></tr>
+    <tr><td>Enquiry form — Testing &amp; Production</td><td><code>https://api-vweb.vidyaone.com/template/</code></td><td><code>appsettings.Testing.json</code> / <code>appsettings.json</code> (same value) — used only by <a href="#form-post">POST /enquiry/form</a></td></tr>
   </tbody>
 </table>
 <p class="small">Concatenate the base URL with the route shown in each endpoint below (e.g. <code>https://api-vweb.vidyaone.com/test/plugin/enquiry</code>). There is no version segment.</p>
@@ -141,7 +148,7 @@
 <h2>Common request &amp; response rules</h2>
 
 <h4>Authentication</h4>
-<p>Authentication required on every route documented in this guide.</p>
+<p>Authentication required on every route documented in this guide, except <a href="#form-post">POST /enquiry/form</a>.</p>
 
 <h4>Headers required on every request</h4>
 <table>
@@ -156,7 +163,7 @@
 <table>
   <thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>product</code></td><td>string</td><td class="req">yes</td><td>Calling client-app identifier, e.g. <code>scl-website</code>. Required on every route below.</td></tr>
+    <tr><td><code>product</code></td><td>string</td><td class="req">yes</td><td>Calling client-app identifier, e.g. <code>scl-website</code>. Required on every route below, except <a href="#form-post">POST /enquiry/form</a> (not used there).</td></tr>
   </tbody>
 </table>
 
@@ -332,14 +339,14 @@
     "email": "meera.sharma@example.com",
     "message": "Looking for admission in Class 2 for the coming session.",
     "whatsApp": true,
-      "student": {
-        "studentName": "Aarav Sharma",
-        "dob": "2018-04-12T00:00:00+00:00",
-        "classAppliedFor": "Class 2"
-      },
-      "parent": null,
-      "job": null,
-      "other": null
+    "student": {
+      "studentName": "Aarav Sharma",
+      "dob": "2018-04-12T00:00:00+00:00",
+      "classAppliedFor": "Class 2"
+    },
+    "parent": null,
+    "job": null,
+    "other": null
   }
 }</code></pre>
 <p><code>typeId</code>/<code>categoryId</code>/<code>statusId</code>/<code>sourceId</code> are read-only context — <a href="#enquiry-put">PUT /enquiry</a> doesn't accept them. <code>typeId</code> tells you which detail object to show: 1 → <code>student</code>, 2 → <code>parent</code>, 3 → <code>job</code>, 4 → <code>other</code>.</p>
@@ -403,14 +410,14 @@
     "email": "meera.sharma@example.com",
     "message": "Looking for admission in Class 2 for the coming session.",
     "whatsApp": true,
-      "student": {
-        "studentName": "Aarav Sharma",
-        "dob": "2018-04-12T00:00:00+00:00",
-        "classAppliedFor": "Class 2"
-      },
-      "parent": null,
-      "job": null,
-      "other": null
+    "student": {
+      "studentName": "Aarav Sharma",
+      "dob": "2018-04-12T00:00:00+00:00",
+      "classAppliedFor": "Class 2"
+    },
+    "parent": null,
+    "job": null,
+    "other": null
   }
 }</code></pre>
 <p>The lookup names can be <code>null</code>. The names in the sample are illustrative.</p>
@@ -621,7 +628,7 @@
 <h4>Sample request body</h4>
 <pre><code>{
   "enqIds": [101, 102],   // required, array of integers, 1–200 items, each > 0, no duplicates
-  "statusId": 2           // required, integer, > 0 — an active id from GET /enquiry/options/status
+  "statusId": 1           // required, integer, > 0 — an active id from GET /enquiry/options/status
 }</code></pre>
 
 <h4>Response</h4>
@@ -910,7 +917,7 @@
     "comment": "Called the parent; campus visit planned for next week.", // required, string, stored trimmed
     "date": "2026-11-14T10:00:00Z"                                  // required, string, ISO-8601 date-time, UTC only
   },
-  "statusId": 2                                                     // optional, integer, >= 0 — an active id from GET /enquiry/options/status; 0 or omitted = keep the current status
+  "statusId": 1                                                     // optional, integer, >= 0 — an active id from GET /enquiry/options/status; 0 or omitted = keep the current status
 }</code></pre>
 
 <h4>Response</h4>
@@ -1141,6 +1148,93 @@
   <tbody>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
+
+</details>
+</section>
+
+<section id="form">
+<h2>Enquiry form</h2>
+<p>Website enquiry-form submissions. The institution is identified by its website domain. No authentication is needed and there is no <code>product</code> query parameter.</p>
+
+<details id="form-post">
+<summary><span class="method">POST</span> <code>/enquiry/form</code></summary>
+<p>Creates an enquiry from a website form for the institution that owns <code>domain</code>. The category comes from <code>form_type</code> and the type from <code>form_fields.type</code>, both matched by name, case-insensitive. Status is always set to Open (<code>1</code>) and source to Website (<code>1</code>).</p>
+
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/template/enquiry/form</code></td></tr>
+    <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/template/enquiry/form</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Header</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>Content-Type: application/json</code></td><td class="req">yes</td><td></td></tr>
+    <tr><td><code>Idempotency-Key</code></td><td class="req">yes</td><td>Caller-generated UUID.</td></tr>
+  </tbody>
+</table>
+<p>No query parameters.</p>
+<p><strong>Idempotency:</strong> resending the same body creates another enquiry (200, new <code>enqId</code>). Duplicates are not detected.</p>
+
+<h4>Sample request body</h4>
+<pre><code>{
+  "domain": "myschool.edusite.in",             // required, string — hostname; optional http(s):// and www. prefix; no port, path or query string; bare edusite.in / www.edusite.in not allowed
+  "form_type": "other",                        // required, string, max 100 chars — an active enquiry category name (case-insensitive)
+  "form_fields": {                             // required object
+    "type": "student",                         // required, string, max 100 chars — an active enquiry type name (case-insensitive)
+    "mobile": "9876543210",                    // conditional, string, exactly 10 digits — mobile or email required; required when whatsApp=true
+    "email": "meera.sharma@example.com",       // conditional, string, valid email, max 100 chars — mobile or email required
+    "message": "Looking for admission in Class 2 for the coming session.", // optional, string
+    "whatsApp": true,                          // optional, boolean, default false — true requires mobile
+    "student": {                              // conditional object — required when type resolves to Student; validated if sent, otherwise ignored
+      "studentName": "Aarav Sharma",            // required, string, max 150 chars
+      "dob": "2018-04-12T00:00:00Z",            // optional, string, ISO-8601 date-time, UTC only
+      "classAppliedFor": "Class 2"              // optional, string, max 20 chars
+    },
+    "parent": {                               // conditional object — required when type resolves to Parent; validated if sent, otherwise ignored
+      "guardianName": "Meera Sharma",           // conditional, string, max 150 chars — guardianName or fatherName required
+      "fatherName": "Rohit Sharma"              // conditional, string, max 150 chars — guardianName or fatherName required
+    },
+    "job": {                                  // conditional object — required when type resolves to Teacher; validated if sent, otherwise ignored
+      "applicantName": "Priya Verma",           // required, string, max 150 chars
+      "positionAppliedFor": "Maths Teacher",    // optional, string, max 100 chars
+      "qualification": "M.Sc, B.Ed",            // optional, string, max 150 chars
+      "yearOfExperience": 4.5                   // optional, number, 0–999.9, one decimal place
+    },
+    "other": {                                // conditional object — required when type resolves to Other; validated if sent, otherwise ignored
+      "contactPersonName": "Neha Gupta"         // required, string, max 150 chars
+    }
+  }
+}</code></pre>
+<p>Contact and detail-object rules are the same as for <a href="#enquiry-post">POST /enquiry</a>. Only the detail object matching the resolved type is saved.</p>
+
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span>: enquiry created</p>
+<pre><code>{
+  "success": true,
+  "message": "Success.",
+  "errors": null,
+  "data": { "enqId": 101 }
+}</code></pre>
+<p><span class="status-ok">200 OK</span>: no institution owns <code>domain</code>. Nothing is created.</p>
+<pre><code>{
+  "success": false,
+  "message": "Domain not found.",
+  "errors": null,
+  "data": null
+}</code></pre>
+<p>Check <code>success</code>, because both outcomes return 200.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>domain</code> missing or not a valid hostname (including bare <code>edusite.in</code>); <code>form_type</code> missing or over 100 chars; <code>form_fields</code> missing; <code>form_fields.type</code> missing or over 100 chars; any contact or detail-object rule fails; or the body is missing / not valid JSON.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>form_fields.type</code> isn't an active type name, <code>form_type</code> isn't an active category name, or a submitted value is not allowed.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td>The detail object for the resolved type wasn't sent (e.g. <code>student</code> when <code>type</code> is Student), or a required value is missing.</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record was removed while the request was being processed.</td></tr>
   </tbody>
 </table>
 

@@ -235,7 +235,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"enqIds\": [\n    {{enqId}},\n    102\n  ],\n  \"statusId\": 2\n}",
+              "raw": "{\n  \"enqIds\": [\n    {{enqId}},\n    102\n  ],\n  \"statusId\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -420,7 +420,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"enqId\": {{enqId}},\n  \"followUp\": {\n    \"comment\": \"Called the parent; campus visit planned for next week.\",\n    \"date\": \"2026-11-14T10:00:00Z\"\n  },\n  \"statusId\": 2\n}",
+              "raw": "{\n  \"enqId\": {{enqId}},\n  \"followUp\": {\n    \"comment\": \"Called the parent; campus visit planned for next week.\",\n    \"date\": \"2026-11-14T10:00:00Z\"\n  },\n  \"statusId\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -568,6 +568,50 @@
                   "value": "{{product}}"
                 }
               ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Enquiry form",
+      "item": [
+        {
+          "name": "Submit enquiry form",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "https://api-vweb.vidyaone.com/template/enquiry/form",
+              "protocol": "https",
+              "host": [
+                "api-vweb",
+                "vidyaone",
+                "com"
+              ],
+              "path": [
+                "template",
+                "enquiry",
+                "form"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"domain\": \"myschool.edusite.in\",\n  \"form_type\": \"other\",\n  \"form_fields\": {\n    \"type\": \"student\",\n    \"mobile\": \"9876543210\",\n    \"email\": \"meera.sharma@example.com\",\n    \"message\": \"Looking for admission in Class 2 for the coming session.\",\n    \"whatsApp\": true,\n    \"student\": {\n      \"studentName\": \"Aarav Sharma\",\n      \"dob\": \"2018-04-12T00:00:00Z\",\n      \"classAppliedFor\": \"Class 2\"\n    },\n    \"parent\": {\n      \"guardianName\": \"Meera Sharma\",\n      \"fatherName\": \"Rohit Sharma\"\n    },\n    \"job\": {\n      \"applicantName\": \"Priya Verma\",\n      \"positionAppliedFor\": \"Maths Teacher\",\n      \"qualification\": \"M.Sc, B.Ed\",\n      \"yearOfExperience\": 4.5\n    },\n    \"other\": {\n      \"contactPersonName\": \"Neha Gupta\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           }
         }
