@@ -138,7 +138,7 @@
     <tr><td>Testing</td><td><code>https://api-vweb.vidyaone.com/test/plugin/</code></td><td><code>appsettings.Testing.json</code></td></tr>
     <tr><td>Production</td><td><code>https://api-vweb.vidyaone.com/plugin/</code></td><td><code>appsettings.json</code></td></tr>
     <tr><td>Local (Development)</td><td><code>http://localhost:65084/</code></td><td><code>Properties/launchSettings.json</code> (routes are hit directly off the root)</td></tr>
-    <tr><td>Enquiry form — Testing &amp; Production</td><td><code>https://api-vweb.vidyaone.com/template/</code></td><td><code>appsettings.Testing.json</code> / <code>appsettings.json</code> (same value) — used only by <a href="#form-post">POST /enquiry/form</a></td></tr>
+    <tr><td>Enquiry form — Testing &amp; Production</td><td><code>https://api-vweb.vidyaone.com/template/</code></td><td><code>appsettings.json</code> (Testing uses the same value) — used only by <a href="#form-post">POST /enquiry/form</a></td></tr>
   </tbody>
 </table>
 <p class="small">Concatenate the base URL with the route shown in each endpoint below (e.g. <code>https://api-vweb.vidyaone.com/test/plugin/enquiry</code>). There is no version segment.</p>
@@ -395,12 +395,10 @@
     "categoryName": "Category A",
     "statusName": "Open",
     "sourceName": "Source A",
-    "audit": {
-      "isActive": true,
-      "inactiveAt": null,
-      "createdAt": "2026-11-12T08:30:00+00:00",
-      "updatedAt": "2026-11-12T08:30:00+00:00"
-    },
+    "isActive": true,
+    "inactiveAt": null,
+    "createdAt": "2026-11-12T08:30:00+00:00",
+    "updatedAt": "2026-11-12T08:30:00+00:00",
     "typeId": 1,
     "categoryId": 1,
     "statusId": 1,
@@ -462,7 +460,7 @@
     "sourceId": 1,                             // required, integer, > 0 — an active id from GET /enquiry/options/source
     "mobile": "9876543210",                    // conditional, string, exactly 10 digits — mobile or email required; required when whatsApp=true
     "email": "meera.sharma@example.com",       // conditional, string, valid email, max 100 chars — mobile or email required
-    "message": "Looking for admission in Class 2 for the coming session.", // optional, string
+    "message": "Looking for admission in Class 2 for the coming session.", // optional, string, max 2000 chars
     "whatsApp": true,                          // optional, boolean, default false — true requires mobile
     "student": {                              // conditional object — required when the enquiry type is 1 (Student); ignored otherwise
       "studentName": "Aarav Sharma",            // required, string, max 150 chars
@@ -508,7 +506,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Any rule above fails (including <code>typeId</code> not 1–4, a lookup id not &gt; 0, or the detail object for <code>typeId</code> missing), or the body is missing / not valid JSON.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Any rule above fails (including <code>typeId</code> not 1–4, a lookup id not &gt; 0, <code>message</code> over 2000 chars, or the detail object for <code>typeId</code> missing), or the body is missing / not valid JSON.</td></tr>
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>typeId</code>, <code>categoryId</code>, <code>statusId</code> or <code>sourceId</code> isn't an active option, or a submitted value is not allowed.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or a required value is missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
@@ -547,7 +545,7 @@
     "enqId": 101,                              // required, integer, > 0
     "mobile": "9876543210",                    // conditional, string, exactly 10 digits — mobile or email required; required when whatsApp=true
     "email": "meera.sharma@example.com",       // conditional, string, valid email, max 100 chars — mobile or email required
-    "message": "Looking for admission in Class 2 for the coming session.", // optional, string
+    "message": "Looking for admission in Class 2 for the coming session.", // optional, string, max 2000 chars
     "whatsApp": true,                          // optional, boolean, default false — true requires mobile
     "student": {                              // conditional object — required when the stored enquiry type is 1 (Student); validated if sent, otherwise ignored
       "studentName": "Aarav Sharma",            // required, string, max 150 chars
@@ -594,7 +592,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Any rule above fails (including <code>enqId</code> not &gt; 0), or the body is missing / not valid JSON.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Any rule above fails (including <code>enqId</code> not &gt; 0 or <code>message</code> over 2000 chars), or the body is missing / not valid JSON.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or the detail object for the enquiry's stored type wasn't sent (e.g. <code>student</code> for a Student enquiry), or a required value is missing.</td></tr>
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>A submitted value is not allowed.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
@@ -720,7 +718,7 @@
 
 <details id="followup-get">
 <summary><span class="method">GET</span> <code>/enquiry/followup</code></summary>
-<p>Returns a page of one enquiry's active follow-ups, latest follow-up date first. An enquiry that doesn't belong to the calling institution returns an empty page.</p>
+<p>Returns a page of one enquiry's active follow-ups, latest follow-up date first. An enquiry that doesn't belong to the calling institution, or is deleted or inactive, returns an empty page.</p>
 
 <h4>Request</h4>
 <table>
@@ -831,7 +829,7 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>followupId</code> missing or not &gt; 0.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No active follow-up with this id for the calling institution (missing, deleted, or its enquiry is deleted).</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No active follow-up with this id for the calling institution (missing, deleted, or its enquiry is deleted or inactive).</td></tr>
   </tbody>
 </table>
 
@@ -866,12 +864,10 @@
   "message": null,
   "errors": null,
   "data": {
-    "audit": {
-      "isActive": true,
-      "inactiveAt": null,
-      "createdAt": "2026-11-12T09:15:00+00:00",
-      "updatedAt": "2026-11-12T09:15:00+00:00"
-    },
+    "isActive": true,
+    "inactiveAt": null,
+    "createdAt": "2026-11-12T09:15:00+00:00",
+    "updatedAt": "2026-11-12T09:15:00+00:00",
     "followupId": 201,
     "enqId": 101,
     "comment": "Called the parent; campus visit planned for next week.",
@@ -884,7 +880,7 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>followupId</code> missing or not &gt; 0.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No active follow-up with this id for the calling institution (missing, deleted, or its enquiry is deleted).</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No active follow-up with this id for the calling institution (missing, deleted, or its enquiry is deleted or inactive).</td></tr>
   </tbody>
 </table>
 
@@ -914,7 +910,7 @@
 <pre><code>{
   "enqId": 101,                                                     // required, integer, > 0
   "followUp": {                                                     // required object
-    "comment": "Called the parent; campus visit planned for next week.", // required, string, stored trimmed
+    "comment": "Called the parent; campus visit planned for next week.", // required, string, max 2000 chars, stored trimmed
     "date": "2026-11-14T10:00:00Z"                                  // required, string, ISO-8601 date-time, UTC only
   },
   "statusId": 1                                                     // optional, integer, >= 0 — an active id from GET /enquiry/options/status; 0 or omitted = keep the current status
@@ -931,7 +927,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enqId</code> not &gt; 0; <code>followUp</code> missing; <code>followUp.comment</code> empty; <code>followUp.date</code> missing or not UTC; <code>statusId</code> negative; or the body is missing / not valid JSON.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>enqId</code> not &gt; 0; <code>followUp</code> missing; <code>followUp.comment</code> empty or over 2000 chars; <code>followUp.date</code> missing or not UTC; <code>statusId</code> negative; or the body is missing / not valid JSON.</td></tr>
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>statusId</code> (&gt; 0) isn't an active status option, or a submitted value is not allowed.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or a required value is missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
@@ -943,7 +939,7 @@
 </details>
 <details id="followup-delete">
 <summary><span class="method">DELETE</span> <code>/enquiry/followup</code></summary>
-<p>Deletes up to 200 follow-ups of the calling institution's enquiries. Each id succeeds or fails on its own: an id that doesn't exist, is already deleted, or belongs to another institution's (or a deleted) enquiry is reported with <code>success: false</code> and doesn't fail the request. Deleted follow-ups no longer appear in any route.</p>
+<p>Deletes up to 200 follow-ups of the calling institution's enquiries. Each id succeeds or fails on its own: an id that doesn't exist, is already deleted, or belongs to another institution's (or a deleted or inactive) enquiry is reported with <code>success: false</code> and doesn't fail the request. Deleted follow-ups no longer appear in any route.</p>
 
 <h4>Request</h4>
 <table>
@@ -1188,7 +1184,7 @@
     "type": "student",                         // required, string, max 100 chars — an active enquiry type name (case-insensitive)
     "mobile": "9876543210",                    // conditional, string, exactly 10 digits — mobile or email required; required when whatsApp=true
     "email": "meera.sharma@example.com",       // conditional, string, valid email, max 100 chars — mobile or email required
-    "message": "Looking for admission in Class 2 for the coming session.", // optional, string
+    "message": "Looking for admission in Class 2 for the coming session.", // optional, string, max 2000 chars
     "whatsApp": true,                          // optional, boolean, default false — true requires mobile
     "student": {                              // conditional object — required when type resolves to Student; validated if sent, otherwise ignored
       "studentName": "Aarav Sharma",            // required, string, max 150 chars
@@ -1231,12 +1227,15 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>domain</code> missing or not a valid hostname (including bare <code>edusite.in</code>); <code>form_type</code> missing or over 100 chars; <code>form_fields</code> missing; <code>form_fields.type</code> missing or over 100 chars; any contact or detail-object rule fails; or the body is missing / not valid JSON.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>form_fields.type</code> isn't an active type name, <code>form_type</code> isn't an active category name, or a submitted value is not allowed.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>domain</code> missing or not a valid hostname (including bare <code>edusite.in</code>); <code>form_type</code> missing or over 100 chars; <code>form_fields</code> missing; <code>form_fields.type</code> missing or over 100 chars; <code>form_fields.message</code> over 2000 chars; any contact or detail-object rule fails; or the body is missing / not valid JSON.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>form_fields.type</code> isn't an active type name or resolves to a type other than Student, Parent, Teacher or Other; <code>form_type</code> isn't an active category name; or a submitted value is not allowed.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td>The detail object for the resolved type wasn't sent (e.g. <code>student</code> when <code>type</code> is Student), or a required value is missing.</td></tr>
     <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record was removed while the request was being processed.</td></tr>
   </tbody>
 </table>
+
+<h4>Events</h4>
+<p>Fires <code>ENQUIRY_CREATED</code> after the enquiry is saved (not when the domain isn't found).</p>
 
 </details>
 </section>

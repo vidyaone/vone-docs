@@ -4,7 +4,11 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "https://api-shared.vidyaone.com/test/data", "type": "string" }
+    {
+      "key": "baseUrl",
+      "value": "https://api-shared.vidyaone.com/test/data",
+      "type": "string"
+    }
   ],
   "item": [
     {
@@ -17,9 +21,19 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/options/gender?product=lms",
-              "host": ["{{baseUrl}}"],
-              "path": ["options", "gender"],
-              "query": [ { "key": "product", "value": "lms" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "options",
+                "gender"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
             }
           }
         },
@@ -30,9 +44,19 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/options/bloodgroup?product=lms",
-              "host": ["{{baseUrl}}"],
-              "path": ["options", "bloodgroup"],
-              "query": [ { "key": "product", "value": "lms" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "options",
+                "bloodgroup"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
             }
           }
         },
@@ -43,9 +67,19 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/options/board?product=lms",
-              "host": ["{{baseUrl}}"],
-              "path": ["options", "board"],
-              "query": [ { "key": "product", "value": "lms" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "options",
+                "board"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
             }
           }
         },
@@ -56,9 +90,19 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/options/courtesy?product=lms",
-              "host": ["{{baseUrl}}"],
-              "path": ["options", "courtesy"],
-              "query": [ { "key": "product", "value": "lms" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "options",
+                "courtesy"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
             }
           }
         },
@@ -69,9 +113,19 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/options/category?product=lms",
-              "host": ["{{baseUrl}}"],
-              "path": ["options", "category"],
-              "query": [ { "key": "product", "value": "lms" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "options",
+                "category"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
             }
           }
         },
@@ -82,9 +136,23 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/options/subcategory?product=lms&categoryId=1",
-              "host": ["{{baseUrl}}"],
-              "path": ["options", "subcategory"],
-              "query": [ { "key": "product", "value": "lms" }, { "key": "categoryId", "value": "1" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "options",
+                "subcategory"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                },
+                {
+                  "key": "categoryId",
+                  "value": "1"
+                }
+              ]
             }
           }
         },
@@ -95,9 +163,19 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/options/relation?product=lms",
-              "host": ["{{baseUrl}}"],
-              "path": ["options", "relation"],
-              "query": [ { "key": "product", "value": "lms" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "options",
+                "relation"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
             }
           }
         },
@@ -108,9 +186,19 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/options/nationality?product=lms",
-              "host": ["{{baseUrl}}"],
-              "path": ["options", "nationality"],
-              "query": [ { "key": "product", "value": "lms" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "options",
+                "nationality"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
             }
           }
         },
@@ -121,9 +209,19 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/options/occupation?product=lms",
-              "host": ["{{baseUrl}}"],
-              "path": ["options", "occupation"],
-              "query": [ { "key": "product", "value": "lms" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "options",
+                "occupation"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
             }
           }
         },
@@ -134,9 +232,19 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/options/qualification?product=lms",
-              "host": ["{{baseUrl}}"],
-              "path": ["options", "qualification"],
-              "query": [ { "key": "product", "value": "lms" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "options",
+                "qualification"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
             }
           }
         },
@@ -147,9 +255,19 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/options/religion?product=lms",
-              "host": ["{{baseUrl}}"],
-              "path": ["options", "religion"],
-              "query": [ { "key": "product", "value": "lms" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "options",
+                "religion"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
             }
           }
         },
@@ -160,9 +278,19 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/options/country?product=lms",
-              "host": ["{{baseUrl}}"],
-              "path": ["options", "country"],
-              "query": [ { "key": "product", "value": "lms" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "options",
+                "country"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
             }
           }
         },
@@ -173,9 +301,20 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/options/country/phone?product=lms",
-              "host": ["{{baseUrl}}"],
-              "path": ["options", "country", "phone"],
-              "query": [ { "key": "product", "value": "lms" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "options",
+                "country",
+                "phone"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
             }
           }
         },
@@ -186,9 +325,23 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/options/state?product=lms&countryId=1",
-              "host": ["{{baseUrl}}"],
-              "path": ["options", "state"],
-              "query": [ { "key": "product", "value": "lms" }, { "key": "countryId", "value": "1" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "options",
+                "state"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                },
+                {
+                  "key": "countryId",
+                  "value": "1"
+                }
+              ]
             }
           }
         },
@@ -199,9 +352,23 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/options/district?product=lms&stateId=26",
-              "host": ["{{baseUrl}}"],
-              "path": ["options", "district"],
-              "query": [ { "key": "product", "value": "lms" }, { "key": "stateId", "value": "26" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "options",
+                "district"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                },
+                {
+                  "key": "stateId",
+                  "value": "26"
+                }
+              ]
             }
           }
         },
@@ -212,9 +379,20 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/options/document/identity?product=lms",
-              "host": ["{{baseUrl}}"],
-              "path": ["options", "document", "identity"],
-              "query": [ { "key": "product", "value": "lms" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "options",
+                "document",
+                "identity"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
             }
           }
         },
@@ -225,9 +403,20 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/options/document/business?product=lms",
-              "host": ["{{baseUrl}}"],
-              "path": ["options", "document", "business"],
-              "query": [ { "key": "product", "value": "lms" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "options",
+                "document",
+                "business"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
             }
           }
         },
@@ -238,9 +427,20 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/options/document/ngo?product=lms",
-              "host": ["{{baseUrl}}"],
-              "path": ["options", "document", "ngo"],
-              "query": [ { "key": "product", "value": "lms" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "options",
+                "document",
+                "ngo"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
             }
           }
         },
@@ -251,9 +451,20 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/options/document/institute?product=lms",
-              "host": ["{{baseUrl}}"],
-              "path": ["options", "document", "institute"],
-              "query": [ { "key": "product", "value": "lms" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "options",
+                "document",
+                "institute"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
             }
           }
         }
@@ -269,9 +480,19 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/product/list?product=lms",
-              "host": ["{{baseUrl}}"],
-              "path": ["product", "list"],
-              "query": [ { "key": "product", "value": "lms" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "product",
+                "list"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
             }
           }
         },
@@ -282,9 +503,47 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/product/option?product=lms",
-              "host": ["{{baseUrl}}"],
-              "path": ["product", "option"],
-              "query": [ { "key": "product", "value": "lms" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "product",
+                "option"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Plan list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/product/plan/list?product=lms&productId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "product",
+                "plan",
+                "list"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                },
+                {
+                  "key": "productId",
+                  "value": "1"
+                }
+              ]
             }
           }
         },
@@ -295,9 +554,49 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/product/plan/option?product=lms&productId=1",
-              "host": ["{{baseUrl}}"],
-              "path": ["product", "plan", "option"],
-              "query": [ { "key": "product", "value": "lms" }, { "key": "productId", "value": "1" } ]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "product",
+                "plan",
+                "option"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                },
+                {
+                  "key": "productId",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Plan status options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/product/plan/status/option?product=lms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "product",
+                "plan",
+                "status",
+                "option"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
             }
           }
         }

@@ -226,7 +226,6 @@
     "records": [
       {
         "announcementId": 801,
-        "instSaaSId": 321,
         "title": "Admissions Open for 2026-27",
         "shortDescription": "We are now accepting admission applications for the 2026-27 academic year. Apply before the last date to secure your seat.",
         "imageSrc": "admissions-2026.jpg",
@@ -349,10 +348,13 @@
     "publishDate": "2026-11-01T00:00:00+00:00",
     "expiryDate": "2026-12-15T00:00:00+00:00",
     "publishState": "Live",
-    "audit": { "isActive": true, "inactiveAt": null, "createdAt": "2026-10-10T08:00:00+00:00", "updatedAt": "2026-10-10T08:00:00+00:00" }
+    "isActive": true,
+    "inactiveAt": null,
+    "createdAt": "2026-10-10T08:00:00+00:00",
+    "updatedAt": "2026-10-10T08:00:00+00:00"
   }
 }</code></pre>
-<p><code>publishState</code> is computed the same way as in <a href="#announcement-get">List announcements</a>. <code>audit.isActive</code> is always <code>true</code> and <code>audit.inactiveAt</code> is always <code>null</code> in current practice: no route in this API deactivates an announcement.</p>
+<p><code>publishState</code> is computed the same way as in <a href="#announcement-get">List announcements</a>. <code>isActive</code> is always <code>true</code> and <code>inactiveAt</code> is always <code>null</code> in current practice: no route in this API deactivates an announcement.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
@@ -383,16 +385,17 @@
   "postDTO": {                                                                // required object
     "title": "Admissions Open for 2026-27",                                   // required, string, max 200 chars
     "description": "We are now accepting admission applications for the 2026-27 academic year. Apply before the last date to secure your seat.", // required, string
-    "imageSrc": "admissions-2026.jpg", // optional, string, max 500 chars &mdash; a plain file name only (no URL, no path); see "Uploading an image" below &mdash; independent of uploadImageFileName, never required to match it
+    "imageSrc": "admissions-2026.jpg", // optional, string, max 500 chars &mdash; leading/trailing spaces trimmed, blank = no image &mdash; a plain file name only (no URL, no path); see "Uploading an image" below &mdash; independent of uploadImageFileName, never required to match it
     "publishDate": "2026-11-01T00:00:00Z",                                    // required, string, ISO-8601 date-time, must be UTC (offset +00:00)
-    "expiryDate": "2026-12-15T00:00:00Z"                                      // optional, string, ISO-8601 date-time, must be UTC (offset +00:00) &mdash; must be on or after publishDate
+    "expiryDate": "2026-12-15T00:00:00Z"                                      // optional, string, ISO-8601 date-time, must be UTC (offset +00:00) &mdash; must be on or after publishDate and not before today (UTC)
   },
-  "uploadImageFileName": "admissions-2026-raw.jpg"                            // optional, string, max 255 chars &mdash; requests an image upload slot; see "Uploading an image" below
+  "uploadImageFileName": "3f2b9c1e-7a4d-4e8b-9f10-2c6d5a8e1b47-admissions-2026.jpg"                            // optional, string, max 255 chars &mdash; requests an image upload slot; prefix a GUID to keep it unique; see "Uploading an image" below
 }</code></pre>
 
 <h4>Uploading an image</h4>
-<p><code>imageSrc</code> and <code>uploadImageFileName</code> are unrelated fields &mdash; <code>imageSrc</code> is stored exactly as sent, and this API never requires it to match anything the upload flow produces.</p>
+<p><code>imageSrc</code> and <code>uploadImageFileName</code> are unrelated fields &mdash; <code>imageSrc</code> is stored as sent after trimming leading/trailing spaces (a blank or whitespace-only value is stored as no image), and this API never requires it to match anything the upload flow produces.</p>
 <p>Sending <code>uploadImageFileName</code> returns a presigned S3 upload in the response. The file name is checked <strong>before</strong> anything is saved &mdash; an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code> and <strong>no announcement is created</strong>. On success, <code>POST</code> the raw file bytes plus every field in <code>data.imagePresign.post.fields</code> directly to <code>data.imagePresign.post.url</code> (as multipart form fields, file field last) within <code>expiresIn</code> seconds. Re-uploading the same file name for the same institution overwrites the previous object at that key.</p>
+<p><strong>Developer note &mdash; make every upload file name unique.</strong> The upload key is built only from the institution and the file name, so two announcements that upload the same name (e.g. <code>banner.jpg</code>) share one S3 object and the later upload silently replaces the earlier announcement's image. Before sending <code>uploadImageFileName</code>, add a GUID to the file name on the client, e.g. <code>3f2b9c1e-7a4d-4e8b-9f10-2c6d5a8e1b47-banner.jpg</code>.</p>
 <table>
   <thead><tr><th>Allowed extensions (case-insensitive)</th><th>Max size</th></tr></thead>
   <tbody>
@@ -410,11 +413,11 @@
   "data": {
     "announcementId": 801,
     "imagePresign": {
-      "key": "vWebsite/plugin_cdn/announcement/5a5roCjQmv/admissions-2026-raw.jpg",
+      "key": "vWebsite/plugin_cdn/announcement/5a5roCjQmv/3f2b9c1e-7a4d-4e8b-9f10-2c6d5a8e1b47-admissions-2026.jpg",
       "post": {
         "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/",
         "fields": {
-          "key": "vWebsite/plugin_cdn/announcement/5a5roCjQmv/admissions-2026-raw.jpg",
+          "key": "vWebsite/plugin_cdn/announcement/5a5roCjQmv/3f2b9c1e-7a4d-4e8b-9f10-2c6d5a8e1b47-admissions-2026.jpg",
           "x-amz-server-side-encryption": "AES256",
           "x-amz-credential": "ASIAEXAMPLE/20261014/ap-south-1/s3/aws4_request",
           "x-amz-algorithm": "AWS4-HMAC-SHA256",
@@ -466,15 +469,16 @@
     "announcementId": 801,                                                    // required, integer, > 0 &mdash; must belong to the caller's institution
     "title": "Admissions Open for 2026-27 (Extended)",                        // required, string, max 200 chars
     "description": "We are now accepting admission applications for the 2026-27 academic year &mdash; deadline extended.", // required, string
-    "imageSrc": "admissions-2026-v2.jpg", // optional, string, max 500 chars &mdash; see "Uploading an image" on Create announcement &mdash; independent of uploadImageFileName
+    "imageSrc": "admissions-2026-v2.jpg", // optional, string, max 500 chars &mdash; leading/trailing spaces trimmed, blank = no image &mdash; see "Uploading an image" on Create announcement &mdash; independent of uploadImageFileName
     "publishDate": "2026-11-01T00:00:00Z",                                    // required, string, ISO-8601 date-time, must be UTC (offset +00:00)
-    "expiryDate": "2026-12-31T00:00:00Z"                                      // optional, string, ISO-8601 date-time, must be UTC (offset +00:00) &mdash; must be on or after publishDate
+    "expiryDate": "2026-12-31T00:00:00Z"                                      // optional, string, ISO-8601 date-time, must be UTC (offset +00:00) &mdash; must be on or after publishDate and not before today (UTC)
   },
-  "uploadImageFileName": "admissions-2026-v2-raw.jpg"                         // optional, string, max 255 chars &mdash; see "Uploading an image" on Create announcement
+  "uploadImageFileName": "9a1c4e7b-2d3f-4b6a-8c5e-1f0d7b3a6e92-admissions-2026-v2.jpg"                         // optional, string, max 255 chars &mdash; see "Uploading an image" on Create announcement
 }</code></pre>
 
 <h4>Uploading an image</h4>
 <p>Same rules as <a href="#announcement-post">Create announcement</a>'s "Uploading an image" &mdash; <code>imageSrc</code> and <code>uploadImageFileName</code> are unrelated. Sending <code>uploadImageFileName</code> returns a presigned S3 upload. The file name is checked <strong>before</strong> anything is saved &mdash; an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code> and <strong>the announcement is not updated</strong>. This check runs before the announcement is looked up, so a bad file name returns <code>INVALID_INPUT</code> even when <code>putDTO.announcementId</code> doesn't exist.</p>
+<p><code>expiryDate</code>, when sent, must not be before today (UTC) on update too &mdash; to edit an announcement whose expiry has already passed, send a new <code>expiryDate</code> of today or later (or omit it for no expiry), otherwise the update fails with <span class="status-err">400</span> <code>VALIDATION_FAILED</code>.</p>
 <table>
   <thead><tr><th>Allowed extensions (case-insensitive)</th><th>Max size</th></tr></thead>
   <tbody>
@@ -491,7 +495,7 @@
   "errors": null,
   "data": {
     "imagePresign": {
-      "key": "vWebsite/plugin_cdn/announcement/5a5roCjQmv/admissions-2026-v2-raw.jpg",
+      "key": "vWebsite/plugin_cdn/announcement/5a5roCjQmv/9a1c4e7b-2d3f-4b6a-8c5e-1f0d7b3a6e92-admissions-2026-v2.jpg",
       "post": { "url": "https://vidyaone-data-lake.s3.ap-south-1.amazonaws.com/", "fields": { "...": "..." } },
       "expiresIn": 120,
       "maxFileSize": 10485760,

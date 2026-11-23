@@ -110,9 +110,9 @@
 <table>
   <thead><tr><th>Environment</th><th>Base URL</th><th>Source</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>https://api-vweb.vidyaone.com/test/plugin/</code></td><td><code>appsettings.Testing.json</code> → <code>App:BaseUrl</code></td></tr>
-    <tr><td>Production</td><td><code>https://api-vweb.vidyaone.com/plugin/</code></td><td><code>appsettings.json</code> → <code>App:BaseUrl</code></td></tr>
-    <tr><td>Local (Development)</td><td><code>http://localhost:65083/</code></td><td><code>Properties/launchSettings.json</code> → <code>applicationUrl</code> (no <code>App:BaseUrl</code> override for this environment; routes are hit directly off the root, with no <code>/plugin/notice/</code> prefix)</td></tr>
+    <tr><td>Testing</td><td><code>https://api-vweb.vidyaone.com/test/plugin/</code></td><td><code>appsettings.Testing.json</code></td></tr>
+    <tr><td>Production</td><td><code>https://api-vweb.vidyaone.com/plugin/</code></td><td><code>appsettings.json</code></td></tr>
+    <tr><td>Local (Development)</td><td><code>http://localhost:65083/</code></td><td><code>Properties/launchSettings.json</code> (routes are hit directly off the root, with no <code>/plugin/</code> prefix)</td></tr>
   </tbody>
 </table>
 <p class="small">Concatenate the base URL with the route shown in each endpoint below (except Local, which has no path prefix). There is no version segment.</p>
@@ -212,8 +212,8 @@
     &amp;pageNumber=1                      // optional, integer, default 1, > 0
     &amp;pageSize=50                       // optional, integer, default 50, > 0, max 200
     &amp;createdDate=2026-10-16T00:00:00Z  // optional, string, ISO-8601 date-time, UTC only — matches notices created the same UTC calendar day
-    &amp;publishDate=2026-11-01T00:00:00Z  // optional, string, ISO-8601 date-time, UTC only — matches notices published the same UTC calendar day
-    &amp;publishState=Live                 // optional, string, one of Scheduled | Live | Expired
+    &amp;publishDate=2026-12-01T00:00:00Z  // optional, string, ISO-8601 date-time, UTC only — matches notices published the same UTC calendar day
+    &amp;publishState=Scheduled            // optional, string, one of Scheduled | Live | Expired
     &amp;hasImage=true                     // optional, boolean</code></pre>
 
 <h4>Response</h4>
@@ -226,13 +226,12 @@
     "records": [
       {
         "noticeId": 501,
-        "instSaaSId": 321,
         "title": "Annual Sports Day",
         "shortDescription": "Join us for the annual sports day on the school grounds.",
         "imageSrc": "sports-day.jpg",
-        "publishDate": "2026-11-01T09:00:00+00:00",
-        "expiryDate": "2026-11-15T23:59:00+00:00",
-        "publishState": "Live",
+        "publishDate": "2026-12-01T09:00:00+00:00",
+        "expiryDate": "2026-12-15T23:59:00+00:00",
+        "publishState": "Scheduled",
         "isActive": true,
         "createdAt": "2026-10-10T08:00:00+00:00",
         "updatedAt": "2026-10-10T08:00:00+00:00"
@@ -294,8 +293,8 @@
     "title": "Annual Sports Day",
     "description": "Join us for the annual sports day on the school grounds.",
     "imageSrc": "sports-day.jpg",
-    "publishDate": "2026-11-01T09:00:00+00:00",
-    "expiryDate": "2026-11-15T23:59:00+00:00"
+    "publishDate": "2026-12-01T09:00:00+00:00",
+    "expiryDate": "2026-12-15T23:59:00+00:00"
   }
 }</code></pre>
 <table>
@@ -344,13 +343,16 @@
     "title": "Annual Sports Day",
     "description": "Join us for the annual sports day on the school grounds.",
     "imageSrc": "sports-day.jpg",
-    "publishDate": "2026-11-01T09:00:00+00:00",
-    "expiryDate": "2026-11-15T23:59:00+00:00",
-    "publishState": "Live",
-    "audit": { "isActive": true, "inactiveAt": null, "createdAt": "2026-10-10T08:00:00+00:00", "updatedAt": "2026-10-10T08:00:00+00:00" }
+    "publishDate": "2026-12-01T09:00:00+00:00",
+    "expiryDate": "2026-12-15T23:59:00+00:00",
+    "publishState": "Scheduled",
+    "isActive": true,
+    "inactiveAt": null,
+    "createdAt": "2026-10-10T08:00:00+00:00",
+    "updatedAt": "2026-10-10T08:00:00+00:00"
   }
 }</code></pre>
-<p><code>publishState</code> is computed the same way as in <a href="#notice-get">List notices</a>. <code>audit.isActive</code> is always <code>true</code> and <code>audit.inactiveAt</code> is always <code>null</code> in current practice: no route in this API deactivates a notice.</p>
+<p><code>publishState</code> is computed the same way as in <a href="#notice-get">List notices</a>. <code>isActive</code> is always <code>true</code> and <code>inactiveAt</code> is always <code>null</code> in current practice: no route in this API deactivates a notice.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
@@ -381,15 +383,15 @@
   "postDTO": {                                                                // required object
     "title": "Annual Sports Day",                                             // required, string, max 200 chars
     "description": "Join us for the annual sports day on the school grounds.", // required, string
-    "imageSrc": "sports-day.jpg",                                             // optional, string, max 500 chars when sent &mdash; a plain file name only, never a URL or a path; see "Uploading an image" below &mdash; independent of uploadImageFileName, never required to match it
-    "publishDate": "2026-11-01T09:00:00Z",                                    // required, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; any other offset fails validation
-    "expiryDate": "2026-11-15T23:59:00Z"                                      // optional, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; must be on or after publishDate
+    "imageSrc": "sports-day.jpg",                                             // optional, string, max 500 chars when sent &mdash; a plain file name only, never a URL or a path; leading/trailing spaces are trimmed, empty or whitespace-only means no image; see "Uploading an image" below &mdash; independent of uploadImageFileName, never required to match it
+    "publishDate": "2026-12-01T09:00:00Z",                                    // required, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; any other offset fails validation
+    "expiryDate": "2026-12-15T23:59:00Z"                                      // optional, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; must be on or after publishDate and not before today (00:00 UTC)
   },
   "uploadImageFileName": "sports-day-raw.jpg"                                 // optional, string, max 255 chars &mdash; requests an image upload slot; see "Uploading an image" below
 }</code></pre>
 
 <h4>Uploading an image</h4>
-<p><code>imageSrc</code> and <code>uploadImageFileName</code> are unrelated fields &mdash; <code>imageSrc</code> is stored exactly as sent, and this API never requires it to match anything the upload flow produces.</p>
+<p><code>imageSrc</code> and <code>uploadImageFileName</code> are unrelated fields &mdash; <code>imageSrc</code> is stored as sent (trimmed; empty or whitespace-only is stored as no image), and this API never requires it to match anything the upload flow produces.</p>
 <p>Sending <code>uploadImageFileName</code> returns a presigned S3 upload in the response. The file name is checked <strong>before</strong> the notice is saved &mdash; an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code> and <strong>no notice is created</strong>. On success, <code>POST</code> the raw file bytes plus every field in <code>data.imagePresign.post.fields</code> directly to <code>data.imagePresign.post.url</code> (as multipart form fields, file field last) within <code>expiresIn</code> seconds. Re-uploading the same file name for the same institution overwrites the previous object at that key.</p>
 <table>
   <thead><tr><th>Allowed extensions (case-insensitive)</th><th>Max size</th></tr></thead>
@@ -431,7 +433,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including <code>expiryDate</code> before today, 00:00 UTC), or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading an image" above) &mdash; nothing is created.</td></tr>
@@ -463,9 +465,9 @@
     "noticeId": 501,                                                           // required, integer, > 0 &mdash; must belong to the caller's institution
     "title": "Annual Sports Day (Updated)",                                    // required, string, max 200 chars
     "description": "Join us for the annual sports day &mdash; now with a new venue.", // required, string
-    "imageSrc": "sports-day-v2.jpg",                                          // optional, string, max 500 chars when sent &mdash; a plain file name only, never a URL or a path; see "Uploading an image" on Create notice &mdash; independent of uploadImageFileName
-    "publishDate": "2026-11-01T09:00:00Z",                                    // required, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; any other offset fails validation
-    "expiryDate": "2026-11-20T23:59:00Z"                                      // optional, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; must be on or after publishDate
+    "imageSrc": "sports-day-v2.jpg",                                          // optional, string, max 500 chars when sent &mdash; a plain file name only, never a URL or a path; leading/trailing spaces are trimmed, empty or whitespace-only means no image; see "Uploading an image" on Create notice &mdash; independent of uploadImageFileName
+    "publishDate": "2026-12-01T09:00:00Z",                                    // required, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; any other offset fails validation
+    "expiryDate": "2026-12-20T23:59:00Z"                                      // optional, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; must be on or after publishDate and not before today (00:00 UTC), also when updating an already-expired notice
   },
   "uploadImageFileName": "sports-day-v2-raw.jpg"                              // optional, string, max 255 chars &mdash; see "Uploading an image" on Create notice
 }</code></pre>
@@ -500,7 +502,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails, <code>putDTO.noticeId</code> missing or not &gt; 0, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails (including <code>expiryDate</code> before today, 00:00 UTC), <code>putDTO.noticeId</code> missing or not &gt; 0, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No matching notice for this institution.</td></tr>

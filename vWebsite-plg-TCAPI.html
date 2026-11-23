@@ -209,8 +209,8 @@
     <tr><td><code>studentName</code></td><td>string</td><td class="opt">no</td><td>Max 150 chars. Case-insensitive substring match; leading/trailing spaces ignored.</td></tr>
     <tr><td><code>fatherName</code></td><td>string</td><td class="opt">no</td><td>Max 150 chars. Case-insensitive substring match; leading/trailing spaces ignored.</td></tr>
     <tr><td><code>className</code></td><td>string</td><td class="opt">no</td><td>Max 20 chars. Case-insensitive substring match; leading/trailing spaces ignored.</td></tr>
-    <tr><td><code>regNo</code></td><td>string</td><td class="opt">no</td><td>Max 50 chars. Exact match.</td></tr>
-    <tr><td><code>srNo</code></td><td>string</td><td class="opt">no</td><td>Max 50 chars. Exact match.</td></tr>
+    <tr><td><code>regNo</code></td><td>string</td><td class="opt">no</td><td>Max 50 chars. Exact match; leading/trailing spaces ignored, whitespace-only treated as not sent.</td></tr>
+    <tr><td><code>srNo</code></td><td>string</td><td class="opt">no</td><td>Max 50 chars. Exact match; leading/trailing spaces ignored, whitespace-only treated as not sent.</td></tr>
     <tr><td><code>dob</code></td><td>string, date-time</td><td class="opt">no</td><td>ISO-8601 date-time, UTC only (offset <code>+00:00</code> or <code>Z</code>) — any other offset fails validation. Matches records whose <code>dob</code> falls on the same UTC calendar day as this value (time-of-day is ignored).</td></tr>
     <tr><td><code>hasImage</code></td><td>boolean</td><td class="opt">no</td><td><code>true</code> returns only records with a non-empty <code>imageSrc</code>; <code>false</code> returns only those without.</td></tr>
     <tr><td><code>hasFile</code></td><td>boolean</td><td class="opt">no</td><td><code>true</code> returns only records with a non-empty <code>fileSrc</code>; <code>false</code> returns only those without.</td></tr>
@@ -332,7 +332,7 @@
 <!-- ========================= Get TC (view) ========================= -->
 <details id="tc-view">
 <summary><span class="method">GET</span> <code>/tc/view</code></summary>
-<p>Returns one TC in a detailed, read-only shape, including audit info.</p>
+<p>Returns one TC in a detailed, read-only shape, including audit fields (<code>isActive</code>, <code>inactiveAt</code>, <code>createdAt</code>, <code>updatedAt</code>).</p>
 
 <h4>Request</h4>
 <table>
@@ -370,10 +370,13 @@
     "sectionName": "B",
     "fileSrc": "tc-asha-mehta.pdf",
     "imageSrc": "asha-mehta.jpg",
-    "audit": { "isActive": true, "inactiveAt": null, "createdAt": "2026-10-10T08:00:00+00:00", "updatedAt": "2026-10-10T08:00:00+00:00" }
+    "isActive": true,
+    "inactiveAt": null,
+    "createdAt": "2026-10-10T08:00:00+00:00",
+    "updatedAt": "2026-10-10T08:00:00+00:00"
   }
 }</code></pre>
-<p><code>audit.isActive</code> is always <code>true</code> and <code>audit.inactiveAt</code> is always <code>null</code> in current practice: no route in this API deactivates a TC.</p>
+<p><code>isActive</code> is always <code>true</code> and <code>inactiveAt</code> is always <code>null</code> in current practice: no route in this API deactivates a TC.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
@@ -388,7 +391,7 @@
 <!-- ========================= Create TC ========================= -->
 <details id="tc-post">
 <summary><span class="method">POST</span> <code>/tc</code></summary>
-<p>Creates a TC for the calling institution — or, if <code>regNo</code> or <code>srNo</code> matches a record that already exists for this institution, updates that record in place instead of creating a duplicate (an upsert). When a match is found, every field of that record is replaced with the values sent — fields sent as <code>null</code> or omitted are cleared.</p>
+<p>Creates a TC for the calling institution — or, if <code>regNo</code> or <code>srNo</code> matches an active record that already exists for this institution, updates that record in place instead of creating a duplicate (an upsert). When a match is found, every field of that record is replaced with the values sent — fields sent as <code>null</code> or omitted are cleared.</p>
 
 <h4>Request</h4>
 <table>
@@ -405,7 +408,7 @@
     "studentName": "Asha Mehta",         // required, string, max 150 chars
     "regNo": "REG-2026-0042",            // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
     "srNo": "SR-1123",                   // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
-    "dob": "2015-04-12T00:00:00Z",       // required, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; any other offset fails validation
+    "dob": "2015-04-12T00:00:00Z",       // required, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; any other offset fails validation; must not be in the future
     "fatherName": "Raj Mehta",           // required, string, max 150 chars
     "className": "8",                    // required, string, max 20 chars
     "sectionName": "B",                  // optional, string, max 10 chars
@@ -415,7 +418,7 @@
   "uploadFileFileName": "asha-mehta-tc-raw.pdf",  // optional, string, max 255 chars &mdash; requests a document upload slot; see "Uploading a document or image" below
   "uploadImageFileName": "asha-mehta-raw.jpg"     // optional, string, max 255 chars &mdash; requests an image upload slot; see "Uploading a document or image" below
 }</code></pre>
-<p class="small"><code>regNo</code>/<code>srNo</code> is a single either/or requirement — sending one without the other is valid. <code>fileSrc</code>/<code>imageSrc</code> are each independently optional — either, both, or neither may be sent.</p>
+<p class="small"><code>regNo</code>/<code>srNo</code> is a single either/or requirement — sending one without the other is valid. <code>fileSrc</code>/<code>imageSrc</code> are each independently optional — either, both, or neither may be sent. Every string field is trimmed of leading/trailing spaces before it is validated and saved. A whitespace-only value counts as not sent: optional fields are stored as <code>null</code>, and <code>studentName</code>/<code>fatherName</code>/<code>className</code> fail as required. <code>uploadFileFileName</code>/<code>uploadImageFileName</code> are trimmed the same way.</p>
 
 <h4>Uploading a document or image</h4>
 <p><code>fileSrc</code>/<code>imageSrc</code> and <code>uploadFileFileName</code>/<code>uploadImageFileName</code> are unrelated fields — <code>fileSrc</code>/<code>imageSrc</code> are stored exactly as sent, and this API never requires either to match anything the upload flow produces.</p>
@@ -465,11 +468,11 @@
     }
   }
 }</code></pre>
-<p><code>fileUploadPresign</code>/<code>imageUploadPresign</code> are each <code>null</code> unless the matching <code>uploadFileFileName</code>/<code>uploadImageFileName</code> was sent. <code>wasUpdated</code> is <code>true</code> when <code>regNo</code> or <code>srNo</code> matched an existing record for this institution and that record was updated in place rather than a new one created — <code>tcId</code> is then the existing record's id.</p>
+<p><code>fileUploadPresign</code>/<code>imageUploadPresign</code> are each <code>null</code> unless the matching <code>uploadFileFileName</code>/<code>uploadImageFileName</code> was sent. <code>wasUpdated</code> is <code>true</code> when <code>regNo</code> or <code>srNo</code> matched an existing active record for this institution and that record was updated in place rather than a new one created — <code>tcId</code> is then the existing record's id.</p>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including the either/or rule on <code>regNo</code>/<code>srNo</code>), <code>postDTO</code> is missing, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint above fails (including the either/or rule on <code>regNo</code>/<code>srNo</code>, and <code>dob</code> in the future), <code>postDTO</code> is missing, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadFileFileName</code>/<code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading a document or image" above) — nothing is saved.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
@@ -500,7 +503,7 @@
       "studentName": "Asha Mehta",         // required, string, max 150 chars
       "regNo": "REG-2026-0042",            // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required per item
       "srNo": "SR-1123",                   // conditional, string, max 50 chars
-      "dob": "2015-04-12T00:00:00Z",       // required, string, ISO-8601 date-time, UTC only
+      "dob": "2015-04-12T00:00:00Z",       // required, string, ISO-8601 date-time, UTC only, not in the future
       "fatherName": "Raj Mehta",           // required, string, max 150 chars
       "className": "8",                    // required, string, max 20 chars
       "sectionName": "B",                  // optional, string, max 10 chars
@@ -520,7 +523,7 @@
     }
   ]
 }</code></pre>
-<p class="small">Each item follows the same field rules as <a href="#tc-post">Create TC</a>'s <code>postDTO</code> object — including the either/or requirement on <code>regNo</code>/<code>srNo</code> — applied per item, not to the batch as a whole.</p>
+<p class="small">Each item follows the same field rules as <a href="#tc-post">Create TC</a>'s <code>postDTO</code> object — including the either/or requirement on <code>regNo</code>/<code>srNo</code>, the no-future <code>dob</code> rule and trimming of every string field — applied per item, not to the batch as a whole.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -573,7 +576,7 @@
     "studentName": "Asha Mehta",           // required, string, max 150 chars
     "regNo": "REG-2026-0042",              // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
     "srNo": "SR-1123",                     // conditional, string, max 50 chars
-    "dob": "2015-04-12T00:00:00Z",         // required, string, ISO-8601 date-time, UTC only
+    "dob": "2015-04-12T00:00:00Z",         // required, string, ISO-8601 date-time, UTC only, not in the future
     "fatherName": "Raj Mehta",             // required, string, max 150 chars
     "className": "9",                      // required, string, max 20 chars &mdash; promoted since Create TC
     "sectionName": "B",                    // optional, string, max 10 chars
@@ -583,6 +586,7 @@
   "uploadFileFileName": "asha-mehta-tc-v2-raw.pdf",  // optional, string, max 255 chars &mdash; see "Uploading a document or image" on Create TC
   "uploadImageFileName": null                        // optional, string, max 255 chars
 }</code></pre>
+<p class="small">Every string field is trimmed of leading/trailing spaces before it is validated and saved. A whitespace-only value counts as not sent: optional fields are stored as <code>null</code>, and <code>studentName</code>/<code>fatherName</code>/<code>className</code> fail as required. <code>uploadFileFileName</code>/<code>uploadImageFileName</code> are trimmed the same way.</p>
 
 <h4>Uploading a document or image</h4>
 <p>Same rules as <a href="#tc-post">Create TC</a>'s "Uploading a document or image" — <code>fileSrc</code>/<code>imageSrc</code> and <code>uploadFileFileName</code>/<code>uploadImageFileName</code> are unrelated. Sending either upload field returns a presigned S3 upload. Upload names are checked <strong>before</strong> the update is written — an unsupported or unsafe file name fails the request with <span class="status-err">400</span> <code>INVALID_INPUT</code> and <strong>nothing is changed</strong>.</p>
@@ -616,7 +620,7 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails, <code>putDTO</code> missing, <code>putDTO.tcId</code> missing or not &gt; 0, or the body is missing / invalid.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails (including <code>dob</code> in the future), <code>putDTO</code> missing, <code>putDTO.tcId</code> missing or not &gt; 0, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No matching TC for this institution.</td></tr>
@@ -705,7 +709,7 @@
     regNo=REG-2026-0042          // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
     srNo=SR-1123                 // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
     dob=2015-04-12T00:00:00Z     // required, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; any other offset fails validation</code></pre>
-<p class="small"><code>regNo</code>/<code>srNo</code> is a single either/or requirement — sending one without the other is valid; sending both requires only one of them to match (not both).</p>
+<p class="small"><code>regNo</code>/<code>srNo</code> is a single either/or requirement — sending one without the other is valid; sending both requires only one of them to match (not both). <code>domain</code>, <code>regNo</code> and <code>srNo</code> are trimmed of leading/trailing spaces; a whitespace-only <code>regNo</code>/<code>srNo</code> counts as not sent.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -725,7 +729,10 @@
     "sectionName": "B",
     "fileSrc": "tc-asha-mehta.pdf",
     "imageSrc": "asha-mehta.jpg",
-    "audit": { "isActive": true, "inactiveAt": null, "createdAt": "2026-10-10T08:00:00+00:00", "updatedAt": "2026-10-10T08:00:00+00:00" }
+    "isActive": true,
+    "inactiveAt": null,
+    "createdAt": "2026-10-10T08:00:00+00:00",
+    "updatedAt": "2026-10-10T08:00:00+00:00"
   }
 }</code></pre>
 <p><strong>No match</strong> (still <span class="status-ok">200 OK</span>, not an error):</p>

@@ -64,13 +64,16 @@
   hr{border:none;border-top:1px solid var(--line);margin:36px 0}
   ul.tight{margin:6px 0;padding-left:20px}
   ul.tight li{margin:3px 0}
+  details{margin:22px 0 0}
+  details > summary{font-weight:700;color:var(--accent);cursor:pointer;font-size:16px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  details[open] > summary{margin-bottom:6px}
 </style>
 </head>
 <body id="top">
 
 <nav class="top">
   <strong>vShared-DataAPI</strong>
-  <a href="https://vidyaone.github.io/vone-docs">Home</a>
+  <a href="https://vidyaone.github.io/vone-docs/">Home</a>
   <a href="#postman-setup">Postman setup</a>
   <a href="#base-urls">Base URLs</a>
   <a href="#common-rules">Common rules</a>
@@ -103,7 +106,9 @@
     <ul class="submenu">
       <li><a href="#product-list"><code>GET /product/list</code></a></li>
       <li><a href="#product-option"><code>GET /product/option</code></a></li>
+      <li><a href="#plan-list"><code>GET /product/plan/list</code></a></li>
       <li><a href="#plan-option"><code>GET /product/plan/option</code></a></li>
+      <li><a href="#plan-status-option"><code>GET /product/plan/status/option</code></a></li>
     </ul>
   </div>
   <a class="download" href="vShared-DataAPI.postman_collection.json" download>&#8595; Postman collection</a>
@@ -193,9 +198,9 @@
 <h2>Options</h2>
 <p>Lookup/reference dropdown data. Every route below takes no request body and returns a flat list — either <code>{ id, name }</code> pairs, or a wider shape where noted.</p>
 
-<!-- ========================= Gender ========================= -->
-<h3 id="gender"><span class="method">GET</span> <code>/options/gender</code></h3>
-<p>Gender dropdown options.</p>
+<details id="gender">
+<summary>GET /options/gender</summary>
+<p>Gender dropdown options. Only active entries are returned, sorted by display order.</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -205,7 +210,7 @@
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /options/gender?product=lms</code></pre>
+<pre><code>GET /options/gender?product=lms    // optional, string — accepted, does not change the response</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -221,10 +226,11 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Blood group ========================= -->
-<h3 id="bloodgroup"><span class="method">GET</span> <code>/options/bloodgroup</code></h3>
-<p>Blood group dropdown options.</p>
+<details id="bloodgroup">
+<summary>GET /options/bloodgroup</summary>
+<p>Blood group dropdown options. Only active entries are returned, sorted by display order.</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -234,7 +240,7 @@
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /options/bloodgroup?product=lms</code></pre>
+<pre><code>GET /options/bloodgroup?product=lms    // optional, string — accepted, does not change the response</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -250,10 +256,11 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Board ========================= -->
-<h3 id="board"><span class="method">GET</span> <code>/options/board</code></h3>
-<p>Education board dropdown options.</p>
+<details id="board">
+<summary>GET /options/board</summary>
+<p>Education board dropdown options. Only active entries are returned, sorted by display order.</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -263,7 +270,7 @@
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /options/board?product=lms</code></pre>
+<pre><code>GET /options/board?product=lms    // optional, string — accepted, does not change the response</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -279,10 +286,11 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Courtesy ========================= -->
-<h3 id="courtesy"><span class="method">GET</span> <code>/options/courtesy</code></h3>
-<p>Courtesy title (Mr/Ms/...) dropdown options.</p>
+<details id="courtesy">
+<summary>GET /options/courtesy</summary>
+<p>Courtesy title (Mr/Ms/...) dropdown options. Only active entries are returned, sorted by display order.</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -292,7 +300,7 @@
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /options/courtesy?product=lms</code></pre>
+<pre><code>GET /options/courtesy?product=lms    // optional, string — accepted, does not change the response</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -308,10 +316,11 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Category ========================= -->
-<h3 id="category"><span class="method">GET</span> <code>/options/category</code></h3>
-<p>Category dropdown options.</p>
+<details id="category">
+<summary>GET /options/category</summary>
+<p>Category dropdown options. Only active entries are returned, sorted by display order.</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -321,7 +330,7 @@
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /options/category?product=lms</code></pre>
+<pre><code>GET /options/category?product=lms    // optional, string — accepted, does not change the response</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -337,10 +346,11 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Sub-category ========================= -->
-<h3 id="subcategory"><span class="method">GET</span> <code>/options/subcategory</code></h3>
-<p>Sub-category dropdown options for a category.</p>
+<details id="subcategory">
+<summary>GET /options/subcategory</summary>
+<p>Sub-category dropdown options for a category. Only active entries are returned, sorted by display order.</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -352,11 +362,11 @@
 <table>
   <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>categoryId</code></td><td>integer</td><td class="req">yes</td><td>Must be <code>&gt; 0</code> and reference an existing category.</td></tr>
+    <tr><td><code>categoryId</code></td><td>integer</td><td class="req">yes</td><td>Must be <code>&gt; 0</code>. An unknown id returns <code>"data": []</code>.</td></tr>
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /options/subcategory?product=lms
+<pre><code>GET /options/subcategory?product=lms    // optional, string — accepted, does not change the response
     &amp;categoryId=1    // required, integer, > 0 — category to list sub-categories for</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -374,10 +384,11 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Relation ========================= -->
-<h3 id="relation"><span class="method">GET</span> <code>/options/relation</code></h3>
-<p>Guardian relation dropdown options.</p>
+<details id="relation">
+<summary>GET /options/relation</summary>
+<p>Guardian relation dropdown options. Only active entries are returned, sorted by display order.</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -387,7 +398,7 @@
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /options/relation?product=lms</code></pre>
+<pre><code>GET /options/relation?product=lms    // optional, string — accepted, does not change the response</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -403,10 +414,11 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Nationality ========================= -->
-<h3 id="nationality"><span class="method">GET</span> <code>/options/nationality</code></h3>
-<p>Nationality dropdown options.</p>
+<details id="nationality">
+<summary>GET /options/nationality</summary>
+<p>Nationality dropdown options. Only active entries are returned, sorted by display order.</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -416,7 +428,7 @@
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /options/nationality?product=lms</code></pre>
+<pre><code>GET /options/nationality?product=lms    // optional, string — accepted, does not change the response</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -432,10 +444,11 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Occupation ========================= -->
-<h3 id="occupation"><span class="method">GET</span> <code>/options/occupation</code></h3>
-<p>Occupation dropdown options.</p>
+<details id="occupation">
+<summary>GET /options/occupation</summary>
+<p>Occupation dropdown options. Only active entries are returned, sorted by display order.</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -445,7 +458,7 @@
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /options/occupation?product=lms</code></pre>
+<pre><code>GET /options/occupation?product=lms    // optional, string — accepted, does not change the response</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -461,10 +474,11 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Qualification ========================= -->
-<h3 id="qualification"><span class="method">GET</span> <code>/options/qualification</code></h3>
-<p>Qualification dropdown options.</p>
+<details id="qualification">
+<summary>GET /options/qualification</summary>
+<p>Qualification dropdown options. Only active entries are returned, sorted by display order.</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -474,7 +488,7 @@
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /options/qualification?product=lms</code></pre>
+<pre><code>GET /options/qualification?product=lms    // optional, string — accepted, does not change the response</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -490,10 +504,11 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Religion ========================= -->
-<h3 id="religion"><span class="method">GET</span> <code>/options/religion</code></h3>
-<p>Religion dropdown options.</p>
+<details id="religion">
+<summary>GET /options/religion</summary>
+<p>Religion dropdown options. Only active entries are returned, sorted by display order.</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -503,7 +518,7 @@
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /options/religion?product=lms</code></pre>
+<pre><code>GET /options/religion?product=lms    // optional, string — accepted, does not change the response</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -519,10 +534,11 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Country ========================= -->
-<h3 id="country"><span class="method">GET</span> <code>/options/country</code></h3>
-<p>Country dropdown options.</p>
+<details id="country">
+<summary>GET /options/country</summary>
+<p>Country dropdown options. Only active entries are returned, sorted by country name (A–Z).</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -532,7 +548,7 @@
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /options/country?product=lms</code></pre>
+<pre><code>GET /options/country?product=lms    // optional, string — accepted, does not change the response</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -548,10 +564,11 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Country phone ========================= -->
-<h3 id="country-phone"><span class="method">GET</span> <code>/options/country/phone</code></h3>
-<p>Country list with phone code, ISO codes and flag, for phone-number inputs.</p>
+<details id="country-phone">
+<summary>GET /options/country/phone</summary>
+<p>Country list with phone code, ISO codes and flag, for phone-number inputs. Only active entries are returned, sorted by country name (A–Z).</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -561,7 +578,7 @@
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /options/country/phone?product=lms</code></pre>
+<pre><code>GET /options/country/phone?product=lms    // optional, string — accepted, does not change the response</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -584,10 +601,11 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= State ========================= -->
-<h3 id="state"><span class="method">GET</span> <code>/options/state</code></h3>
-<p>State dropdown options for a country.</p>
+<details id="state">
+<summary>GET /options/state</summary>
+<p>State dropdown options for a country. Only active entries are returned, sorted by state name (A–Z).</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -599,11 +617,11 @@
 <table>
   <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>countryId</code></td><td>integer</td><td class="req">yes</td><td>Must be <code>&gt; 0</code> and reference an existing country.</td></tr>
+    <tr><td><code>countryId</code></td><td>integer</td><td class="req">yes</td><td>Must be <code>&gt; 0</code>. An unknown id returns <code>"data": []</code>.</td></tr>
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /options/state?product=lms
+<pre><code>GET /options/state?product=lms    // optional, string — accepted, does not change the response
     &amp;countryId=1    // required, integer, > 0 — country to list states for</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -621,10 +639,11 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= District ========================= -->
-<h3 id="district"><span class="method">GET</span> <code>/options/district</code></h3>
-<p>District dropdown options for a state.</p>
+<details id="district">
+<summary>GET /options/district</summary>
+<p>District dropdown options for a state. Only active entries are returned, sorted by district name (A–Z).</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -636,11 +655,11 @@
 <table>
   <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>stateId</code></td><td>integer</td><td class="req">yes</td><td>Must be <code>&gt; 0</code> and reference an existing state.</td></tr>
+    <tr><td><code>stateId</code></td><td>integer</td><td class="req">yes</td><td>Must be <code>&gt; 0</code>. An unknown id returns <code>"data": []</code>.</td></tr>
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /options/district?product=lms
+<pre><code>GET /options/district?product=lms    // optional, string — accepted, does not change the response
     &amp;stateId=26    // required, integer, > 0 — state to list districts for</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -658,10 +677,11 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Document — identity ========================= -->
-<h3 id="doc-identity"><span class="method">GET</span> <code>/options/document/identity</code></h3>
-<p>Identity-proof document options (Aadhaar, PAN, Passport, ...) with number regex and description.</p>
+<details id="doc-identity">
+<summary>GET /options/document/identity</summary>
+<p>Identity-proof document options (Aadhaar, PAN, Passport, ...) with number regex and description. Only active entries are returned, sorted by display order.</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -671,7 +691,7 @@
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /options/document/identity?product=lms</code></pre>
+<pre><code>GET /options/document/identity?product=lms    // optional, string — accepted, does not change the response</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -697,10 +717,11 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Document — business ========================= -->
-<h3 id="doc-business"><span class="method">GET</span> <code>/options/document/business</code></h3>
-<p>Business-proof document options (GSTIN, Udyam, COI, ...) with number regex and description.</p>
+<details id="doc-business">
+<summary>GET /options/document/business</summary>
+<p>Business-proof document options (GSTIN, Udyam, COI, ...) with number regex and description. Only active entries are returned, sorted by display order.</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -710,7 +731,7 @@
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /options/document/business?product=lms</code></pre>
+<pre><code>GET /options/document/business?product=lms    // optional, string — accepted, does not change the response</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -730,10 +751,11 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Document — NGO ========================= -->
-<h3 id="doc-ngo"><span class="method">GET</span> <code>/options/document/ngo</code></h3>
-<p>NGO/trust-proof document options (Trust Deed, 12A, 80G, ...) with number regex and description.</p>
+<details id="doc-ngo">
+<summary>GET /options/document/ngo</summary>
+<p>NGO/trust-proof document options (Trust Deed, 12A, 80G, ...) with number regex and description. Only active entries are returned, sorted by display order.</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -743,7 +765,7 @@
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /options/document/ngo?product=lms</code></pre>
+<pre><code>GET /options/document/ngo?product=lms    // optional, string — accepted, does not change the response</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -763,10 +785,11 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Document — institute ========================= -->
-<h3 id="doc-institute"><span class="method">GET</span> <code>/options/document/institute</code></h3>
-<p>Institute-proof document options (UDISE+, AISHE, affiliation, ...) with number regex and description.</p>
+<details id="doc-institute">
+<summary>GET /options/document/institute</summary>
+<p>Institute-proof document options (UDISE+, AISHE, affiliation, ...) with number regex and description. Only active entries are returned, sorted by display order.</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -776,7 +799,7 @@
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /options/document/institute?product=lms</code></pre>
+<pre><code>GET /options/document/institute?product=lms    // optional, string — accepted, does not change the response</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -796,6 +819,7 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
 </section>
 
@@ -803,9 +827,9 @@
 <h2>Product</h2>
 <p>Product and plan reference data.</p>
 
-<!-- ========================= Product list ========================= -->
-<h3 id="product-list"><span class="method">GET</span> <code>/product/list</code></h3>
-<p>Product list with code, subdomain, icon, website and admin URL.</p>
+<details id="product-list">
+<summary>GET /product/list</summary>
+<p>Product list with code, subdomain, icon, website and admin URL. Sorted by product name (A–Z).</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -815,7 +839,7 @@
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /product/list?product=lms</code></pre>
+<pre><code>GET /product/list?product=lms    // optional, string — accepted, does not change the response</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -829,6 +853,7 @@
       "productIcon": "https://cdn.vidyaone.com/icons/lms.svg",
       "productWebsite": "https://lms.vidyaone.com",
       "productAdmin": "https://lms.vidyaone.com/admin",
+      "productAdminCta": "Go to admin",
       "instTypeId": 1
     }
   ]
@@ -839,10 +864,11 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Product option ========================= -->
-<h3 id="product-option"><span class="method">GET</span> <code>/product/option</code></h3>
-<p>Product dropdown options.</p>
+<details id="product-option">
+<summary>GET /product/option</summary>
+<p>Product dropdown options. Sorted by product name (A–Z).</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -852,7 +878,7 @@
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /product/option?product=lms</code></pre>
+<pre><code>GET /product/option?product=lms    // optional, string — accepted, does not change the response</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
 <pre><code>{
@@ -867,10 +893,67 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
 
-<!-- ========================= Plan option ========================= -->
-<h3 id="plan-option"><span class="method">GET</span> <code>/product/plan/option</code></h3>
-<p>Plan dropdown options for a product.</p>
+<details id="plan-list">
+<summary>GET /product/plan/list</summary>
+<p>Plan list for a product, with code, sequence, support flags and feature allowances. Sorted by plan sequence (ascending).</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/product/plan/list?productId={productId}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/product/plan/list?productId={productId}</code></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>productId</code></td><td>integer</td><td class="req">yes</td><td>Must be <code>&gt; 0</code>. An unknown id returns <code>"data": []</code>.</td></tr>
+  </tbody>
+</table>
+<h4>Sample request</h4>
+<pre><code>GET /product/plan/list?product=lms    // optional, string — accepted, does not change the response
+    &amp;productId=1    // required, integer, > 0 — product to list plans for</code></pre>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    {
+      "planId": 1,
+      "productId": 1,
+      "productName": "VIDYAOne LMS",
+      "productCode": "LMS",
+      "productSubdomain": "lms",
+      "planName": "Basic",
+      "planCode": "BASIC",
+      "planSeq": 1,
+      "freeDomain": true,
+      "freeSSL": true,
+      "selfSupport": true,
+      "productSupport": false,
+      "premiumSupport": false,
+      "isHighest": false,
+      "enableModule": 5,
+      "customDomainAllow": false,
+      "planDays": 365,
+      "domainChangeLimit": 1
+    }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>productId</code> missing, not a number, or <code>&le; 0</code>.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+</details>
+
+<details id="plan-option">
+<summary>GET /product/plan/option</summary>
+<p>Plan dropdown options for a product. Sorted by plan sequence (ascending).</p>
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
@@ -882,11 +965,11 @@
 <table>
   <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>productId</code></td><td>integer</td><td class="req">yes</td><td>Must be <code>&gt; 0</code> and reference an existing product.</td></tr>
+    <tr><td><code>productId</code></td><td>integer</td><td class="req">yes</td><td>Must be <code>&gt; 0</code>. An unknown id returns <code>"data": []</code>.</td></tr>
   </tbody>
 </table>
 <h4>Sample request</h4>
-<pre><code>GET /product/plan/option?product=lms
+<pre><code>GET /product/plan/option?product=lms    // optional, string — accepted, does not change the response
     &amp;productId=1    // required, integer, > 0 — product to list plans for</code></pre>
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
@@ -904,6 +987,39 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
   </tbody>
 </table>
+</details>
+
+<details id="plan-status-option">
+<summary>GET /product/plan/status/option</summary>
+<p>Plan status dropdown options. Always returns these four values, in this order.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/product/plan/status/option</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/product/plan/status/option</code></td></tr>
+  </tbody>
+</table>
+<h4>Sample request</h4>
+<pre><code>GET /product/plan/status/option?product=lms    // optional, string — accepted, does not change the response</code></pre>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "Expired" },
+    { "id": 2, "name": "Trial" },
+    { "id": 3, "name": "Renew" },
+    { "id": 4, "name": "Active" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+</details>
 
 </section>
 
