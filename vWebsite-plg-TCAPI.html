@@ -177,6 +177,8 @@
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> is missing from the query string.</td></tr>
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadFileFileName</code> / <code>uploadImageFileName</code> has an unsupported or unsafe value (see <a href="#tc-post">Create TC</a>) — rejected before anything is saved.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">403</td><td><code>NOT_ACTIVATED</code></td><td>The TC plugin is not activated for the calling institution.</td></tr>
+    <tr><td class="status-err">403</td><td><code>EXPIRED</code></td><td>The calling institution's TC plugin has expired.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The TC doesn't exist for the calling institution (missing or already deleted).</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>regNo</code> or <code>srNo</code> is already in use by another record for this institution (the error names the field and the submitted value) — including when they each match a <em>different</em> existing record (see <a href="#tc-post">Create TC</a>).</td></tr>
     <tr><td class="status-err">500</td><td><code>INTERNAL_ERROR</code></td><td>Unexpected server error.</td></tr>
@@ -204,8 +206,8 @@
 <table>
   <thead><tr><th>Query param</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
   <tbody>
-    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. Must be &gt; 0. A value past the last page is clamped back onto the last page.</td></tr>
-    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. Must be &gt; 0 and &le; <code>200</code>.</td></tr>
+    <tr><td><code>pageNumber</code></td><td>integer</td><td class="opt">no</td><td>Default <code>1</code>. A value of 0 or less is treated as not sent (default used). A value past the last page is clamped back onto the last page.</td></tr>
+    <tr><td><code>pageSize</code></td><td>integer</td><td class="opt">no</td><td>Default <code>50</code>. Max <code>100</code>. A value of 0 or less is treated as not sent (default used).</td></tr>
     <tr><td><code>studentName</code></td><td>string</td><td class="opt">no</td><td>Max 150 chars. Case-insensitive substring match; leading/trailing spaces ignored.</td></tr>
     <tr><td><code>fatherName</code></td><td>string</td><td class="opt">no</td><td>Max 150 chars. Case-insensitive substring match; leading/trailing spaces ignored.</td></tr>
     <tr><td><code>className</code></td><td>string</td><td class="opt">no</td><td>Max 20 chars. Case-insensitive substring match; leading/trailing spaces ignored.</td></tr>
@@ -219,8 +221,8 @@
 
 <h4>Sample request</h4>
 <pre><code>GET /tc?product=scl-website
-    &amp;pageNumber=1               // optional, integer, default 1, > 0
-    &amp;pageSize=50                // optional, integer, default 50, > 0, max 200
+    &amp;pageNumber=1               // optional, integer, default 1 &mdash; 0 or less uses the default
+    &amp;pageSize=50                // optional, integer, default 50, max 100 &mdash; 0 or less uses the default
     &amp;studentName=Asha           // optional, string, max 150 chars, case-insensitive substring match
     &amp;fatherName=Raj             // optional, string, max 150 chars, case-insensitive substring match
     &amp;className=8                // optional, string, max 20 chars, case-insensitive substring match
@@ -268,9 +270,11 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageNumber</code> not &gt; 0, <code>pageSize</code> not &gt; 0 or over <code>200</code>, a filter over its max length, or <code>dob</code> not UTC (offset <code>+00:00</code>).</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageSize</code> over <code>100</code>, a filter over its max length, or <code>dob</code> not UTC (offset <code>+00:00</code>).</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">403</td><td><code>NOT_ACTIVATED</code></td><td>The TC plugin is not activated for the calling institution.</td></tr>
+    <tr><td class="status-err">403</td><td><code>EXPIRED</code></td><td>The calling institution's TC plugin has expired.</td></tr>
   </tbody>
 </table>
 
@@ -324,6 +328,8 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>tcId</code> missing or not &gt; 0.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">403</td><td><code>NOT_ACTIVATED</code></td><td>The TC plugin is not activated for the calling institution.</td></tr>
+    <tr><td class="status-err">403</td><td><code>EXPIRED</code></td><td>The calling institution's TC plugin has expired.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No matching TC for this institution.</td></tr>
   </tbody>
 </table>
@@ -383,6 +389,8 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>tcId</code> missing or not &gt; 0.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">403</td><td><code>NOT_ACTIVATED</code></td><td>The TC plugin is not activated for the calling institution.</td></tr>
+    <tr><td class="status-err">403</td><td><code>EXPIRED</code></td><td>The calling institution's TC plugin has expired.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No matching TC for this institution.</td></tr>
   </tbody>
 </table>
@@ -476,6 +484,8 @@
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadFileFileName</code>/<code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading a document or image" above) — nothing is saved.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">403</td><td><code>NOT_ACTIVATED</code></td><td>The TC plugin is not activated for the calling institution.</td></tr>
+    <tr><td class="status-err">403</td><td><code>EXPIRED</code></td><td>The calling institution's TC plugin has expired.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td><code>regNo</code> matches one existing record for this institution and <code>srNo</code> matches a <em>different</em> existing record — ambiguous, so neither is updated. Also when the submitted <code>regNo</code>/<code>srNo</code> collides with another record while saving (the error names the field and value).</td></tr>
   </tbody>
 </table>
@@ -549,6 +559,8 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>items</code> is empty or missing, contains more than 200 records, or the body is missing / invalid. (Per-item field errors never produce this status — they appear in <code>data.results[]</code> instead.)</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">403</td><td><code>NOT_ACTIVATED</code></td><td>The TC plugin is not activated for the calling institution.</td></tr>
+    <tr><td class="status-err">403</td><td><code>EXPIRED</code></td><td>The calling institution's TC plugin has expired.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again: every item whose <code>regNo</code>/<code>srNo</code> matches a row created by the first call now updates that row in place (<code>wasUpdated: true</code>) instead of creating a duplicate.</p>
@@ -623,6 +635,8 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A field constraint fails (including <code>dob</code> in the future), <code>putDTO</code> missing, <code>putDTO.tcId</code> missing or not &gt; 0, or the body is missing / invalid.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">403</td><td><code>NOT_ACTIVATED</code></td><td>The TC plugin is not activated for the calling institution.</td></tr>
+    <tr><td class="status-err">403</td><td><code>EXPIRED</code></td><td>The calling institution's TC plugin has expired.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No matching TC for this institution.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>The <code>regNo</code> or <code>srNo</code> being set already belongs to a different TC for this institution (the error names the field and value).</td></tr>
     <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>uploadFileFileName</code>/<code>uploadImageFileName</code> has an unsupported or unsafe value (see "Uploading a document or image" above) — nothing is changed.</td></tr>
@@ -677,6 +691,8 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>tcIds</code> is empty or missing, contains more than 200 values, contains a duplicate, or contains a value not &gt; 0, or the body is missing / invalid. (Whole-request failure — not reported per-id.)</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">403</td><td><code>NOT_ACTIVATED</code></td><td>The TC plugin is not activated for the calling institution.</td></tr>
+    <tr><td class="status-err">403</td><td><code>EXPIRED</code></td><td>The calling institution's TC plugin has expired.</td></tr>
   </tbody>
 </table>
 <p><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and the same <code>tcIds</code> again returns <span class="status-ok">200 OK</span> with every id now reported <code>success: false</code> (already deleted).</p>
@@ -735,7 +751,7 @@
     "updatedAt": "2026-10-10T08:00:00+00:00"
   }
 }</code></pre>
-<p><strong>No match</strong> (still <span class="status-ok">200 OK</span>, not an error):</p>
+<p><strong>No match</strong> (still <span class="status-ok">200 OK</span>, not an error) &mdash; returned when no TC matches, when the domain is unknown or inactive, or when the institution's TC plugin is not activated or has expired:</p>
 <pre><code>{ "success": false, "message": "Tc not found.", "errors": null, "data": null }</code></pre>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>

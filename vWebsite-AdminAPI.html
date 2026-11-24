@@ -89,7 +89,7 @@
     <a href="#module">Module</a>
     <ul class="submenu">
       <li><a href="#get-module"><code>GET /module</code></a></li>
-      <li><a href="#get-module-status"><code>GET /module/status</code></a></li>
+      <li><a href="#get-module-websitedisplay"><code>GET /module/websitedisplay</code></a></li>
       <li><a href="#get-module-limit"><code>GET /module/limit</code></a></li>
       <li><a href="#get-module-list-pages"><code>GET /module/list-pages</code></a></li>
       <li><a href="#post-module"><code>POST /module</code></a></li>
@@ -99,7 +99,7 @@
     <a href="#page">Page</a>
     <ul class="submenu">
       <li><a href="#get-page"><code>GET /page</code></a></li>
-      <li><a href="#get-page-status"><code>GET /page/status</code></a></li>
+      <li><a href="#get-page-websitedisplay"><code>GET /page/websitedisplay</code></a></li>
       <li><a href="#post-page"><code>POST /page</code></a></li>
     </ul>
   </div>
@@ -107,11 +107,8 @@
     <a href="#onboard">Onboard</a>
     <ul class="submenu">
       <li><a href="#get-onboard-domain"><code>GET /onboard/domain</code></a></li>
-      <li><a href="#post-onboard-domain"><code>POST /onboard/domain</code></a></li>
       <li><a href="#get-onboard-module"><code>GET /onboard/module</code></a></li>
-      <li><a href="#post-onboard-module"><code>POST /onboard/module</code></a></li>
       <li><a href="#get-onboard-template"><code>GET /onboard/template</code></a></li>
-      <li><a href="#post-onboard-template"><code>POST /onboard/template</code></a></li>
     </ul>
   </div>
   <div class="menu">
@@ -211,17 +208,18 @@
   <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
   <tbody>
     <tr><td class="status-ok">200</td><td>—</td><td>Success.</td></tr>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A request field fails validation (e.g. empty required string, institution not resolved).</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>Service-layer rejection — bad file name, JSON too deep/large, malformed request body.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>A request field fails validation (e.g. empty required string, institution not resolved), the body is malformed, or a required body field is missing.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>Service-layer rejection — bad file name, JSON too deep/large, or a value failing a database check.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> is missing from the query string.</td></tr>
-    <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>Saving modules would leave more active modules than the institution's plan allows (<a href="#post-module">POST /module</a>).</td></tr>
+    <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>Saving modules would raise the number of modules with <code>websiteDisplay: true</code> above the institution's plan limit (<a href="#post-module">POST /module</a>).</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required — missing or invalid session.</td></tr>
+    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td>The request targets something the caller may not change — e.g. a system-generated file on <a href="#post-data">POST /data</a>.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The requested file, module, page, or plan does not exist for this institution, or a submitted module/page name (or pairing) is not in the lookup catalog (<a href="#get-module-list-pages">GET /module/list-pages</a>). Also fires on <a href="#post-template">POST /template</a> when the submitted <code>tid</code> is not recognized for the calling product, or when a paid template has no existing purchase record for this institution; and on <a href="#post-plugin">POST /plugin</a> for the analogous <code>pid</code> cases, or on <a href="#put-plugin-status">PUT /plugin/status</a> when the plugin has not been applied for this institution. Not used by <a href="#onboard">Onboard</a> or <a href="#get-template-current">GET /template/current</a> — these default to <code>false</code>/<code>null</code> instead.</td></tr>
     <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>Unique-constraint conflict.</td></tr>
     <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record (e.g. the institution) does not exist.</td></tr>
-    <tr><td class="status-err">409</td><td><code>INVALID_STATE</code></td><td>A page is being saved as enabled while its named module is disabled (<a href="#post-page">POST /page</a>).</td></tr>
+    <tr><td class="status-err">409</td><td><code>INVALID_STATE</code></td><td>A page is being saved with <code>websiteDisplay: true</code> while its module is disabled or not saved (<a href="#post-page">POST /page</a>).</td></tr>
     <tr><td class="status-err">499</td><td>—</td><td>Client disconnected mid-request. No body.</td></tr>
-    <tr><td class="status-err">502</td><td><code>EXTERNAL_SERVICE_ERROR</code></td><td>The file storage backend failed in a way the caller did nothing to cause (access denied, metadata lookup, read, or write failure).</td></tr>
+    <tr><td class="status-err">502</td><td><code>EXTERNAL_SERVICE_ERROR</code></td><td>The file storage backend failed in a way the caller did nothing to cause (access denied, metadata lookup, read or write failure, or no answer within 10 seconds).</td></tr>
     <tr><td class="status-err">500</td><td><code>INTERNAL_ERROR</code></td><td>Unhandled failure. Message is generic in Production.</td></tr>
   </tbody>
 </table>
@@ -267,7 +265,7 @@
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
     <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No such file exists for this institution.</td></tr>
-    <tr><td class="status-err">502</td><td><code>EXTERNAL_SERVICE_ERROR</code></td><td>The file storage backend denied access or failed to return the file's metadata or contents.</td></tr>
+    <tr><td class="status-err">502</td><td><code>EXTERNAL_SERVICE_ERROR</code></td><td>The file storage backend denied access, failed, or did not answer within 10 seconds.</td></tr>
   </tbody>
 </table>
 </details>
@@ -284,16 +282,18 @@
     <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/admin/data?product={product}</code></td></tr>
   </tbody>
 </table>
+<p class="small">Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key</code>.</p>
 
-<h4>Sample request body</h4>
+<h4>Sample request</h4>
+<pre><code>POST /data?product=vweb</code></pre>
 <pre><code>{
-  "file": "data_home.json",                 // required, string, matches ^(data_|config_|plugin_)[A-Za-z0-9_-]+\.json$, max 255 chars
-  "data": {                                  // required, JSON object or array — max nesting depth 20, max 1000 keys per object, max 10000 items per array, serialized size &le; 5 MB
+  "file": "data_home.json",                 // required, string, matches ^(data_|config_|plugin_)[A-Za-z0-9_-]+\.json$, max 255 chars — must not be a system-generated file (see 403 below)
+  "data": {                                  // required, JSON object or array — max nesting depth 20, max 1000 keys per object, max 10000 items per array, serialized size &le; 10 MB
     "hero": { "title": "Welcome", "image": "hero.png" },
     "sections": [ { "type": "text", "body": "About us" } ]
   },
-  "upload_files": [                          // optional, array of objects
-    { "file_name": "hero.png" }               // required per item, string, max 255 chars, extension in jpg/jpeg/png/gif/webp/bmp/pdf/txt/csv/xlsx/xls/docx/doc, not hidden, no dangerous characters
+  "upload_files": [                          // optional, array of objects, max 20 items
+    { "file_name": "hero.png" }               // required per item, string, max 200 chars, extension in jpg/jpeg/png/gif/webp/bmp/pdf/txt/csv/xlsx/xls/docx/doc, no path separators, "..", control or dangerous characters, no executable/script extension anywhere in the name
   ]
 }</code></pre>
 
@@ -318,22 +318,23 @@
         }
       ],
       "rejected": [
-        { "file_name": "notes.exe", "reason": "unsupported_file_type" }
+        { "fileName": "notes.exe", "reason": "Unsupported file type for a file upload." }
       ]
     }
   }
 }</code></pre>
-<p class="small">Per-file presign problems go into <code>rejected[]</code> (reasons: <code>missing_file_name</code>, <code>unsupported_file_type</code>, <code>presign_generation_failed</code>, or a validation message) — they do not fail the request. Presigned upload URLs expire after 120 s and cap the upload at 10 MB.</p>
+<p class="small">Per-file presign problems go into <code>rejected[]</code> (reasons: <code>missing_file_name</code> for an empty name, <code>unsupported_file_type</code>, <code>presign_generation_failed</code>, or a validation message) — they do not fail the request. Presigned upload URLs expire after 120 s and cap the upload at 10 MB. Uploading a file with the same name again replaces the earlier upload.</p>
 
 <h4>Error responses</h4>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>file</code> empty, <code>data</code> is not an object/array, or institution not resolved.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>file</code> fails the naming pattern, <code>data</code> exceeds the depth/key/array limits, the serialized payload exceeds 5 MB, <code>data</code> is not serializable, or the request body is malformed.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>file</code> empty, <code>data</code> is not an object/array, <code>upload_files</code> has more than 20 items, an <code>upload_files</code> item has no <code>file_name</code>, the body is malformed, or institution not resolved.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td><code>file</code> fails the naming pattern or a path-traversal/shell-character check, <code>data</code> exceeds the depth/key/array limits, or the serialized payload exceeds 10 MB.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">502</td><td><code>EXTERNAL_SERVICE_ERROR</code></td><td>The file storage backend rejected the write.</td></tr>
+    <tr><td class="status-err">403</td><td><code>FORBIDDEN</code></td><td><code>file</code> is a system-generated file: <code>config_active_page.json</code>, <code>config_active_plugin.json</code>, <code>plugin_notice.json</code> or <code>plugin_announcement.json</code> (any letter case). These can be read with <a href="#get-data">GET /data</a> but not written.</td></tr>
+    <tr><td class="status-err">502</td><td><code>EXTERNAL_SERVICE_ERROR</code></td><td>The file storage backend rejected the write, failed, or did not answer within 10 seconds.</td></tr>
   </tbody>
 </table>
 <p class="note"><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again overwrites the same file with identical bytes and returns <span class="status-ok">200 OK</span> with the same <code>file_key</code> — same final state, not a new record. When <code>upload_files</code> is sent, each call mints fresh presigned upload URLs regardless.</p>
@@ -344,11 +345,11 @@
 <!-- ================================================================= MODULE -->
 <section id="module">
 <h2>Module</h2>
-<p>Manages per-institution feature-module on/off toggles. Names are trimmed server-side, so <code>" data_home "</code> and <code>"data_home"</code> are the same module.</p>
+<p>Manages per-institution feature modules. <code>websiteDisplay</code> decides whether a module is shown on the website. Module names are matched exactly (case-sensitive, not trimmed) against the catalog — use the names from <a href="#get-module-list-pages">GET /module/list-pages</a> as-is.</p>
 
 <details id="get-module">
 <summary><span class="method">GET</span> <code>/module</code></summary>
-<p>List every active module and its on/off status for the caller's institution. Call it to render the module-settings screen.</p>
+<p>List every active module and its <code>websiteDisplay</code> value for the caller's institution. Call it to render the module-settings screen.</p>
 
 <h4>Request</h4>
 <table>
@@ -368,11 +369,11 @@
   "message": null,
   "errors": null,
   "data": [
-    { "moduleId": 41, "moduleName": "data_about", "status": true },
-    { "moduleId": 39, "moduleName": "data_home",  "status": false }
+    { "moduleId": 39, "moduleName": "data_home",        "websiteDisplay": true },
+    { "moduleId": 40, "moduleName": "data_school_info", "websiteDisplay": true }
   ]
 }</code></pre>
-<p class="small"><code>data</code> is <code>[]</code> when the institution has no modules yet. No pagination — all rows are returned, ordered by <code>moduleName</code>. Soft-deleted and inactive rows are excluded.</p>
+<p class="small"><code>data</code> is <code>[]</code> when the institution has no modules yet. Only modules the institution has saved are listed (catalog modules never saved are not returned — see <a href="#get-module-list-pages">GET /module/list-pages</a>). No pagination — all rows are returned, ordered by <code>moduleName</code>. Deleted and inactive rows are excluded.</p>
 
 <h4>Error responses</h4>
 <table>
@@ -385,41 +386,41 @@
 </table>
 </details>
 
-<details id="get-module-status">
-<summary><span class="method">GET</span> <code>/module/status</code></summary>
-<p>Get the status of a single module by name for the caller's institution. Call it to check one toggle without fetching the whole list.</p>
+<details id="get-module-websitedisplay">
+<summary><span class="method">GET</span> <code>/module/websitedisplay</code></summary>
+<p>Get the <code>websiteDisplay</code> value of a single module by name for the caller's institution. Call it to check one toggle without fetching the whole list.</p>
 
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/module/status?product={product}&amp;moduleName={moduleName}</code></td></tr>
-    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/admin/module/status?product={product}&amp;moduleName={moduleName}</code></td></tr>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/module/websitedisplay?product={product}&amp;moduleName={moduleName}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/admin/module/websitedisplay?product={product}&amp;moduleName={moduleName}</code></td></tr>
   </tbody>
 </table>
 
 <h4>Sample request</h4>
-<pre><code>GET /module/status?product=vweb
-    &moduleName=data_home   // required, string, non-empty — trimmed before lookup</code></pre>
+<pre><code>GET /module/websitedisplay?product=vweb
+    &moduleName=data_home   // required, string, non-empty — matched exactly</code></pre>
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
-<pre><code>{ "success": true, "message": null, "errors": null, "data": { "moduleName": "data_home", "status": true } }</code></pre>
+<pre><code>{ "success": true, "message": null, "errors": null, "data": { "moduleName": "data_home", "websiteDisplay": true } }</code></pre>
 
 <h4>Error responses</h4>
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>moduleName</code> empty, or institution not resolved.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>moduleName</code> missing or empty, or institution not resolved.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No active module with that name for this institution.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institution has no active module with that name (including a catalog module it has never saved).</td></tr>
   </tbody>
 </table>
 </details>
 
 <details id="get-module-limit">
 <summary><span class="method">GET</span> <code>/module/limit</code></summary>
-<p>Get the module limit (maximum number of modules that can be active at once) from the caller's institution's current plan. Call it to validate the module-settings screen before saving.</p>
+<p>Get the module limit from the caller's institution's current plan — the maximum number of modules that can have <code>websiteDisplay: true</code> at once. Call it to validate the module-settings screen before saving.</p>
 
 <h4>Request</h4>
 <table>
@@ -434,7 +435,8 @@
 <pre><code>GET /module/limit?product=vweb</code></pre>
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
-<pre><code>{ "success": true, "message": null, "errors": null, "data": { "enableModule": 10 } }</code></pre>
+<pre><code>{ "success": true, "message": null, "errors": null, "data": { "enableModule": 10, "enabledCount": 7 } }</code></pre>
+<p class="small"><code>enableModule</code> is resolved the same way <a href="#post-module">POST /module</a> enforces it: <code>-2</code> = unlimited, a positive number = max modules with <code>websiteDisplay: true</code>, <code>0</code> = none may be enabled (a plan with no value or any other negative value comes back as <code>0</code>). <code>enabledCount</code> = the institution's modules currently with <code>websiteDisplay: true</code> — <code>enableModule - enabledCount</code> is how many more can be turned on.</p>
 
 <h4>Error responses</h4>
 <table>
@@ -443,14 +445,14 @@
     <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Institution not resolved.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No plan row exists for this institution.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>No active plan row exists for this institution.</td></tr>
   </tbody>
 </table>
 </details>
 
 <details id="get-module-list-pages">
 <summary><span class="method">GET</span> <code>/module/list-pages</code></summary>
-<p>List every recognized module/page pairing from the lookup catalog. Not institution-scoped — the same result is returned regardless of caller institution. Call it to know which <code>moduleName</code>/<code>pageName</code> combinations <a href="#post-module">POST /module</a> and <a href="#post-page">POST /page</a> will accept.</p>
+<p>List every active module/page pairing from the lookup catalog (both the module and the page must be active). Not institution-scoped — the same result is returned regardless of caller institution. Call it to know which <code>moduleName</code>/<code>pageName</code> combinations <a href="#post-module">POST /module</a> and <a href="#post-page">POST /page</a> will accept.</p>
 
 <h4>Request</h4>
 <table>
@@ -470,12 +472,11 @@
   "message": null,
   "errors": null,
   "data": [
-    { "moduleId": 39, "moduleName": "data_home",  "pageId": 1,  "pageName": "home" },
-    { "moduleId": 39, "moduleName": "data_home",  "pageId": 2,  "pageName": "banner" },
-    { "moduleId": 41, "moduleName": "data_about", "pageId": 12, "pageName": "about" }
+    { "moduleId": 1, "moduleName": "data_home",        "pageId": 1, "pageName": "data_home" },
+    { "moduleId": 2, "moduleName": "data_school_info", "pageId": 2, "pageName": "data_school_info" }
   ]
 }</code></pre>
-<p class="small">No pagination — every pairing in the catalog is returned, ordered by <code>moduleId</code> then <code>pageId</code>.</p>
+<p class="small"><code>moduleId</code>/<code>pageId</code> here are catalog ids (not the institution's row ids returned by <a href="#get-module">GET /module</a> / <a href="#get-page">GET /page</a>). No pagination — every active pairing in the catalog is returned, ordered by <code>moduleId</code> then <code>pageId</code>. Cached server-side; catalog changes show up after the cache expires.</p>
 
 <h4>Error responses</h4>
 <table>
@@ -489,7 +490,7 @@
 
 <details id="post-module">
 <summary><span class="method">POST</span> <code>/module</code></summary>
-<p>Bulk create-or-update module statuses for the caller's institution in one call. Call it when the customer saves the module-settings screen.</p>
+<p>Bulk create-or-update module <code>websiteDisplay</code> values for the caller's institution in one call. Call it when the customer saves the module-settings screen.</p>
 
 <h4>Request</h4>
 <table>
@@ -499,23 +500,25 @@
     <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/admin/module?product={product}</code></td></tr>
   </tbody>
 </table>
+<p class="small">Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key</code>.</p>
 
-<h4>Sample request body</h4>
-<pre><code>[
-  { "moduleName": "data_home",  "status": true  },  // required, string, non-empty (whitespace-only rejected), trimmed server-side
-  { "moduleName": "data_about", "status": false },  // status: optional, boolean, default true
-  { "moduleName": "data_blog" }
+<h4>Sample request</h4>
+<pre><code>POST /module?product=vweb</code></pre>
+<pre><code>[                                                              // required, non-empty array
+  { "moduleName": "data_home",        "websiteDisplay": true },  // moduleName: required, string, non-empty, exact catalog name (see GET /module/list-pages)
+  { "moduleName": "data_school_info", "websiteDisplay": true }   // websiteDisplay: required, boolean — no default; missing or null fails the request
 ]</code></pre>
-<p class="small"><code>data_home</code> and <code>data_school_info</code> are mandatory modules — their <code>status</code> is always forced to <code>true</code> regardless of what's sent.</p>
+<p class="small"><code>data_home</code> and <code>data_school_info</code> are mandatory modules — their <code>websiteDisplay</code> is always saved as <code>true</code> regardless of what's sent.</p>
 
 <h4>Behaviour</h4>
 <ul class="tight">
-  <li>Per item: an existing row for <code>moduleName</code> has its status updated; otherwise a new row is created.</li>
+  <li>Per item: the institution's row for that module is updated (a deleted or inactive row is revived/reactivated) only if something differs; if it has no row yet, one is created. A module never gets a second row.</li>
   <li>The whole batch is saved in one transaction.</li>
   <li>Duplicate names within the same payload — the last occurrence wins.</li>
-  <li>Every submitted <code>moduleName</code> must be a recognized module (see <a href="#get-module-list-pages">GET /module/list-pages</a>) — an unrecognized name fails the whole batch before anything is saved.</li>
-  <li>A plan must exist for the institution — if none does, the whole request fails before anything is saved.</li>
-  <li>After the batch is applied, the total number of modules left with <code>status: true</code> for the institution can never exceed the plan's module limit (see <a href="#get-module-limit">GET /module/limit</a>) — if it would, the whole request fails before anything is saved.</li>
+  <li>Every <code>moduleName</code> must be a recognized module (see <a href="#get-module-list-pages">GET /module/list-pages</a>) — an unrecognized name fails the whole batch before anything is saved.</li>
+  <li>An active plan row must exist for the institution — if none does, the whole request fails before anything is saved.</li>
+  <li>Plan module limit (see <a href="#get-module-limit">GET /module/limit</a>): only modules with <code>websiteDisplay: true</code> count. The request fails before anything is saved only if it would raise the number of enabled modules <em>and</em> leave it above the limit, so an institution already over its limit (e.g. after a plan downgrade) can still turn modules off. Concurrent saves for the same institution are serialised.</li>
+  <li>A module saved with <code>websiteDisplay: false</code> also turns off every page of that module for the institution (see <a href="#page">Page</a>).</li>
 </ul>
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
@@ -525,31 +528,31 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Empty array, an item with empty <code>moduleName</code>, or institution/caller not resolved.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>Body is not a JSON array, is malformed, or a submitted value fails a database check constraint.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Body missing, malformed or not a JSON array; empty array; a <code>null</code> item; an item with empty <code>moduleName</code> or without <code>websiteDisplay</code>; or institution/caller not resolved.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>A submitted value fails a database check constraint.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or a required database column was left null.</td></tr>
-    <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>Saving this batch would leave more modules active (<code>status: true</code>) than the institution's plan allows.</td></tr>
+    <tr><td class="status-err">400</td><td><code>LIMIT_EXCEEDED</code></td><td>Saving this batch would raise the number of modules with <code>websiteDisplay: true</code> above the plan limit — message <code>"Module limit exceeded. Max allowed: {n}."</code></td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>A submitted <code>moduleName</code> is not in the module catalog (see <a href="#get-module-list-pages">GET /module/list-pages</a>), or no plan row exists for this institution.</td></tr>
-    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>Unique conflict on module name for this institution.</td></tr>
-    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>The institution referenced by this request does not exist.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>A <code>moduleName</code> is not in the active module catalog, or no active plan row exists for this institution.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>Unique conflict on the module for this institution.</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record does not exist.</td></tr>
   </tbody>
 </table>
-<p class="note"><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again leaves exactly one row per name in the same final status and returns <span class="status-ok">200 OK</span> <code>data: true</code> — same final state. The response does not distinguish rows that were created from rows that were updated.</p>
-<p class="note"><strong>Side effect.</strong> After a successful save, the institution's module-setup onboarding step (see <a href="#get-onboard-module">GET /onboard/module</a>) is marked complete, and the site is flagged as having unpublished changes. If either flag update fails, this request still returns <span class="status-ok">200 OK</span> (the modules are already saved).</p>
+<p class="note"><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again leaves exactly one row per module in the same final state and returns <span class="status-ok">200 OK</span> <code>data: true</code>; the repeat changes nothing, so it sets no flags and fires no event. The response does not distinguish created from updated rows.</p>
+<p class="note"><strong>Side effect.</strong> When the save changed anything, the institution's module-setup onboarding step (see <a href="#get-onboard-module">GET /onboard/module</a>) is marked complete and the site is flagged as having unpublished changes. When pages were turned off with a module, the institution's active-pages file is rebuilt. If any of these fails, this request still returns <span class="status-ok">200 OK</span> (the modules are already saved).</p>
 <h4>Events</h4>
-<p>Fires <code>MODULE_STATUS_UPDATED</code> after the modules are saved.</p>
+<p>Fires <code>MODULE_STATUS_UPDATED</code> after the save, only when at least one module was created or changed.</p>
 </details>
 </section>
 
 <!-- ================================================================= PAGE -->
 <section id="page">
 <h2>Page</h2>
-<p>Same contract as <a href="#module">Module</a> for per-institution page on/off toggles — substitute <code>page</code> / <code>pageName</code> / <code>pageId</code> for <code>module</code> / <code>moduleName</code> / <code>moduleId</code> — except <a href="#post-page">POST /page</a>, which also requires a <code>moduleName</code> per item and enforces its own module/page-pairing and module-enabled rules instead of Module's plan-limit rule.</p>
+<p>Manages per-institution pages. <code>websiteDisplay</code> decides whether a page is shown on the website. Each page belongs to one catalog module; a page is identified by its <code>(moduleName, pageName)</code> pair, matched exactly (case-sensitive, not trimmed) against <a href="#get-module-list-pages">GET /module/list-pages</a>.</p>
 
 <details id="get-page">
 <summary><span class="method">GET</span> <code>/page</code></summary>
-<p>List every active page and its on/off status for the caller's institution.</p>
+<p>List every active page, its <code>websiteDisplay</code> value and its module's for the caller's institution. Call it to render the page-settings screen.</p>
 
 <h4>Request</h4>
 <table>
@@ -565,45 +568,68 @@
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
 <pre><code>{
-  "success": true, "message": null, "errors": null,
+  "success": true,
+  "message": null,
+  "errors": null,
   "data": [
-    { "pageId": 12, "pageName": "about",   "status": true },
-    { "pageId": 10, "pageName": "contact", "status": false }
+    { "pageId": 12, "pageName": "data_home",        "websiteDisplay": true, "moduleId": 39, "moduleName": "data_home",        "moduleWebsiteDisplay": true },
+    { "pageId": 13, "pageName": "data_school_info", "websiteDisplay": true, "moduleId": 40, "moduleName": "data_school_info", "moduleWebsiteDisplay": true }
   ]
 }</code></pre>
-<p class="small"><code>data</code> is <code>[]</code> when the institution has no pages yet. No pagination — all rows are returned, ordered by <code>pageName</code>.</p>
+<p class="small"><code>pageId</code>/<code>moduleId</code> are the institution's row ids. <code>data</code> is <code>[]</code> when the institution has no pages yet. Only pages whose module the institution has saved are listed. No pagination — all rows are returned, ordered by <code>pageName</code>. Deleted and inactive rows are excluded.</p>
 
 <h4>Error responses</h4>
-<p class="small">Same as <a href="#get-module">GET /module</a>.</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Institution not resolved.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+  </tbody>
+</table>
 </details>
 
-<details id="get-page-status">
-<summary><span class="method">GET</span> <code>/page/status</code></summary>
-<p>Get the status of a single page by name for the caller's institution.</p>
+<details id="get-page-websitedisplay">
+<summary><span class="method">GET</span> <code>/page/websitedisplay</code></summary>
+<p>Get the <code>websiteDisplay</code> value of a single page by name (plus its module's) for the caller's institution.</p>
 
 <h4>Request</h4>
 <table>
   <thead><tr><th>Environment</th><th>URL</th></tr></thead>
   <tbody>
-    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/page/status?product={product}&amp;pageName={pageName}</code></td></tr>
-    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/admin/page/status?product={product}&amp;pageName={pageName}</code></td></tr>
+    <tr><td>Testing</td><td><code>GET https://api-vweb.vidyaone.com/test/admin/page/websitedisplay?product={product}&amp;pageName={pageName}</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-vweb.vidyaone.com/admin/page/websitedisplay?product={product}&amp;pageName={pageName}</code></td></tr>
   </tbody>
 </table>
 
 <h4>Sample request</h4>
-<pre><code>GET /page/status?product=vweb
-    &pageName=about   // required, string, non-empty — trimmed before lookup</code></pre>
+<pre><code>GET /page/websitedisplay?product=vweb
+    &pageName=data_home   // required, string, non-empty — matched exactly</code></pre>
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
-<pre><code>{ "success": true, "message": null, "errors": null, "data": { "pageName": "about", "status": true } }</code></pre>
+<pre><code>{
+  "success": true,
+  "message": null,
+  "errors": null,
+  "data": { "pageName": "data_home", "websiteDisplay": true, "moduleId": 39, "moduleName": "data_home", "moduleWebsiteDisplay": true }
+}</code></pre>
+<p class="small">If two modules ever share the same page name, the page with the highest <code>pageId</code> is returned.</p>
 
 <h4>Error responses</h4>
-<p class="small">Same as <a href="#get-module-status">GET /module/status</a>; the 404 case is "no active page with that name for this institution".</p>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td><code>pageName</code> missing or empty, or institution not resolved.</td></tr>
+    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing.</td></tr>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>The institution has no active page with that name (including a catalog page it has never saved).</td></tr>
+  </tbody>
+</table>
 </details>
 
 <details id="post-page">
 <summary><span class="method">POST</span> <code>/page</code></summary>
-<p>Bulk create-or-update page statuses for the caller's institution in one call.</p>
+<p>Bulk create-or-update page <code>websiteDisplay</code> values for the caller's institution in one call. Call it when the customer saves the page-settings screen.</p>
 
 <h4>Request</h4>
 <table>
@@ -613,22 +639,23 @@
     <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/admin/page?product={product}</code></td></tr>
   </tbody>
 </table>
+<p class="small">Headers: <code>Content-Type: application/json</code>, <code>Idempotency-Key</code>.</p>
 
-<h4>Sample request body</h4>
-<pre><code>[
-  { "pageName": "about",   "moduleName": "data_about", "status": true  },  // pageName: required, string, non-empty (whitespace-only rejected), trimmed server-side
-  { "pageName": "contact", "moduleName": "data_about", "status": false },  // moduleName: required, string, non-empty (whitespace-only rejected), trimmed server-side — must be a recognized module/page pairing with pageName (see GET /module/list-pages); if status is true, this module must currently be enabled
-  { "pageName": "home",    "moduleName": "data_home" }                     // status: optional, boolean, default true
+<h4>Sample request</h4>
+<pre><code>POST /page?product=vweb</code></pre>
+<pre><code>[                                                                                               // required, non-empty array
+  { "pageName": "data_home",        "moduleName": "data_home",        "websiteDisplay": true },  // pageName: required, string, non-empty; moduleName: required, string, non-empty — the pair must be in GET /module/list-pages (exact names)
+  { "pageName": "data_school_info", "moduleName": "data_school_info", "websiteDisplay": true }   // websiteDisplay: required, boolean — no default; true requires the module to be enabled for the institution
 ]</code></pre>
-<p class="small"><code>data_home</code> and <code>data_school_info</code> are mandatory pages — their <code>status</code> is always forced to <code>true</code> regardless of what's sent.</p>
+<p class="small"><code>data_home</code> and <code>data_school_info</code> are mandatory pages — their <code>websiteDisplay</code> is always saved as <code>true</code> regardless of what's sent.</p>
 
 <h4>Behaviour</h4>
 <ul class="tight">
-  <li>Per item: an existing row for <code>pageName</code> has its status (and <code>moduleName</code>) updated; otherwise a new row is created.</li>
+  <li>Per item: the institution's row for that page is updated (a deleted or inactive row is revived/reactivated) only if something differs; if it has no row yet, one is created. A page never gets a second row.</li>
   <li>The whole batch is saved in one transaction.</li>
-  <li>Duplicate names within the same payload — the last occurrence wins.</li>
-  <li>Every item's <code>(moduleName, pageName)</code> pair must be a recognized pairing in the catalog (see <a href="#get-module-list-pages">GET /module/list-pages</a>) — an unrecognized pairing fails the whole batch before anything is saved.</li>
-  <li>An item cannot be saved with <code>status: true</code> if its named module (<code>moduleName</code>) is currently disabled — the whole request fails before anything is saved.</li>
+  <li>Duplicate pages within the same payload — the last occurrence wins.</li>
+  <li>Every <code>(moduleName, pageName)</code> pair must be an active pairing in the catalog — an unrecognized pair fails the whole batch before anything is saved.</li>
+  <li>An item with <code>websiteDisplay: true</code> fails the whole batch if its module is disabled or not yet saved for the institution (see <a href="#post-module">POST /module</a>). Saving a page as <code>false</code> is always allowed.</li>
 </ul>
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
@@ -638,27 +665,27 @@
 <table>
   <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
   <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Empty array, an item with empty <code>pageName</code> or empty <code>moduleName</code>, or institution/caller not resolved.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>Body is not a JSON array, is malformed, or a submitted value fails a database check constraint.</td></tr>
+    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Body missing, malformed or not a JSON array; empty array; a <code>null</code> item; an item with empty <code>pageName</code> or <code>moduleName</code>, or without <code>websiteDisplay</code>; or institution/caller not resolved.</td></tr>
+    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>A submitted value fails a database check constraint.</td></tr>
     <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or a required database column was left null.</td></tr>
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>An item's <code>(moduleName, pageName)</code> pair is not a recognized pairing in the catalog (see <a href="#get-module-list-pages">GET /module/list-pages</a>).</td></tr>
-    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>Unique conflict on page name for this institution.</td></tr>
-    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>The institution referenced by this request does not exist.</td></tr>
-    <tr><td class="status-err">409</td><td><code>INVALID_STATE</code></td><td>An item requests <code>status: true</code> for a page whose named module is currently disabled.</td></tr>
+    <tr><td class="status-err">404</td><td><code>RECORD_NOT_FOUND</code></td><td>An item's <code>(moduleName, pageName)</code> pair is not an active pairing in the catalog.</td></tr>
+    <tr><td class="status-err">409</td><td><code>DUPLICATE_RECORD</code></td><td>Unique conflict on the page for this institution.</td></tr>
+    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>A referenced record does not exist.</td></tr>
+    <tr><td class="status-err">409</td><td><code>INVALID_STATE</code></td><td>An item requests <code>websiteDisplay: true</code> for a page whose module is disabled or not saved for the institution.</td></tr>
   </tbody>
 </table>
-<p class="note"><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again leaves exactly one row per name in the same final status and returns <span class="status-ok">200 OK</span> <code>data: true</code> — same final state. Created vs updated rows are not distinguished in the response.</p>
-<p class="note"><strong>Side effect.</strong> After a successful save, the institution's site is flagged as having unpublished changes, and the institution's active-pages file is rebuilt. If either fails, this request still returns <span class="status-ok">200 OK</span> (the pages are already saved).</p>
+<p class="note"><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again leaves exactly one row per page in the same final state and returns <span class="status-ok">200 OK</span> <code>data: true</code>; the repeat changes nothing, so it sets no flag and fires no event (the active-pages file is rebuilt again with the same content).</p>
+<p class="note"><strong>Side effect.</strong> After every successful save the institution's active-pages file is rebuilt. When the save changed anything, the site is also flagged as having unpublished changes. If either fails, this request still returns <span class="status-ok">200 OK</span> (the pages are already saved).</p>
 <h4>Events</h4>
-<p>Fires <code>PAGE_STATUS_UPDATED</code> after the pages are saved.</p>
+<p>Fires <code>PAGE_STATUS_UPDATED</code> after the save, only when at least one page was created or changed.</p>
 </details>
 </section>
 
 <!-- ================================================================= ONBOARD -->
 <section id="onboard">
 <h2>Onboard</h2>
-<p>Tracks per-institution onboarding-progress flags. Each step — domain, module, template — has an independent <code>GET</code> (current flag) / <code>POST</code> (set flag) pair; a step's flag is unrelated to the others and does not cascade.</p>
+<p>Read-only per-institution onboarding-progress flags — one <code>GET</code> per step (domain, module, template). The flags are set by the routes that complete each step, not by these routes; each flag is independent of the others.</p>
 
 <details id="get-onboard-domain">
 <summary><span class="method">GET</span> <code>/onboard/domain</code></summary>
@@ -677,8 +704,8 @@
 <pre><code>GET /onboard/domain?product=vweb</code></pre>
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
-<pre><code>{ "success": true, "message": null, "errors": null, "data": { "isSetupDomain": true } }</code></pre>
-<p class="small">Returns <code>isSetupDomain: false</code> — not a <span class="status-err">404</span> — when the institution hasn't completed any onboarding step yet.</p>
+<pre><code>{ "success": true, "message": null, "errors": null, "data": { "isSetupDomain": false } }</code></pre>
+<p class="small">Returns <code>isSetupDomain: false</code> — not a <span class="status-err">404</span> — when the institution has no onboarding record yet. No route in this guide sets this flag.</p>
 
 <h4>Error responses</h4>
 <table>
@@ -689,41 +716,6 @@
     <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
   </tbody>
 </table>
-</details>
-
-<details id="post-onboard-domain">
-<summary><span class="method">POST</span> <code>/onboard/domain</code></summary>
-<p>Set whether the caller's institution has completed the domain-setup onboarding step. Call it once the customer finishes that step.</p>
-
-<h4>Request</h4>
-<table>
-  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
-  <tbody>
-    <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/admin/onboard/domain?product={product}</code></td></tr>
-    <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/admin/onboard/domain?product={product}</code></td></tr>
-  </tbody>
-</table>
-
-<h4>Sample request body</h4>
-<pre><code>{
-  "isSetupDomain": true   // optional, boolean, default false
-}</code></pre>
-
-<h4>Response — <span class="status-ok">200 OK</span></h4>
-<pre><code>{ "success": true, "message": null, "errors": null, "data": true }</code></pre>
-
-<h4>Error responses</h4>
-<table>
-  <thead><tr><th>Status</th><th><code>code</code></th><th>Cause</th></tr></thead>
-  <tbody>
-    <tr><td class="status-err">400</td><td><code>VALIDATION_FAILED</code></td><td>Institution not resolved.</td></tr>
-    <tr><td class="status-err">400</td><td><code>INVALID_INPUT</code></td><td>A submitted value fails a database check constraint.</td></tr>
-    <tr><td class="status-err">400</td><td><code>REQUIRED_FIELD</code></td><td><code>product</code> missing, or a required database column was left null.</td></tr>
-    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication required.</td></tr>
-    <tr><td class="status-err">409</td><td><code>FOREIGN_KEY_VIOLATION</code></td><td>The institution referenced by this request does not exist.</td></tr>
-  </tbody>
-</table>
-<p class="note"><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again leaves <code>isSetupDomain</code> at the same final value and returns <span class="status-ok">200 OK</span> <code>data: true</code> — same final state.</p>
 </details>
 
 <details id="get-onboard-module">
@@ -744,36 +736,10 @@
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
 <pre><code>{ "success": true, "message": null, "errors": null, "data": { "isSetupModule": true } }</code></pre>
-<p class="small">Returns <code>isSetupModule: false</code> — not a <span class="status-err">404</span> — when the institution hasn't completed any onboarding step yet. <a href="#post-module">POST /module</a> also sets this to <code>true</code> automatically once modules are first saved.</p>
+<p class="small">Returns <code>isSetupModule: false</code> — not a <span class="status-err">404</span> — when the institution has no onboarding record yet. Becomes <code>true</code> when a <a href="#post-module">POST /module</a> save changes anything.</p>
 
 <h4>Error responses</h4>
 <p class="small">Same as <a href="#get-onboard-domain">GET /onboard/domain</a>.</p>
-</details>
-
-<details id="post-onboard-module">
-<summary><span class="method">POST</span> <code>/onboard/module</code></summary>
-<p>Set whether the caller's institution has completed the module-setup onboarding step.</p>
-
-<h4>Request</h4>
-<table>
-  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
-  <tbody>
-    <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/admin/onboard/module?product={product}</code></td></tr>
-    <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/admin/onboard/module?product={product}</code></td></tr>
-  </tbody>
-</table>
-
-<h4>Sample request body</h4>
-<pre><code>{
-  "isSetupModule": true   // optional, boolean, default false
-}</code></pre>
-
-<h4>Response — <span class="status-ok">200 OK</span></h4>
-<pre><code>{ "success": true, "message": null, "errors": null, "data": true }</code></pre>
-
-<h4>Error responses</h4>
-<p class="small">Same as <a href="#post-onboard-domain">POST /onboard/domain</a>.</p>
-<p class="note"><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again leaves <code>isSetupModule</code> at the same final value and returns <span class="status-ok">200 OK</span> <code>data: true</code> — same final state.</p>
 </details>
 
 <details id="get-onboard-template">
@@ -794,36 +760,10 @@
 
 <h4>Response — <span class="status-ok">200 OK</span></h4>
 <pre><code>{ "success": true, "message": null, "errors": null, "data": { "isSetupTemplate": true } }</code></pre>
-<p class="small">Returns <code>isSetupTemplate: false</code> — not a <span class="status-err">404</span> — when the institution hasn't completed any onboarding step yet.</p>
+<p class="small">Returns <code>isSetupTemplate: false</code> — not a <span class="status-err">404</span> — when the institution has no onboarding record yet. Becomes <code>true</code> on every successful <a href="#post-template">POST /template</a> (re-applying the current template included).</p>
 
 <h4>Error responses</h4>
 <p class="small">Same as <a href="#get-onboard-domain">GET /onboard/domain</a>.</p>
-</details>
-
-<details id="post-onboard-template">
-<summary><span class="method">POST</span> <code>/onboard/template</code></summary>
-<p>Set whether the caller's institution has completed the template-setup onboarding step.</p>
-
-<h4>Request</h4>
-<table>
-  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
-  <tbody>
-    <tr><td>Testing</td><td><code>POST https://api-vweb.vidyaone.com/test/admin/onboard/template?product={product}</code></td></tr>
-    <tr><td>Production</td><td><code>POST https://api-vweb.vidyaone.com/admin/onboard/template?product={product}</code></td></tr>
-  </tbody>
-</table>
-
-<h4>Sample request body</h4>
-<pre><code>{
-  "isSetupTemplate": true   // optional, boolean, default false
-}</code></pre>
-
-<h4>Response — <span class="status-ok">200 OK</span></h4>
-<pre><code>{ "success": true, "message": null, "errors": null, "data": true }</code></pre>
-
-<h4>Error responses</h4>
-<p class="small">Same as <a href="#post-onboard-domain">POST /onboard/domain</a>.</p>
-<p class="note"><strong>Idempotency.</strong> Sending the same <code>Idempotency-Key</code> and body again leaves <code>isSetupTemplate</code> at the same final value and returns <span class="status-ok">200 OK</span> <code>data: true</code> — same final state.</p>
 </details>
 </section>
 

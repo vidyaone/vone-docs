@@ -26,10 +26,18 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}data?product={{product}}&file=data_home.json",
-              "host": ["{{baseUrl}}data"],
+              "host": [
+                "{{baseUrl}}data"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" },
-                { "key": "file", "value": "data_home.json" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                },
+                {
+                  "key": "file",
+                  "value": "data_home.json"
+                }
               ]
             }
           },
@@ -40,20 +48,35 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}data?product={{product}}",
-              "host": ["{{baseUrl}}data"],
+              "host": [
+                "{{baseUrl}}data"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
               ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"file\": \"data_home.json\",\n  \"data\": {\n    \"hero\": { \"title\": \"Welcome\", \"image\": \"hero.png\" },\n    \"sections\": [ { \"type\": \"text\", \"body\": \"About us\" } ]\n  },\n  \"upload_files\": [\n    { \"file_name\": \"hero.png\" }\n  ]\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"file\": \"data_home.json\",\n  \"data\": {\n    \"hero\": {\n      \"title\": \"Welcome\",\n      \"image\": \"hero.png\"\n    },\n    \"sections\": [\n      {\n        \"type\": \"text\",\n        \"body\": \"About us\"\n      }\n    ]\n  },\n  \"upload_files\": [\n    {\n      \"file_name\": \"hero.png\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -70,25 +93,42 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}module?product={{product}}",
-              "host": ["{{baseUrl}}module"],
+              "host": [
+                "{{baseUrl}}module"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Get module status",
+          "name": "Get module website display",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}module/status?product={{product}}&moduleName=data_home",
-              "host": ["{{baseUrl}}module/status"],
+              "raw": "{{baseUrl}}module/websitedisplay?product={{product}}&moduleName=data_home",
+              "host": [
+                "{{baseUrl}}module/status"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" },
-                { "key": "moduleName", "value": "data_home" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                },
+                {
+                  "key": "moduleName",
+                  "value": "data_home"
+                }
+              ],
+              "path": [
+                "module",
+                "websitedisplay"
               ]
             }
           },
@@ -101,9 +141,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}module/limit?product={{product}}",
-              "host": ["{{baseUrl}}module/limit"],
+              "host": [
+                "{{baseUrl}}module/limit"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
               ]
             }
           },
@@ -116,33 +161,53 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}module/list-pages?product={{product}}",
-              "host": ["{{baseUrl}}module/list-pages"],
+              "host": [
+                "{{baseUrl}}module/list-pages"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Save module statuses",
+          "name": "Save module website display",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}module?product={{product}}",
-              "host": ["{{baseUrl}}module"],
+              "host": [
+                "{{baseUrl}}module"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
               ]
             },
             "body": {
               "mode": "raw",
-              "raw": "[\n  { \"moduleName\": \"data_home\",  \"status\": true  },\n  { \"moduleName\": \"data_about\", \"status\": false },\n  { \"moduleName\": \"data_blog\" }\n]",
-              "options": { "raw": { "language": "json" } }
+              "raw": "[\n  {\n    \"moduleName\": \"data_home\",\n    \"websiteDisplay\": true\n  },\n  {\n    \"moduleName\": \"data_school_info\",\n    \"websiteDisplay\": true\n  }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -159,49 +224,81 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}page?product={{product}}",
-              "host": ["{{baseUrl}}page"],
+              "host": [
+                "{{baseUrl}}page"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Get page status",
+          "name": "Get page website display",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}page/status?product={{product}}&pageName=about",
-              "host": ["{{baseUrl}}page/status"],
+              "raw": "{{baseUrl}}page/websitedisplay?product={{product}}&pageName=data_home",
+              "host": [
+                "{{baseUrl}}page/status"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" },
-                { "key": "pageName", "value": "about" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                },
+                {
+                  "key": "pageName",
+                  "value": "data_home"
+                }
+              ],
+              "path": [
+                "page",
+                "websitedisplay"
               ]
             }
           },
           "response": []
         },
         {
-          "name": "Save page statuses",
+          "name": "Save page website display",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}page?product={{product}}",
-              "host": ["{{baseUrl}}page"],
+              "host": [
+                "{{baseUrl}}page"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
               ]
             },
             "body": {
               "mode": "raw",
-              "raw": "[\n  { \"pageName\": \"about\",   \"moduleName\": \"data_about\", \"status\": true  },\n  { \"pageName\": \"contact\", \"moduleName\": \"data_about\", \"status\": false },\n  { \"pageName\": \"home\",    \"moduleName\": \"data_home\" }\n]",
-              "options": { "raw": { "language": "json" } }
+              "raw": "[\n  {\n    \"pageName\": \"data_home\",\n    \"moduleName\": \"data_home\",\n    \"websiteDisplay\": true\n  },\n  {\n    \"pageName\": \"data_school_info\",\n    \"moduleName\": \"data_school_info\",\n    \"websiteDisplay\": true\n  }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -218,33 +315,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}onboard/domain?product={{product}}",
-              "host": ["{{baseUrl}}onboard/domain"],
+              "host": [
+                "{{baseUrl}}onboard/domain"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
               ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Set domain onboard status",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}onboard/domain?product={{product}}",
-              "host": ["{{baseUrl}}onboard/domain"],
-              "query": [
-                { "key": "product", "value": "{{product}}" }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"isSetupDomain\": true\n}",
-              "options": { "raw": { "language": "json" } }
             }
           },
           "response": []
@@ -256,33 +335,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}onboard/module?product={{product}}",
-              "host": ["{{baseUrl}}onboard/module"],
+              "host": [
+                "{{baseUrl}}onboard/module"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
               ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Set module onboard status",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}onboard/module?product={{product}}",
-              "host": ["{{baseUrl}}onboard/module"],
-              "query": [
-                { "key": "product", "value": "{{product}}" }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"isSetupModule\": true\n}",
-              "options": { "raw": { "language": "json" } }
             }
           },
           "response": []
@@ -294,33 +355,15 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}onboard/template?product={{product}}",
-              "host": ["{{baseUrl}}onboard/template"],
+              "host": [
+                "{{baseUrl}}onboard/template"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
               ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Set template onboard status",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}onboard/template?product={{product}}",
-              "host": ["{{baseUrl}}onboard/template"],
-              "query": [
-                { "key": "product", "value": "{{product}}" }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"isSetupTemplate\": true\n}",
-              "options": { "raw": { "language": "json" } }
             }
           },
           "response": []
@@ -337,9 +380,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}template/current?product={{product}}",
-              "host": ["{{baseUrl}}template/current"],
+              "host": [
+                "{{baseUrl}}template/current"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
               ]
             }
           },
@@ -350,20 +398,35 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}template?product={{product}}",
-              "host": ["{{baseUrl}}template"],
+              "host": [
+                "{{baseUrl}}template"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
               ]
             },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"postDTO\": {\n    \"tid\": \"modern-01\"\n  }\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -375,11 +438,22 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}template/list/paid?product={{product}}&pageNumber=1&pageSize=50",
-              "host": ["{{baseUrl}}template/list/paid"],
+              "host": [
+                "{{baseUrl}}template/list/paid"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" },
-                { "key": "pageNumber", "value": "1" },
-                { "key": "pageSize", "value": "50" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
               ]
             }
           },
@@ -392,11 +466,22 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}template/list/history?product={{product}}&pageNumber=1&pageSize=50",
-              "host": ["{{baseUrl}}template/list/history"],
+              "host": [
+                "{{baseUrl}}template/list/history"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" },
-                { "key": "pageNumber", "value": "1" },
-                { "key": "pageSize", "value": "50" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
               ]
             }
           },
@@ -414,14 +499,34 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}plugin/list?product={{product}}&pluginStatus=true&isFree=false&name=chat&pageNumber=1&pageSize=50",
-              "host": ["{{baseUrl}}plugin/list"],
+              "host": [
+                "{{baseUrl}}plugin/list"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" },
-                { "key": "pluginStatus", "value": "true" },
-                { "key": "isFree", "value": "false" },
-                { "key": "name", "value": "chat" },
-                { "key": "pageNumber", "value": "1" },
-                { "key": "pageSize", "value": "50" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                },
+                {
+                  "key": "pluginStatus",
+                  "value": "true"
+                },
+                {
+                  "key": "isFree",
+                  "value": "false"
+                },
+                {
+                  "key": "name",
+                  "value": "chat"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
               ]
             }
           },
@@ -434,11 +539,22 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}plugin/list/paid?product={{product}}&pageNumber=1&pageSize=50",
-              "host": ["{{baseUrl}}plugin/list/paid"],
+              "host": [
+                "{{baseUrl}}plugin/list/paid"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" },
-                { "key": "pageNumber", "value": "1" },
-                { "key": "pageSize", "value": "50" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
               ]
             }
           },
@@ -451,11 +567,22 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}plugin/list/paid/active?product={{product}}&pageNumber=1&pageSize=50",
-              "host": ["{{baseUrl}}plugin/list/paid/active"],
+              "host": [
+                "{{baseUrl}}plugin/list/paid/active"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" },
-                { "key": "pageNumber", "value": "1" },
-                { "key": "pageSize", "value": "50" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
               ]
             }
           },
@@ -468,11 +595,22 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}plugin/list/paid/expired?product={{product}}&pageNumber=1&pageSize=50",
-              "host": ["{{baseUrl}}plugin/list/paid/expired"],
+              "host": [
+                "{{baseUrl}}plugin/list/paid/expired"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" },
-                { "key": "pageNumber", "value": "1" },
-                { "key": "pageSize", "value": "50" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
               ]
             }
           },
@@ -485,11 +623,22 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}plugin/list/paid/renew?product={{product}}&pageNumber=1&pageSize=50",
-              "host": ["{{baseUrl}}plugin/list/paid/renew"],
+              "host": [
+                "{{baseUrl}}plugin/list/paid/renew"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" },
-                { "key": "pageNumber", "value": "1" },
-                { "key": "pageSize", "value": "50" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                },
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
               ]
             }
           },
@@ -500,20 +649,35 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}plugin/status?product={{product}}",
-              "host": ["{{baseUrl}}plugin/status"],
+              "host": [
+                "{{baseUrl}}plugin/status"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
               ]
             },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"putDTO\": {\n    \"pid\": \"chatbot-01\",\n    \"status\": true\n  }\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -523,20 +687,35 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Idempotency-Key", "value": "{{$guid}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}plugin?product={{product}}",
-              "host": ["{{baseUrl}}plugin"],
+              "host": [
+                "{{baseUrl}}plugin"
+              ],
               "query": [
-                { "key": "product", "value": "{{product}}" }
+                {
+                  "key": "product",
+                  "value": "{{product}}"
+                }
               ]
             },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"postDTO\": {\n    \"pid\": \"chatbot-01\"\n  }\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
