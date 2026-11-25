@@ -369,8 +369,8 @@
   "message": null,
   "errors": null,
   "data": [
-    { "moduleId": 39, "moduleName": "data_home",        "websiteDisplay": true },
-    { "moduleId": 40, "moduleName": "data_school_info", "websiteDisplay": true }
+    { "saasModuleId": 39, "moduleName": "data_home",        "websiteDisplay": true },
+    { "saasModuleId": 40, "moduleName": "data_school_info", "websiteDisplay": true }
   ]
 }</code></pre>
 <p class="small"><code>data</code> is <code>[]</code> when the institution has no modules yet. Only modules the institution has saved are listed (catalog modules never saved are not returned — see <a href="#get-module-list-pages">GET /module/list-pages</a>). No pagination — all rows are returned, ordered by <code>moduleName</code>. Deleted and inactive rows are excluded.</p>
@@ -476,7 +476,7 @@
     { "moduleId": 2, "moduleName": "data_school_info", "pageId": 2, "pageName": "data_school_info" }
   ]
 }</code></pre>
-<p class="small"><code>moduleId</code>/<code>pageId</code> here are catalog ids (not the institution's row ids returned by <a href="#get-module">GET /module</a> / <a href="#get-page">GET /page</a>). No pagination — every active pairing in the catalog is returned, ordered by <code>moduleId</code> then <code>pageId</code>. Cached server-side; catalog changes show up after the cache expires.</p>
+<p class="small"><code>moduleId</code>/<code>pageId</code> here are catalog ids (not the institution's row ids <code>saasModuleId</code>/<code>saasPageId</code> returned by <a href="#get-module">GET /module</a> / <a href="#get-page">GET /page</a>). No pagination — every active pairing in the catalog is returned, ordered by <code>moduleId</code> then <code>pageId</code>. Cached server-side; catalog changes show up after the cache expires.</p>
 
 <h4>Error responses</h4>
 <table>
@@ -572,11 +572,11 @@
   "message": null,
   "errors": null,
   "data": [
-    { "pageId": 12, "pageName": "data_home",        "websiteDisplay": true, "moduleId": 39, "moduleName": "data_home",        "moduleWebsiteDisplay": true },
-    { "pageId": 13, "pageName": "data_school_info", "websiteDisplay": true, "moduleId": 40, "moduleName": "data_school_info", "moduleWebsiteDisplay": true }
+    { "saasPageId": 12, "pageName": "data_home",        "websiteDisplay": true, "saasModuleId": 39, "moduleName": "data_home",        "moduleWebsiteDisplay": true },
+    { "saasPageId": 13, "pageName": "data_school_info", "websiteDisplay": true, "saasModuleId": 40, "moduleName": "data_school_info", "moduleWebsiteDisplay": true }
   ]
 }</code></pre>
-<p class="small"><code>pageId</code>/<code>moduleId</code> are the institution's row ids. <code>data</code> is <code>[]</code> when the institution has no pages yet. Only pages whose module the institution has saved are listed. No pagination — all rows are returned, ordered by <code>pageName</code>. Deleted and inactive rows are excluded.</p>
+<p class="small"><code>saasPageId</code>/<code>saasModuleId</code> are the institution's row ids (not the catalog ids from <a href="#get-module-list-pages">GET /module/list-pages</a>). <code>data</code> is <code>[]</code> when the institution has no pages yet. Only pages whose module the institution has saved are listed. No pagination — all rows are returned, ordered by <code>pageName</code>. Deleted and inactive rows are excluded.</p>
 
 <h4>Error responses</h4>
 <table>
@@ -611,9 +611,9 @@
   "success": true,
   "message": null,
   "errors": null,
-  "data": { "pageName": "data_home", "websiteDisplay": true, "moduleId": 39, "moduleName": "data_home", "moduleWebsiteDisplay": true }
+  "data": { "pageName": "data_home", "websiteDisplay": true, "saasModuleId": 39, "moduleName": "data_home", "moduleWebsiteDisplay": true }
 }</code></pre>
-<p class="small">If two modules ever share the same page name, the page with the highest <code>pageId</code> is returned.</p>
+<p class="small">If two modules ever share the same page name, the institution's most recently added of those pages is returned.</p>
 
 <h4>Error responses</h4>
 <table>

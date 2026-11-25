@@ -707,7 +707,7 @@
 <!-- ========================= Verify TC ========================= -->
 <details id="template-verify">
 <summary><span class="method">GET</span> <code>/tc/verify</code></summary>
-<p>Verifies a TC by domain plus date of birth plus <code>regNo</code>/<code>srNo</code> (either). Not matching anything is a normal result, not an error.</p>
+<p>Verifies a TC by domain plus date of birth plus <code>regNo</code> or <code>srNo</code> (when both are sent, only <code>regNo</code> is used). Not matching anything is a normal result, not an error.</p>
 
 <h4>Request</h4>
 <table>
@@ -722,10 +722,10 @@
 <h4>Sample request</h4>
 <pre><code>GET /tc/verify?domain=myschool.edusite.in&amp;regNo=REG-2026-0042&amp;srNo=SR-1123&amp;dob=2015-04-12T00:00:00Z
     domain=myschool.edusite.in   // required, string &mdash; the institution's edusite.in subdomain (e.g. "vishal.edusite.in") or custom domain (e.g. "domain.com"); optional http(s):// scheme and www. prefix; only a host ending in ".edusite.in" is treated as a subdomain
-    regNo=REG-2026-0042          // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
-    srNo=SR-1123                 // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required
+    regNo=REG-2026-0042          // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required; takes precedence over srNo
+    srNo=SR-1123                 // conditional, string, max 50 chars &mdash; at least one of regNo/srNo is required; ignored when regNo is sent
     dob=2015-04-12T00:00:00Z     // required, string, ISO-8601 date-time, UTC only (offset +00:00 or Z) &mdash; any other offset fails validation</code></pre>
-<p class="small"><code>regNo</code>/<code>srNo</code> is a single either/or requirement — sending one without the other is valid; sending both requires only one of them to match (not both). <code>domain</code>, <code>regNo</code> and <code>srNo</code> are trimmed of leading/trailing spaces; a whitespace-only <code>regNo</code>/<code>srNo</code> counts as not sent.</p>
+<p class="small"><code>regNo</code>/<code>srNo</code> is a single either/or requirement — sending one without the other is valid; when both are sent, only <code>regNo</code> is matched and <code>srNo</code> is ignored. <code>domain</code>, <code>regNo</code> and <code>srNo</code> are trimmed of leading/trailing spaces; a whitespace-only <code>regNo</code>/<code>srNo</code> counts as not sent.</p>
 
 <h4>Response</h4>
 <p><span class="status-ok">200 OK</span></p>
