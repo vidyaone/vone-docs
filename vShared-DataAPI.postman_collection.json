@@ -599,6 +599,31 @@
               ]
             }
           }
+        },
+        {
+          "name": "Plan type options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/product/plan/type/option?product=lms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "product",
+                "plan",
+                "type",
+                "option"
+              ],
+              "query": [
+                {
+                  "key": "product",
+                  "value": "lms"
+                }
+              ]
+            }
+          }
         }
       ]
     }

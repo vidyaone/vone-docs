@@ -109,6 +109,7 @@
       <li><a href="#plan-list"><code>GET /product/plan/list</code></a></li>
       <li><a href="#plan-option"><code>GET /product/plan/option</code></a></li>
       <li><a href="#plan-status-option"><code>GET /product/plan/status/option</code></a></li>
+      <li><a href="#plan-type-option"><code>GET /product/plan/type/option</code></a></li>
     </ul>
   </div>
   <a class="download" href="vShared-DataAPI.postman_collection.json" download>&#8595; Postman collection</a>
@@ -1011,6 +1012,37 @@
     { "id": 2, "name": "Trial" },
     { "id": 3, "name": "Renew" },
     { "id": 4, "name": "Active" }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Status</th><th><code>code</code></th><th>Fires when</th></tr></thead>
+  <tbody>
+    <tr><td class="status-err">401</td><td><code>UNAUTHORIZED</code></td><td>Authentication failed.</td></tr>
+  </tbody>
+</table>
+</details>
+
+<details id="plan-type-option">
+<summary>GET /product/plan/type/option</summary>
+<p>Plan type dropdown options. Always returns these three values, in this order.</p>
+<h4>Request</h4>
+<table>
+  <thead><tr><th>Environment</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>Testing</td><td><code>GET https://api-shared.vidyaone.com/test/data/product/plan/type/option</code></td></tr>
+    <tr><td>Production</td><td><code>GET https://api-shared.vidyaone.com/data/product/plan/type/option</code></td></tr>
+  </tbody>
+</table>
+<h4>Sample request</h4>
+<pre><code>GET /product/plan/type/option?product=lms    // optional, string — accepted, does not change the response</code></pre>
+<h4>Response</h4>
+<p><span class="status-ok">200 OK</span></p>
+<pre><code>{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "Free" },
+    { "id": 2, "name": "Trial" },
+    { "id": 3, "name": "Paid" }
   ]
 }</code></pre>
 <table>

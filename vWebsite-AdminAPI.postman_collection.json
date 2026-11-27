@@ -371,125 +371,6 @@
       ]
     },
     {
-      "name": "Template",
-      "item": [
-        {
-          "name": "Get current template",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}template/current?product={{product}}",
-              "host": [
-                "{{baseUrl}}template/current"
-              ],
-              "query": [
-                {
-                  "key": "product",
-                  "value": "{{product}}"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Apply template",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Idempotency-Key",
-                "value": "{{$guid}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}template?product={{product}}",
-              "host": [
-                "{{baseUrl}}template"
-              ],
-              "query": [
-                {
-                  "key": "product",
-                  "value": "{{product}}"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"postDTO\": {\n    \"tid\": \"modern-01\"\n  }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "List paid templates",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}template/list/paid?product={{product}}&pageNumber=1&pageSize=50",
-              "host": [
-                "{{baseUrl}}template/list/paid"
-              ],
-              "query": [
-                {
-                  "key": "product",
-                  "value": "{{product}}"
-                },
-                {
-                  "key": "pageNumber",
-                  "value": "1"
-                },
-                {
-                  "key": "pageSize",
-                  "value": "50"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "List template history",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}template/list/history?product={{product}}&pageNumber=1&pageSize=50",
-              "host": [
-                "{{baseUrl}}template/list/history"
-              ],
-              "query": [
-                {
-                  "key": "product",
-                  "value": "{{product}}"
-                },
-                {
-                  "key": "pageNumber",
-                  "value": "1"
-                },
-                {
-                  "key": "pageSize",
-                  "value": "50"
-                }
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
       "name": "Plugin",
       "item": [
         {
@@ -498,9 +379,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}plugin/list?product={{product}}&pluginStatus=true&isFree=false&name=chat&pageNumber=1&pageSize=50",
+              "raw": "{{baseUrl}}plugin?product={{product}}&planStatus=Active&planType=Free&pluginName=Notice&pageNumber=1&pageSize=50",
               "host": [
-                "{{baseUrl}}plugin/list"
+                "{{baseUrl}}plugin"
               ],
               "query": [
                 {
@@ -508,16 +389,16 @@
                   "value": "{{product}}"
                 },
                 {
-                  "key": "pluginStatus",
-                  "value": "true"
+                  "key": "planStatus",
+                  "value": "Active"
                 },
                 {
-                  "key": "isFree",
-                  "value": "false"
+                  "key": "planType",
+                  "value": "Free"
                 },
                 {
-                  "key": "name",
-                  "value": "chat"
+                  "key": "pluginName",
+                  "value": "Notice"
                 },
                 {
                   "key": "pageNumber",
@@ -533,14 +414,14 @@
           "response": []
         },
         {
-          "name": "List paid plugins",
+          "name": "List expired plugins",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}plugin/list/paid?product={{product}}&pageNumber=1&pageSize=50",
+              "raw": "{{baseUrl}}plugin/expired?product={{product}}&pageNumber=1&pageSize=50",
               "host": [
-                "{{baseUrl}}plugin/list/paid"
+                "{{baseUrl}}plugin/expired"
               ],
               "query": [
                 {
@@ -561,91 +442,7 @@
           "response": []
         },
         {
-          "name": "List active paid plugins",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}plugin/list/paid/active?product={{product}}&pageNumber=1&pageSize=50",
-              "host": [
-                "{{baseUrl}}plugin/list/paid/active"
-              ],
-              "query": [
-                {
-                  "key": "product",
-                  "value": "{{product}}"
-                },
-                {
-                  "key": "pageNumber",
-                  "value": "1"
-                },
-                {
-                  "key": "pageSize",
-                  "value": "50"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "List expired paid plugins",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}plugin/list/paid/expired?product={{product}}&pageNumber=1&pageSize=50",
-              "host": [
-                "{{baseUrl}}plugin/list/paid/expired"
-              ],
-              "query": [
-                {
-                  "key": "product",
-                  "value": "{{product}}"
-                },
-                {
-                  "key": "pageNumber",
-                  "value": "1"
-                },
-                {
-                  "key": "pageSize",
-                  "value": "50"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "List renewing paid plugins",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}plugin/list/paid/renew?product={{product}}&pageNumber=1&pageSize=50",
-              "host": [
-                "{{baseUrl}}plugin/list/paid/renew"
-              ],
-              "query": [
-                {
-                  "key": "product",
-                  "value": "{{product}}"
-                },
-                {
-                  "key": "pageNumber",
-                  "value": "1"
-                },
-                {
-                  "key": "pageSize",
-                  "value": "50"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Set plugin status",
+          "name": "Set plugin website display",
           "request": {
             "method": "PUT",
             "header": [
@@ -659,9 +456,9 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}plugin/status?product={{product}}",
+              "raw": "{{baseUrl}}plugin/websitedisplay?product={{product}}",
               "host": [
-                "{{baseUrl}}plugin/status"
+                "{{baseUrl}}plugin/websitedisplay"
               ],
               "query": [
                 {
@@ -672,7 +469,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"putDTO\": {\n    \"pid\": \"chatbot-01\",\n    \"status\": true\n  }\n}",
+              "raw": "{\n  \"putDTO\": {\n    \"saasPluginId\": 1,\n    \"websiteDisplay\": true\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -683,7 +480,7 @@
           "response": []
         },
         {
-          "name": "Apply plugin",
+          "name": "Add plugin",
           "request": {
             "method": "POST",
             "header": [
@@ -710,7 +507,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"postDTO\": {\n    \"pid\": \"chatbot-01\"\n  }\n}",
+              "raw": "{\n  \"postDTO\": {\n    \"pluginCode\": \"vweb_notice\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
